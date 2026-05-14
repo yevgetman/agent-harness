@@ -1,4 +1,5 @@
 # Harness open questions.
+# Harness managed file: decisions-open-questions
 #
 # Keep unresolved questions here when they affect design, implementation,
 # compatibility, upgrade behavior, or future process-domain choices.
@@ -12,7 +13,7 @@
 
 - id: upgrade-version-source
   title: How should upgrade discover available harness and module versions?
-  status: open
+  status: deferred
   owner: maintainer
   trigger: before harness upgrade --plan is used outside this local checkout
-  notes: Current upgrade planning compares installed state to the local package and module definitions only.
+  notes: Current v1 planner intentionally uses a local-checkout version source; external package or registry discovery remains deferred until distribution is chosen.

@@ -4,9 +4,8 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Design baseline and dogfood bootstrap. The initial tooling/domain depth pass is
-complete enough to permit one narrow new breadth item: read-only upgrade
-planning.
+Design baseline and dogfood bootstrap. The read-only upgrade planning depth
+pass is complete enough to select the next narrow breadth item.
 
 The repo currently has exploratory specs, four formal v1 design documents, a
 root agent operating contract, a current-state status projection, a minimal
@@ -20,6 +19,8 @@ validation. No upgrade apply command, profile system beyond `minimal`, or full
 CLI exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
+
+Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Current Decisions
 
@@ -69,7 +70,11 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
   managed-file consistency.
 - `npm run upgrade:plan` reports installed harness state without applying
   changes.
-- The dogfood repo's current upgrade plan reports no blockers.
+- The upgrade planner uses the explicit v1 version source `local-checkout`.
+- The upgrade planner reports modules, managed files, command wiring, actions,
+  warnings, blockers, and notes.
+- The dogfood repo's current upgrade plan reports no blockers or warnings.
+- Dogfood managed files now include harness-management markers.
 - `npm run decisions:list` lists decision records.
 - `npm run questions:list` lists open questions.
 
@@ -110,10 +115,8 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 
 ## Next Work
 
-- Work depth on `harness upgrade --plan`: version-source design, better module
-  comparison, richer blocker reporting, and a real target-repo exercise.
-- Decide whether the next narrow breadth increment after upgrade-plan depth
-  should be a module/profile installer or a richer installed manifest lock.
+- Decide whether the next narrow breadth increment should be a module/profile
+  installer or a richer installed manifest lock.
 - Add the next process domain only when it forces one concrete tooling
   improvement and can be dogfooded immediately.
 

@@ -1,5 +1,10 @@
 # Harness Agent Instructions
 
+Harness metadata:
+- package: portable-harness
+- version: 0.1.0
+- profile: dogfood
+
 This repo is the source repo and first dogfood target for the portable harness.
 
 ## Operating Contract

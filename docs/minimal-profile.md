@@ -42,8 +42,14 @@ The profile records a plan-first upgrade policy and exposes:
 harness upgrade --plan
 ```
 
-The command is read-only. It reports installed harness version, available local
-package version, module state, managed-file blockers, and known limits.
+The command is read-only. It reports:
+
+- Version source, currently `local-checkout`.
+- Installed and available harness versions.
+- Installed module state.
+- Managed-file state and harness-management marker warnings.
+- Command wiring state.
+- Actions, warnings, blockers, and notes.
 
 ## Current Limits
 

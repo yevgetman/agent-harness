@@ -1,6 +1,10 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
 updated: 2026-05-14
+harness:
+  package: portable-harness
+  version: 0.1.0
+  profile: dogfood
 
 orientation:
   purpose: >

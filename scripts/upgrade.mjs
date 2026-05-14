@@ -6,9 +6,12 @@ import { parse as parseYaml } from "yaml";
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
 
+function readJsonFile(path) {
+  return JSON.parse(readFileSync(path, "utf8"));
+}
+
 function readPackageVersion() {
-  const text = readFileSync(join(SOURCE_ROOT, "package.json"), "utf8");
-  return JSON.parse(text).version;
+  return readJsonFile(join(SOURCE_ROOT, "package.json")).version;
 }
 
 function readYamlFile(path) {
@@ -45,10 +48,103 @@ function loadManifest(root) {
 
 function loadModuleDefinition(root, moduleId) {
   const path = join(root, "modules", moduleId, "module.yaml");
+  if (!existsSync(path)) {
+    return { path, module: null, error: "missing" };
+  }
+
+  try {
+    const moduleYaml = readYamlFile(path);
+    return { path, module: moduleYaml?.module ?? null, error: moduleYaml?.module ? null : "missing-module-key" };
+  } catch (parseError) {
+    return { path, module: null, error: `parse-error: ${parseError.message}` };
+  }
+}
+
+function loadPackageScripts(root) {
+  const path = join(root, "package.json");
   if (!existsSync(path)) return null;
 
-  const moduleYaml = readYamlFile(path);
-  return moduleYaml?.module ?? null;
+  try {
+    return readJsonFile(path).scripts ?? {};
+  } catch {
+    return null;
+  }
+}
+
+function commandStatus(root, command, scripts) {
+  if (typeof command !== "string" || command.trim() === "") {
+    return { status: "blocker", detail: "command must be a non-empty string" };
+  }
+
+  if (command === "npm test") {
+    if (!scripts) return { status: "blocker", detail: "package.json is missing or invalid" };
+    return scripts.test
+      ? { status: "present", detail: "package script test exists" }
+      : { status: "blocker", detail: "package script test is missing" };
+  }
+
+  const npmRun = command.match(/^npm run ([^\s]+)$/);
+  if (npmRun) {
+    if (!scripts) return { status: "blocker", detail: "package.json is missing or invalid" };
+    const script = npmRun[1];
+    return scripts[script]
+      ? { status: "present", detail: `package script ${script} exists` }
+      : { status: "blocker", detail: `package script ${script} is missing` };
+  }
+
+  const nodeFile = command.match(/^node ([^\s]+)(?:\s|$)/);
+  if (nodeFile) {
+    return existsSync(join(root, nodeFile[1]))
+      ? { status: "present", detail: `${nodeFile[1]} exists` }
+      : { status: "blocker", detail: `${nodeFile[1]} is missing` };
+  }
+
+  if (command.startsWith("harness ")) {
+    return { status: "external", detail: "external harness CLI command" };
+  }
+
+  return { status: "unknown", detail: "command shape is not mechanically checked" };
+}
+
+function managedFileState(root, file) {
+  const path = join(root, file.path);
+  if (!existsSync(path)) {
+    return {
+      path: file.path,
+      owner: file.owner ?? "unknown",
+      mode: file.mode ?? "unknown",
+      status: "missing",
+      detail: "managed file is missing",
+    };
+  }
+
+  const text = readFileSync(path, "utf8");
+  const hasHarnessMarker = [
+    "Harness metadata:",
+    "Harness managed file:",
+    "Installed harness package:",
+    "\nharness:\n",
+  ].some((marker) => text.includes(marker));
+  const status = hasHarnessMarker ? "present-managed" : "present-unmarked";
+  const detail = status === "present-managed"
+    ? "contains harness management marker"
+    : "present but no harness management marker";
+
+  return {
+    path: file.path,
+    owner: file.owner ?? "unknown",
+    mode: file.mode ?? "unknown",
+    status,
+    detail,
+  };
+}
+
+function uniqueInstalledModuleIds(modules) {
+  return new Set((modules ?? []).map((moduleRef) => moduleRef.id).filter(Boolean));
+}
+
+function collectAvailableModuleIds(root, installedIds) {
+  return Array.from(installedIds).filter((id) => existsSync(join(root, "modules", id, "module.yaml")));
 }
 
 function buildPlan({ root }) {
@@ -62,8 +158,14 @@ function buildPlan({ root }) {
   const installedVersion = String(harness.harness_version ?? "unknown");
   const actions = [];
   const blockers = [];
+  const warnings = [];
   const notes = [];
   const modules = [];
+  const commands = [];
+  const managedFiles = [];
+  const scripts = loadPackageScripts(root);
+  const installedIds = uniqueInstalledModuleIds(harness.modules);
+  const availableModuleIds = collectAvailableModuleIds(root, installedIds);
 
   if (harness.upgrade?.policy !== "plan-first") {
     blockers.push(`upgrade policy is '${harness.upgrade?.policy ?? "missing"}', expected 'plan-first'`);
@@ -76,16 +178,20 @@ function buildPlan({ root }) {
   }
 
   for (const moduleRef of harness.modules ?? []) {
-    const module = loadModuleDefinition(root, moduleRef.id);
+    const loadedModule = loadModuleDefinition(root, moduleRef.id);
+    const module = loadedModule.module;
     const availableModuleVersion = module?.version ?? "unknown";
-    const status = module
-      ? moduleRef.version === availableModuleVersion
-        ? "unchanged"
-        : "candidate"
-      : "missing-definition";
+    let status = "unchanged";
+    let detail = "installed module matches local definition";
 
     if (!module) {
-      blockers.push(`module '${moduleRef.id}' is missing modules/${moduleRef.id}/module.yaml`);
+      status = "missing-definition";
+      detail = `module definition ${loadedModule.path} is ${loadedModule.error}`;
+      blockers.push(`module '${moduleRef.id}' is missing or invalid at modules/${moduleRef.id}/module.yaml`);
+    } else if (moduleRef.version !== availableModuleVersion) {
+      status = "version-change";
+      detail = `installed ${moduleRef.version ?? "unknown"} differs from local ${availableModuleVersion}`;
+      actions.push(`candidate: module ${moduleRef.id} ${moduleRef.version ?? "unknown"} -> ${availableModuleVersion}`);
     }
 
     modules.push({
@@ -93,17 +199,44 @@ function buildPlan({ root }) {
       installed_version: moduleRef.version ?? "unknown",
       available_version: availableModuleVersion,
       status,
+      detail,
     });
   }
 
+  for (const id of availableModuleIds) {
+    if (!installedIds.has(id)) {
+      modules.push({
+        id,
+        installed_version: "not-installed",
+        available_version: loadModuleDefinition(root, id).module?.version ?? "unknown",
+        status: "available-not-installed",
+        detail: "module definition exists locally but is not installed",
+      });
+    }
+  }
+
   for (const file of harness.managed_files ?? []) {
-    if (!existsSync(join(root, file.path))) {
-      blockers.push(`managed file '${file.path}' is missing`);
+    const state = managedFileState(root, file);
+    managedFiles.push(state);
+    if (state.status === "missing") {
+      blockers.push(`managed file '${state.path}' is missing`);
+    } else if (state.status === "present-unmarked" && state.mode !== "observe") {
+      warnings.push(`managed file '${state.path}' lacks harness management marker`);
+    }
+  }
+
+  for (const [name, command] of Object.entries(harness.commands ?? {})) {
+    const state = commandStatus(root, command, scripts);
+    commands.push({ name, command, ...state });
+    if (state.status === "blocker") {
+      blockers.push(`command '${name}' is not runnable: ${state.detail}`);
+    } else if (state.status === "unknown") {
+      warnings.push(`command '${name}' is not mechanically checked`);
     }
   }
 
   notes.push("apply is not implemented; this command only reports a plan");
-  notes.push("remote/package version discovery is not implemented yet");
+  notes.push("version source is local-checkout; external package discovery is deferred");
 
   return {
     ok: true,
@@ -114,8 +247,16 @@ function buildPlan({ root }) {
       available_harness_version: availableVersion,
       profile: harness.profile ?? "unknown",
       source: harness.source ?? {},
+      version_source: {
+        type: "local-checkout",
+        harness_package: "package.json",
+        modules: "modules/<id>/module.yaml",
+      },
       modules,
+      managed_files: managedFiles,
+      commands,
       actions,
+      warnings,
       blockers,
       notes,
     },
@@ -138,6 +279,7 @@ function printPlan(plan) {
   console.log(`target: ${plan.target}`);
   console.log(`profile: ${plan.profile}`);
   console.log(`policy: ${plan.policy}`);
+  console.log(`version_source: ${plan.version_source.type}`);
   console.log(`installed_harness_version: ${plan.installed_harness_version}`);
   console.log(`available_harness_version: ${plan.available_harness_version}`);
   console.log("modules:");
@@ -145,8 +287,20 @@ function printPlan(plan) {
     console.log(
       `  ${module.id}: ${module.installed_version} -> ${module.available_version} (${module.status})`,
     );
+    console.log(`    ${module.detail}`);
+  }
+  console.log("managed_files:");
+  for (const file of plan.managed_files) {
+    console.log(`  ${file.path}: ${file.status} (${file.mode}, owner: ${file.owner})`);
+    console.log(`    ${file.detail}`);
+  }
+  console.log("commands:");
+  for (const command of plan.commands) {
+    console.log(`  ${command.name}: ${command.status} (${command.command})`);
+    console.log(`    ${command.detail}`);
   }
   printList("actions", plan.actions);
+  printList("warnings", plan.warnings);
   printList("blockers", plan.blockers);
   printList("notes", plan.notes);
 }

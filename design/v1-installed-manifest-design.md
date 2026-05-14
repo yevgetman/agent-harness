@@ -138,6 +138,32 @@ harness upgrade --plan
 This command reads installed state and reports a plan. It does not apply
 upgrades, fetch remote package metadata, or mutate managed files.
 
+The plan reports:
+
+- Version source.
+- Installed and available harness versions.
+- Installed module state.
+- Managed-file state.
+- Command wiring state.
+- Actions, warnings, blockers, and notes.
+
+## Upgrade version source
+
+Until external distribution is chosen, upgrade planning uses a local version
+source:
+
+- Available harness version comes from this package's `package.json`.
+- Available module versions come from local `modules/<id>/module.yaml` files in
+  the target repo.
+- Source metadata is reported as `local-checkout`.
+
+This is intentionally limited. It gives the planner a deterministic local
+baseline while leaving package registry, Homebrew, standalone binary, or remote
+module-index discovery as later design work.
+
+When distribution is chosen, the planner should add a version source record to
+the plan output instead of hiding how available versions were resolved.
+
 ## Doctor behavior
 
 `harness doctor` is the first validation command.

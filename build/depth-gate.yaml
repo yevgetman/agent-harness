@@ -48,29 +48,34 @@ build_strategy:
     id: upgrade-plan-lifecycle
     breadth_unit: >
       Add a narrow harness lifecycle surface through harness upgrade --plan.
-    status: depth-in-progress
-    ready_for_next_breadth: false
+    status: complete
+    ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
           - harness upgrade --plan produces a read-only upgrade plan.
+          - upgrade plan reports version source, modules, managed files, commands, actions, warnings, blockers, and notes.
       - id: validation
-        status: partial
+        status: satisfied
         evidence:
           - doctor validates that the upgrade plan command is wired.
-          - upgrade plan does not yet compare against remote package versions.
+          - upgrade plan uses an explicit local-checkout version source.
+          - upgrade plan reports managed-file missing blockers and harness-management marker warnings.
+          - upgrade plan reports command wiring blockers.
       - id: tests
         status: satisfied
         evidence:
           - npm test covers upgrade plan success and missing-manifest failure.
+          - npm test covers missing managed-file blockers, command blockers, and unmarked managed-file warnings in real initialized git targets.
       - id: docs
         status: satisfied
         evidence:
-          - status.md, index.yaml, and docs/minimal-profile.md describe the plan-first command.
+          - status.md, index.yaml, docs/minimal-profile.md, and design/v1-installed-manifest-design.md describe the plan-first command and local-checkout version source.
       - id: dogfood-usage
-        status: partial
+        status: satisfied
         evidence:
           - The dogfood manifest exposes upgrade-plan.
-          - npm run upgrade:plan has been run against the dogfood repo and reports no blockers.
-          - No real target repo upgrade has been exercised yet.
+          - Dogfood managed files include harness-management markers.
+          - npm run upgrade:plan has been run against the dogfood repo and reports no blockers or warnings.
+          - Real initialized git target upgrade scenarios are covered by tests.

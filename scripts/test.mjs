@@ -8,6 +8,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -166,6 +167,10 @@ withTempDir((root) => {
   const upgrade = quiet(() => runUpgrade({ cwd: gitTarget, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after init");
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after init");
+  assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after init");
+  assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
+  assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
+  assert.equal(upgrade.plan.commands.length, 2, "upgrade plan should include command states");
 });
 
 withTempDir((root) => {
@@ -217,6 +222,69 @@ withTempDir((root) => {
 withTempDir((root) => {
   const upgrade = quiet(() => runUpgrade({ cwd: root, args: ["--plan"] }));
   assert.equal(upgrade.ok, false, "upgrade --plan should fail without a manifest");
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before upgrade blocker mutation");
+
+  unlinkSync(join(target, "status.md"));
+  const missingFilePlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(missingFilePlan.ok, true, "upgrade --plan should still return a plan with blockers");
+  assert.equal(
+    missingFilePlan.plan.blockers.some((item) => item.includes("managed file 'status.md' is missing")),
+    true,
+    "upgrade --plan should report missing managed file blockers",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before upgrade warning mutation");
+
+  writeFileSync(join(target, "AGENTS.md"), "# Custom Agent Instructions\n");
+  const driftPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(driftPlan.ok, true, "upgrade --plan should return a plan with warnings");
+  assert.equal(
+    driftPlan.plan.warnings.some((item) => item.includes("managed file 'AGENTS.md' lacks harness management marker")),
+    true,
+    "upgrade --plan should report unprovenanced managed file warnings",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before command blocker mutation");
+
+  const manifestPath = join(target, ".harness", "manifest.yaml");
+  const manifest = readFileSync(manifestPath, "utf8").replace(
+    "    doctor: harness doctor\n",
+    "    doctor: npm run missing-doctor\n",
+  );
+  writeFileSync(manifestPath, manifest);
+
+  const commandPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(commandPlan.ok, true, "upgrade --plan should return a plan with command blockers");
+  assert.equal(
+    commandPlan.plan.blockers.some((item) => item.includes("command 'doctor' is not runnable")),
+    true,
+    "upgrade --plan should report command blockers",
+  );
 });
 
 withTempDir((root) => {

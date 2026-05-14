@@ -8,6 +8,10 @@ generated_from:
   - design/v1-decisions-open-questions-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
+harness:
+  package: portable-harness
+  version: 0.1.0
+  profile: dogfood
 ---
 
 # Harness Context Briefing
@@ -70,8 +74,9 @@ Current dogfood state:
 - The first installer surface exists as `harness init --profile minimal`,
   exposed locally as `npm run init`; it now has dry-run, non-git safety, and
   installed metadata.
-- The first upgrade surface exists as `npm run upgrade:plan`; it is read-only
-  and does not apply changes.
+- The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
+  uses a `local-checkout` version source, and reports no blockers or warnings
+  for this dogfood repo.
 - Decisions And Open Questions exists in first dogfood form via `decisions/`,
   `open-questions.yaml`, `templates/decision.md`, and
   `npm run decisions:new -- "<title>"`, `npm run decisions:list`, and
@@ -92,15 +97,15 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The next useful step is to deepen the new upgrade-plan breadth before adding
-another breadth unit:
+The next useful step is to choose the next narrow breadth unit:
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
 - Expand module definitions only when a command needs the additional metadata.
-- Work through the current depth pass in `build/depth-gate.yaml`.
-- Resolve or defer how upgrade planning discovers available harness and module
-  versions outside the local checkout.
+- Use `build/depth-gate.yaml` to confirm the upgrade-plan depth pass is ready
+  before adding breadth.
+- Likely candidates are a module/profile installer or richer installed
+  manifest lock/provenance.
 - Add the next process domain only when it forces one concrete tooling
   improvement and can be dogfooded immediately.
 - Keep `status.md` current after significant choices.

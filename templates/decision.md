@@ -1,4 +1,5 @@
 ---
+# Harness managed file: decisions-open-questions
 id: <ID>
 title: <TITLE>
 status: proposed
@@ -20,4 +21,3 @@ State the decision directly.
 ## Consequences
 
 List the practical consequences, including tradeoffs and follow-up work.
-
