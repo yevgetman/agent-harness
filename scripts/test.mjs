@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
+import { runModules } from "./modules.mjs";
 import { runQuestions } from "./questions.mjs";
 import { runUpgrade } from "./upgrade.mjs";
 
@@ -59,6 +60,39 @@ function readFixture(file) {
 function initGitRepo(path) {
   mkdirSync(path, { recursive: true });
   execFileSync("git", ["init"], { cwd: path, stdio: "ignore" });
+}
+
+function createMissingArtifactSource(root) {
+  const sourceRoot = join(root, "source");
+  mkdirSync(join(sourceRoot, "modules", "broken-module"), { recursive: true });
+
+  writeFileSync(
+    join(sourceRoot, "modules", "registry.yaml"),
+    `modules:
+  - id: broken-module
+    path: modules/broken-module/module.yaml
+    status: active
+    installable: true
+`,
+  );
+
+  writeFileSync(
+    join(sourceRoot, "modules", "broken-module", "module.yaml"),
+    `module:
+  id: broken-module
+  version: 0.1.0
+  status: active
+  process_domains:
+    - broken-domain
+  install:
+    artifacts:
+      - path: broken.txt
+        type: template
+        source: modules/broken-module/templates/missing.txt
+`,
+  );
+
+  return sourceRoot;
 }
 
 function addDecisionsModule(target, { openQuestions, decision }) {
@@ -170,12 +204,175 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after init");
   assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 2, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 4, "upgrade plan should include command states");
+  const availableDecisionModule = upgrade.plan.modules.find((module) => module.id === "decisions-open-questions");
+  assert.equal(
+    availableDecisionModule?.status,
+    "available-not-installed",
+    "upgrade plan should report installable registry modules that are absent",
+  );
+
+  const moduleList = quiet(() => runModules({ cwd: root, args: ["list", "--target", gitTarget] }));
+  assert.equal(moduleList.ok, true, "modules list should pass against an initialized target");
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "agent-operating-contract")?.installed,
+    true,
+    "modules list should report bootstrap modules as installed",
+  );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "agent-operating-contract")?.installable,
+    false,
+    "modules list should report bootstrap modules as not standalone-installable",
+  );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "decisions-open-questions")?.installed,
+    false,
+    "modules list should report decisions-open-questions as available before add",
+  );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "decisions-open-questions")?.installable,
+    true,
+    "modules list should report decisions-open-questions as installable",
+  );
 });
 
 withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before module add");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "decisions-open-questions", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install decisions-open-questions");
+  assert.equal(install.installed, true, "modules add should report an install");
+  assertExists(target, "modules/decisions-open-questions/module.yaml");
+  assertExists(target, "decisions");
+  assertExists(target, "open-questions.yaml");
+  assertExists(target, "templates/decision.md");
+  assert.match(
+    readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
+    /decisions-open-questions/,
+    "modules add should update the target manifest",
+  );
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should pass after module add");
+
+  const moduleList = quiet(() => runModules({ cwd: root, args: ["list", "--target", target] }));
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "decisions-open-questions")?.installed,
+    true,
+    "modules list should report the added module as installed",
+  );
+
+  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after module add");
+  assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
+  assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
+  assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
+  assert.equal(upgrade.plan.commands.length, 7, "module add should extend command state");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
+    "unchanged",
+    "upgrade --plan should report the added module as installed",
+  );
+
+  const duplicate = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "decisions-open-questions", "--target", target],
+  }));
+  assert.equal(duplicate.ok, true, "adding an installed module should no-op");
+  assert.equal(duplicate.noop, true, "duplicate module add should report noop");
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before module collision test");
+
+  writeFileSync(join(target, "open-questions.yaml"), "# existing local file\n");
+  const blocked = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "decisions-open-questions", "--target", target],
+  }));
+  assert.equal(blocked.ok, false, "modules add should block existing file collisions");
+  assert.equal(
+    blocked.errors.some((item) => item.includes("open-questions.yaml: already exists")),
+    true,
+    "modules add should report the colliding file",
+  );
+  assertNotExists(target, "modules/decisions-open-questions/module.yaml");
+
+  const forced = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "decisions-open-questions", "--target", target, "--force"],
+  }));
+  assert.equal(forced.ok, true, "modules add --force should install through collisions");
+  assert.match(
+    readFileSync(join(target, "open-questions.yaml"), "utf8"),
+    /Harness managed file: decisions-open-questions/,
+    "modules add --force should write the managed template",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before module error tests");
+
+  const missing = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "missing-module", "--target", target],
+  }));
+  assert.equal(missing.ok, false, "unknown module should fail");
+  assert.equal(
+    missing.errors.some((item) => item.includes("unknown module 'missing-module'")),
+    true,
+    "unknown module should report the missing registry entry",
+  );
+
+  const bootstrapNoop = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "agent-operating-contract", "--target", target],
+  }));
+  assert.equal(bootstrapNoop.ok, true, "adding an already installed bootstrap module should no-op");
+  assert.equal(bootstrapNoop.noop, true, "installed bootstrap module add should report noop");
+
+  const brokenSource = createMissingArtifactSource(root);
+  const broken = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "broken-module", "--target", target],
+    sourceRoot: brokenSource,
+  }));
+  assert.equal(broken.ok, false, "modules add should fail on missing source artifacts");
+  assert.equal(
+    broken.errors.some((item) => item.includes("source template missing")),
+    true,
+    "missing artifact should be reported before writes",
+  );
+  assertNotExists(target, "modules/broken-module/module.yaml");
 });
 
 withTempDir((root) => {

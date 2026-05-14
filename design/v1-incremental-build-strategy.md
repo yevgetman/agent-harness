@@ -62,24 +62,24 @@ practical confidence. Only then add another unit of breadth.
 
 ## Current loop
 
-The initial depth pass over the first installed surfaces is complete enough to
-permit one narrow new breadth item:
+The initial installed surfaces, the read-only upgrade planning surface, and the
+first module/profile installation increment are complete enough to choose the
+next narrow breadth item.
+
+Completed breadth includes:
 
 - Initial process domains: `agent-operating-contract`,
   `progressive-orientation`, and `decisions-open-questions`.
 - Initial tooling: `.harness/manifest.yaml`, module definitions,
   `harness doctor`, `harness init --profile minimal`, `harness decisions`, and
   `harness questions`.
-- Repo-local gate: `build/depth-gate.yaml` records completed and current depth
-  passes and is validated by `harness doctor` when present.
+- Harness lifecycle planning: `harness upgrade --plan`.
+- Module/profile installation: `harness modules list`, source registry,
+  profile records, and `harness modules add decisions-open-questions`.
 
-The current depth pass is `upgrade-plan-lifecycle`:
-
-- New breadth: `harness upgrade --plan` as a read-only Harness Lifecycle
-  surface.
-- Depth target: make upgrade planning more useful before adding another breadth
-  unit, especially version-source discovery, richer module comparison, blocker
-  reporting, and a real target-repo exercise.
+The repo-local gate at `build/depth-gate.yaml` records completed and current
+depth passes and is validated by `harness doctor` when present. Use that file,
+not this design document, as the current atomic build-state record.
 
 ## Operating rules
 

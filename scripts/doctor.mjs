@@ -282,6 +282,108 @@ function checkModules(root, manifest, diagnostics) {
   return installed;
 }
 
+function checkModuleRegistry(root, diagnostics) {
+  const file = "modules/registry.yaml";
+  if (!existsSync(rel(root, file))) return null;
+
+  const registry = readYaml(root, file, diagnostics);
+  if (!registry) return null;
+
+  if (!Array.isArray(registry.modules)) {
+    error(diagnostics, `${file}: modules must be a list`);
+    return null;
+  }
+
+  const ids = new Set();
+  const entries = new Map();
+  for (const entry of registry.modules) {
+    if (!entry?.id) {
+      error(diagnostics, `${file}: module entry missing id`);
+      continue;
+    }
+
+    if (ids.has(entry.id)) {
+      error(diagnostics, `${file}: duplicate module id '${entry.id}'`);
+    }
+    ids.add(entry.id);
+    entries.set(entry.id, entry);
+
+    if (!entry.path) {
+      error(diagnostics, `${file}: module '${entry.id}' missing path`);
+      continue;
+    }
+
+    const moduleYaml = readYaml(root, entry.path, diagnostics);
+    const module = moduleYaml?.module;
+    if (!module) {
+      if (moduleYaml) error(diagnostics, `${entry.path}: missing top-level module key`);
+      continue;
+    }
+
+    if (module.id !== entry.id) {
+      error(diagnostics, `${file}: registry id '${entry.id}' does not match ${entry.path} module id '${module.id}'`);
+    }
+  }
+
+  ok(diagnostics, `${file}: ${registry.modules.length} module(s) registered`);
+  return entries;
+}
+
+function checkProfiles(root, registryEntries, diagnostics) {
+  const dir = rel(root, "profiles");
+  if (!existsSync(dir)) return;
+
+  const files = readdirSync(dir)
+    .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+    .sort();
+  const ids = new Set();
+
+  for (const file of files) {
+    const path = `profiles/${file}`;
+    const yaml = readYaml(root, path, diagnostics);
+    const profile = yaml?.profile;
+    if (!profile) {
+      if (yaml) error(diagnostics, `${path}: missing top-level profile key`);
+      continue;
+    }
+
+    if (!profile.id) {
+      error(diagnostics, `${path}: missing profile.id`);
+      continue;
+    }
+
+    if (ids.has(profile.id)) {
+      error(diagnostics, `profiles/: duplicate profile id '${profile.id}'`);
+    }
+    ids.add(profile.id);
+
+    if (!Array.isArray(profile.modules) || profile.modules.length === 0) {
+      error(diagnostics, `${path}: profile.modules must be a non-empty list`);
+      continue;
+    }
+
+    if (registryEntries) {
+      for (const moduleId of profile.modules) {
+        if (!registryEntries.has(moduleId)) {
+          error(diagnostics, `${path}: module '${moduleId}' is not in modules/registry.yaml`);
+        }
+      }
+    }
+  }
+
+  ok(diagnostics, `profiles/: ${files.length} profile(s) validated`);
+}
+
+function checkInstalledModulesInRegistry(installedModules, registryEntries, diagnostics) {
+  if (!registryEntries) return;
+
+  for (const moduleId of installedModules.keys()) {
+    if (!registryEntries.has(moduleId)) {
+      warn(diagnostics, `.harness/manifest.yaml: installed module '${moduleId}' is not in modules/registry.yaml`);
+    }
+  }
+}
+
 function checkManagedFiles(root, manifest, installedModules, diagnostics) {
   if (!Array.isArray(manifest?.managed_files)) return;
 
@@ -655,7 +757,10 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
 
   const manifest = checkManifest(root, diagnostics);
   checkCommandAvailability(root, manifest, diagnostics);
+  const registryEntries = checkModuleRegistry(root, diagnostics);
+  checkProfiles(root, registryEntries, diagnostics);
   const installedModules = checkModules(root, manifest, diagnostics);
+  checkInstalledModulesInRegistry(installedModules, registryEntries, diagnostics);
   checkManagedFiles(root, manifest, installedModules, diagnostics);
   checkIndex(root, diagnostics);
   checkStatus(root, diagnostics);

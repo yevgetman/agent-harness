@@ -1,0 +1,6 @@
+profile:
+  id: minimal
+  status: active
+  modules:
+    - agent-operating-contract
+    - progressive-orientation

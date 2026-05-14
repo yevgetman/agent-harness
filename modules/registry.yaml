@@ -1,0 +1,15 @@
+modules:
+  - id: agent-operating-contract
+    path: modules/agent-operating-contract/module.yaml
+    status: active
+    installable: false
+
+  - id: progressive-orientation
+    path: modules/progressive-orientation/module.yaml
+    status: active
+    installable: false
+
+  - id: decisions-open-questions
+    path: modules/decisions-open-questions/module.yaml
+    status: active
+    installable: true

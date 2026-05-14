@@ -7,6 +7,7 @@ generated_from:
   - design/v1-installed-manifest-design.md
   - design/v1-incremental-build-strategy.md
   - design/v1-decisions-open-questions-design.md
+  - design/v1-module-profile-installation-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -87,6 +88,13 @@ Current dogfood state:
 - The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
   uses a `local-checkout` version source, and reports no blockers or warnings
   for this dogfood repo.
+- The first module/profile installation surface exists via
+  `modules/registry.yaml`, `profiles/`, `npm run modules:list`, and
+  `node scripts/harness.mjs modules add <module-id> --target <path>`.
+- `decisions-open-questions` is mechanically installable from the registry into
+  a minimal target, and the broad temp-git test matrix now covers clean install,
+  collisions, force install, missing source artifacts, doctor, and upgrade
+  planning.
 - Decisions And Open Questions exists in first dogfood form via `decisions/`,
   `open-questions.yaml`, `templates/decision.md`, and
   `npm run decisions:new -- "<title>"`, `npm run decisions:list`, and
@@ -107,15 +115,14 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The next useful step is to choose the next narrow breadth unit:
+The next useful step is to choose the next narrow breadth unit after the
+module/profile installation depth pass.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
 - Expand module definitions only when a command needs the additional metadata.
-- Use `build/depth-gate.yaml` to confirm the upgrade-plan depth pass is ready
-  before adding breadth.
-- Likely candidates are a module/profile installer or richer installed
-  manifest lock/provenance.
+- Use `build/depth-gate.yaml` to confirm the module/profile installation pass
+  before selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
 - Add the next process domain only when it forces one concrete tooling

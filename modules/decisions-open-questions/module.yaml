@@ -20,6 +20,20 @@ module:
       mode: merge
     - path: templates/decision.md
       mode: merge
+  commands:
+    decisions-new: harness decisions new
+    decisions-list: harness decisions list
+    questions-list: harness questions list
+  install:
+    artifacts:
+      - path: decisions/
+        type: directory
+      - path: open-questions.yaml
+        type: template
+        source: modules/decisions-open-questions/templates/open-questions.yaml
+      - path: templates/decision.md
+        type: template
+        source: modules/decisions-open-questions/templates/decision.md
   validates:
     - open-questions.yaml parses as YAML
     - open question IDs are unique

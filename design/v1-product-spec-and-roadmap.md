@@ -136,6 +136,8 @@ Current commands:
 - `harness decisions new`
 - `harness decisions list`
 - `harness questions list`
+- `harness modules list`
+- `harness modules add <module>`
 - `harness upgrade --plan`
 
 Current dogfood modules:
@@ -171,7 +173,8 @@ Exit signal:
 
 ### Phase 2: Module And Profile Installation
 
-Status: next likely breadth.
+Status: first module-add increment depth-complete; profile listing and profile
+switching remain planned.
 
 Purpose:
 
@@ -180,10 +183,13 @@ Purpose:
 - Keep module metadata small but sufficient for install, doctor, and upgrade
   planning.
 
-Candidate commands:
+Initial commands:
 
 - `harness modules list`
 - `harness modules add <module>`
+
+Candidate follow-on commands:
+
 - `harness profiles list`
 - `harness init --profile <profile>`
 

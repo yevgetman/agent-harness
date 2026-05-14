@@ -1,0 +1,160 @@
+# Formal Design: V1 Module And Profile Installation
+
+**Status:** accepted baseline  
+**Date:** 2026-05-14  
+**Scope:** module registry, profile records, and first module install commands  
+**Depends on:** `design/v1-product-spec-and-roadmap.md`,
+`design/v1-installed-manifest-design.md`
+
+This is a formal design document. It defines the first installable-module
+surface for the portable harness.
+
+## Decision
+
+Introduce a local module registry and profile records so process-domain modules
+can be listed and installed mechanically instead of hand-wired into a target
+repo.
+
+Initial commands:
+
+```text
+harness modules list
+harness modules add <module-id>
+```
+
+This is intentionally narrower than a complete package manager. The goal is to
+make the next process-domain breadth installable, validatable, and visible to
+upgrade planning.
+
+## Registry Shape
+
+The module registry lives at:
+
+```text
+modules/registry.yaml
+```
+
+Shape:
+
+```yaml
+modules:
+  - id: decisions-open-questions
+    path: modules/decisions-open-questions/module.yaml
+    status: active
+    installable: true
+```
+
+The registry records modules available from the current harness source. It does
+not mean every target repo has every module installed.
+
+Modules may be present in the registry but marked `installable: false` when
+they are currently installed only by profile initialization. In the first
+implementation, `agent-operating-contract` and `progressive-orientation` are
+bootstrapped by `harness init --profile minimal`; `decisions-open-questions` is
+the first module installable through `harness modules add`.
+
+## Profile Shape
+
+Profiles live under:
+
+```text
+profiles/
+```
+
+Initial shape:
+
+```yaml
+profile:
+  id: minimal
+  status: active
+  modules:
+    - agent-operating-contract
+    - progressive-orientation
+```
+
+A profile is a named bundle of module IDs. A target repo records its active
+profile in `.harness/manifest.yaml`.
+
+## Module Install Metadata
+
+Module definitions may include install metadata:
+
+```yaml
+module:
+  id: decisions-open-questions
+  managed_files:
+    - path: open-questions.yaml
+      mode: merge
+  commands:
+    decisions-new: harness decisions new
+  install:
+    artifacts:
+      - path: decisions/
+        type: directory
+      - path: open-questions.yaml
+        type: template
+        source: modules/decisions-open-questions/templates/open-questions.yaml
+```
+
+Initial artifact types:
+
+- `directory` — create the directory if missing.
+- `template` — copy a source file into the target path.
+
+## Install Behavior
+
+`harness modules add <module-id>` should:
+
+1. Read available modules from the local registry.
+2. Read the target `.harness/manifest.yaml`.
+3. Refuse unknown or non-installable modules.
+4. No-op when the module is already installed.
+5. Check target artifact collisions before writing.
+6. Copy the module definition into `modules/<module-id>/module.yaml`.
+7. Create declared module artifacts.
+8. Add the module to the manifest.
+9. Add module-managed files to manifest `managed_files`.
+10. Add module commands to manifest `commands`.
+
+Initial conflict behavior:
+
+- Existing files block install unless `--force` is explicitly passed.
+- Existing directories may be reused.
+- Existing manifest entries should not be duplicated.
+- No upgrade or merge behavior is applied by `modules add`.
+
+## Doctor Behavior
+
+`harness doctor` should validate registry/profile shape when those files are
+present.
+
+Initial checks:
+
+- Registry parses.
+- Registry module IDs are unique.
+- Registry module paths exist.
+- Registry entries point to matching module definitions.
+- Installed modules appear in the registry when the registry exists.
+- Profiles parse.
+- Profile IDs are unique.
+- Profile module IDs exist in the registry.
+
+## Upgrade Plan Behavior
+
+`harness upgrade --plan` should report modules available from the registry but
+not installed in the target repo.
+
+This makes the planner aware of installable-but-absent process domains without
+making any changes.
+
+## Current Limits
+
+- `modules add` does not update `index.yaml` yet.
+- `modules add` does not merge human-authored files.
+- Profile switching is not implemented.
+- Module removal is not implemented.
+- Module dependency solving is not implemented.
+- External registry discovery is deferred.
+
+These limits are acceptable for the first installable-module surface. The goal
+is to create the controlled path future process domains will use.

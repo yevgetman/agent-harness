@@ -60,6 +60,41 @@ function loadModuleDefinition(root, moduleId) {
   }
 }
 
+function loadSourceRegistry() {
+  const path = join(SOURCE_ROOT, "modules", "registry.yaml");
+  if (!existsSync(path)) {
+    return { path, modules: [], error: "missing" };
+  }
+
+  try {
+    const registry = readYamlFile(path);
+    if (!Array.isArray(registry?.modules)) {
+      return { path, modules: [], error: "missing-modules-list" };
+    }
+    return { path, modules: registry.modules, error: null };
+  } catch (parseError) {
+    return { path, modules: [], error: `parse-error: ${parseError.message}` };
+  }
+}
+
+function loadSourceModuleDefinition(registryEntry) {
+  if (!registryEntry?.path) {
+    return { path: null, module: null, error: "missing-registry-path" };
+  }
+
+  const path = join(SOURCE_ROOT, registryEntry.path);
+  if (!existsSync(path)) {
+    return { path, module: null, error: "missing" };
+  }
+
+  try {
+    const moduleYaml = readYamlFile(path);
+    return { path, module: moduleYaml?.module ?? null, error: moduleYaml?.module ? null : "missing-module-key" };
+  } catch (parseError) {
+    return { path, module: null, error: `parse-error: ${parseError.message}` };
+  }
+}
+
 function loadPackageScripts(root) {
   const path = join(root, "package.json");
   if (!existsSync(path)) return null;
@@ -143,8 +178,16 @@ function uniqueInstalledModuleIds(modules) {
   return new Set((modules ?? []).map((moduleRef) => moduleRef.id).filter(Boolean));
 }
 
-function collectAvailableModuleIds(root, installedIds) {
-  return Array.from(installedIds).filter((id) => existsSync(join(root, "modules", id, "module.yaml")));
+function collectAvailableRegistryModules() {
+  const registry = loadSourceRegistry();
+  if (registry.error) return [];
+
+  const byId = new Map();
+  for (const entry of registry.modules) {
+    if (!entry?.id || entry.installable === false || byId.has(entry.id)) continue;
+    byId.set(entry.id, entry);
+  }
+  return Array.from(byId.values());
 }
 
 function buildPlan({ root }) {
@@ -165,7 +208,7 @@ function buildPlan({ root }) {
   const managedFiles = [];
   const scripts = loadPackageScripts(root);
   const installedIds = uniqueInstalledModuleIds(harness.modules);
-  const availableModuleIds = collectAvailableModuleIds(root, installedIds);
+  const availableRegistryModules = collectAvailableRegistryModules();
 
   if (harness.upgrade?.policy !== "plan-first") {
     blockers.push(`upgrade policy is '${harness.upgrade?.policy ?? "missing"}', expected 'plan-first'`);
@@ -203,16 +246,19 @@ function buildPlan({ root }) {
     });
   }
 
-  for (const id of availableModuleIds) {
-    if (!installedIds.has(id)) {
-      modules.push({
-        id,
-        installed_version: "not-installed",
-        available_version: loadModuleDefinition(root, id).module?.version ?? "unknown",
-        status: "available-not-installed",
-        detail: "module definition exists locally but is not installed",
-      });
-    }
+  for (const registryEntry of availableRegistryModules) {
+    if (installedIds.has(registryEntry.id)) continue;
+
+    const loadedModule = loadSourceModuleDefinition(registryEntry);
+    modules.push({
+      id: registryEntry.id,
+      installed_version: "not-installed",
+      available_version: loadedModule.module?.version ?? "unknown",
+      status: "available-not-installed",
+      detail: loadedModule.module
+        ? "module is available from the source registry but is not installed"
+        : `source module definition ${registryEntry.path ?? "unknown"} is ${loadedModule.error}`,
+    });
   }
 
   for (const file of harness.managed_files ?? []) {
@@ -250,6 +296,7 @@ function buildPlan({ root }) {
       version_source: {
         type: "local-checkout",
         harness_package: "package.json",
+        module_registry: "modules/registry.yaml",
         modules: "modules/<id>/module.yaml",
       },
       modules,

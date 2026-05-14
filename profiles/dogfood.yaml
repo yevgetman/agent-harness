@@ -1,0 +1,7 @@
+profile:
+  id: dogfood
+  status: active
+  modules:
+    - agent-operating-contract
+    - progressive-orientation
+    - decisions-open-questions

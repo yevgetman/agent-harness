@@ -51,6 +51,15 @@ change:
 
 History belongs in git. Current orientation belongs in `status.md`.
 
+## Commit And Push Discipline
+
+After completing a feature, process-domain increment, significant doc update,
+or validation/tooling change, commit and push the work unless there is a clear
+reason to defer remote publication.
+
+If pushing is deferred, record the reason in `status.md` or the final response
+so the next agent understands the handoff state.
+
 ## Progressive Orientation Discipline
 
 Keep `AGENTS.md` short. It should route agents to the right context, not absorb
@@ -102,6 +111,15 @@ Use `npm run questions:list` to inspect unresolved questions.
 
 Use `npm run upgrade:plan` to inspect installed harness state before changing
 upgrade-related behavior. The command is read-only; it does not apply changes.
+
+## Module Installation Discipline
+
+Use `npm run modules:list` to inspect available and installed process-domain
+modules.
+
+Use `node scripts/harness.mjs modules add <module-id> --target <path>` to
+install an available module into another harness target. The first module add
+surface is collision-averse and does not merge human-authored files.
 
 ## Current Design Vocabulary
 

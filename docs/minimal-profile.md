@@ -51,10 +51,25 @@ The command is read-only. It reports:
 - Command wiring state.
 - Actions, warnings, blockers, and notes.
 
+## Module Installation
+
+The minimal profile exposes module discovery and installation commands through
+the generated manifest:
+
+```bash
+harness modules list
+harness modules add <module-id>
+```
+
+The first mechanically installable follow-on module is
+`decisions-open-questions`.
+
 ## Current Limits
 
-- The profile does not install Decisions And Open Questions.
+- The profile does not install Decisions And Open Questions by default.
 - Upgrade behavior is plan-only; applying upgrades is not implemented yet.
+- Module installation is collision-averse and does not merge existing
+  human-authored files.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
 - The generated files include harness package, version, and profile metadata,

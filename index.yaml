@@ -26,7 +26,11 @@ reading_order:
   - v1-installed-manifest-design
   - v1-incremental-build-strategy
   - v1-decisions-open-questions-design
+  - v1-module-profile-installation-design
   - installed-manifest
+  - module-registry
+  - profile-minimal
+  - profile-dogfood
   - module-agent-operating-contract
   - module-progressive-orientation
   - module-decisions-open-questions
@@ -35,11 +39,13 @@ reading_order:
   - decision-0001
   - decision-0002
   - decision-0003
+  - decision-0004
   - decision-template
   - package
   - harness-cli
   - init
   - minimal-profile
+  - modules-cli
   - decisions-cli
   - questions-cli
   - upgrade-cli
@@ -127,6 +133,16 @@ documents:
       - v1-process-domain-design
       - v1-incremental-build-strategy
 
+  - doc_id: v1-module-profile-installation-design
+    file: design/v1-module-profile-installation-design.md
+    title: "Formal Design: V1 Module And Profile Installation"
+    kind: formal-design
+    status: active
+    summary: Accepted baseline for registry-backed module listing and first installable-module commands.
+    depends_on:
+      - v1-product-spec-and-roadmap
+      - v1-installed-manifest-design
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -135,6 +151,33 @@ documents:
     summary: Dogfood manifest recording the harness modules installed in this repo.
     depends_on:
       - v1-installed-manifest-design
+
+  - doc_id: module-registry
+    file: modules/registry.yaml
+    title: Module Registry
+    kind: module-registry
+    status: active
+    summary: Source registry of modules available for listing and installation.
+    depends_on:
+      - v1-module-profile-installation-design
+
+  - doc_id: profile-minimal
+    file: profiles/minimal.yaml
+    title: Minimal Profile
+    kind: profile-definition
+    status: active
+    summary: Minimal profile bundle for initial target repo installation.
+    depends_on:
+      - v1-module-profile-installation-design
+
+  - doc_id: profile-dogfood
+    file: profiles/dogfood.yaml
+    title: Dogfood Profile
+    kind: profile-definition
+    status: active
+    summary: Dogfood profile bundle used by the harness source repo.
+    depends_on:
+      - v1-module-profile-installation-design
 
   - doc_id: module-agent-operating-contract
     file: modules/agent-operating-contract/module.yaml
@@ -180,7 +223,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current upgrade-plan depth pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current module/profile installation depth pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -213,6 +256,16 @@ documents:
       - v1-product-spec-and-roadmap
       - v1-incremental-build-strategy
 
+  - doc_id: decision-0004
+    file: decisions/0004-adopt-registry-backed-module-installation-surface.md
+    title: Adopt Registry Backed Module Installation Surface
+    kind: decision
+    status: active
+    summary: Decision record adopting the source registry, profile records, and first module listing/add commands.
+    depends_on:
+      - v1-module-profile-installation-design
+      - v1-product-spec-and-roadmap
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -227,7 +280,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, decisions, questions, upgrade planning, doctor, and test commands.
+    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, upgrade planning, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -237,7 +290,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, upgrade planning, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, upgrade planning, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -260,6 +313,16 @@ documents:
     depends_on:
       - init
       - v1-installed-manifest-design
+
+  - doc_id: modules-cli
+    file: scripts/modules.mjs
+    title: Harness Modules CLI
+    kind: cli
+    status: active
+    summary: Registry-backed module listing and module installation command implementation.
+    depends_on:
+      - v1-module-profile-installation-design
+      - module-registry
 
   - doc_id: decisions-cli
     file: scripts/decisions.mjs
@@ -293,7 +356,7 @@ documents:
     title: Harness Doctor
     kind: cli
     status: active
-    summary: Installed-harness health validator with grouped diagnostics, hints, index checks, command checks, depth-gate checks, and active module checks.
+    summary: Installed-harness health validator with grouped diagnostics, hints, index checks, command checks, registry/profile checks, depth-gate checks, and active module checks.
     depends_on:
       - v1-installed-manifest-design
       - v1-decisions-open-questions-design
@@ -303,7 +366,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, doctor validation, decisions, questions, upgrade planning, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, doctor validation, decisions, questions, modules, upgrade planning, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - decisions-cli

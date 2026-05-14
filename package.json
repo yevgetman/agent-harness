@@ -13,6 +13,8 @@
     "decisions:new": "node scripts/harness.mjs decisions new",
     "decisions:list": "node scripts/harness.mjs decisions list",
     "questions:list": "node scripts/harness.mjs questions list",
+    "modules:list": "node scripts/harness.mjs modules list",
+    "modules:add": "node scripts/harness.mjs modules add",
     "upgrade:plan": "node scripts/harness.mjs upgrade --plan",
     "harness": "node scripts/harness.mjs",
     "test": "node scripts/test.mjs"

@@ -280,6 +280,8 @@ purpose, current state, and next work are known.
       mode: merge
   commands:
     doctor: harness doctor
+    modules-list: harness modules list
+    modules-add: harness modules add
     upgrade-plan: harness upgrade --plan
   upgrade:
     policy: plan-first

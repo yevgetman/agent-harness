@@ -5,6 +5,7 @@ import { runInit } from "./init.mjs";
 import { runDecisions } from "./decisions.mjs";
 import { runQuestions } from "./questions.mjs";
 import { runUpgrade } from "./upgrade.mjs";
+import { runModules } from "./modules.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -16,6 +17,8 @@ Usage:
   harness decisions new "<title>"
   harness decisions list
   harness questions list
+  harness modules list
+  harness modules add <module-id>
   harness upgrade --plan
   harness doctor   Validate installed harness health
   harness help     Show this help
@@ -49,6 +52,11 @@ if (command === "questions") {
 
 if (command === "upgrade") {
   const result = runUpgrade({ cwd: process.cwd(), args });
+  process.exit(result.ok ? 0 : 2);
+}
+
+if (command === "modules") {
+  const result = runModules({ cwd: process.cwd(), args });
   process.exit(result.ok ? 0 : 2);
 }
 
