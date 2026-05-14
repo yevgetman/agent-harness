@@ -215,6 +215,17 @@ function collectAvailableRegistryModules() {
   return Array.from(byId.values());
 }
 
+function addOperation(operations, { code, subject_type: subjectType, subject, detail }) {
+  const [status] = code.split("/");
+  operations.push({
+    code,
+    status,
+    subject_type: subjectType,
+    subject,
+    detail,
+  });
+}
+
 function buildPlan({ root }) {
   const loaded = loadManifest(root);
   if (loaded.error) {
@@ -231,6 +242,7 @@ function buildPlan({ root }) {
   const modules = [];
   const commands = [];
   const managedFiles = [];
+  const operations = [];
   const scripts = loadPackageScripts(root);
   const installedIds = uniqueInstalledModuleIds(harness.modules);
   const availableRegistryModules = collectAvailableRegistryModules();
@@ -244,18 +256,54 @@ function buildPlan({ root }) {
 
   if (loadedLock.status === "missing") {
     warnings.push(".harness/lock.yaml is missing; provenance is unavailable");
+    addOperation(operations, {
+      code: "review/missing-lock",
+      subject_type: "lock",
+      subject: ".harness/lock.yaml",
+      detail: "lock provenance is unavailable; review current files before accepting them as baseline",
+    });
+    addOperation(operations, {
+      code: "safe/refresh-lock",
+      subject_type: "lock",
+      subject: ".harness/lock.yaml",
+      detail: "after review, harness lock refresh can record current installed-file fingerprints",
+    });
   } else if (loadedLock.status === "invalid") {
     blockers.push(loadedLock.error);
+    addOperation(operations, {
+      code: "blocked/invalid-lock",
+      subject_type: "lock",
+      subject: ".harness/lock.yaml",
+      detail: loadedLock.error,
+    });
   }
 
   if (harness.upgrade?.policy !== "plan-first") {
     blockers.push(`upgrade policy is '${harness.upgrade?.policy ?? "missing"}', expected 'plan-first'`);
+    addOperation(operations, {
+      code: "blocked/unsupported-upgrade-policy",
+      subject_type: "upgrade-policy",
+      subject: harness.upgrade?.policy ?? "missing",
+      detail: "expected plan-first upgrade policy",
+    });
   }
 
   if (installedVersion === availableVersion) {
     actions.push("noop: installed harness version matches available package version");
+    addOperation(operations, {
+      code: "safe/noop",
+      subject_type: "harness-version",
+      subject: installedVersion,
+      detail: "installed harness version matches available package version",
+    });
   } else {
     actions.push(`candidate: harness version ${installedVersion} -> ${availableVersion}`);
+    addOperation(operations, {
+      code: "review/harness-version-change",
+      subject_type: "harness-version",
+      subject: `${installedVersion} -> ${availableVersion}`,
+      detail: "available harness version differs from installed version",
+    });
   }
 
   for (const moduleRef of harness.modules ?? []) {
@@ -269,10 +317,29 @@ function buildPlan({ root }) {
       status = "missing-definition";
       detail = `module definition ${loadedModule.path} is ${loadedModule.error}`;
       blockers.push(`module '${moduleRef.id}' is missing or invalid at modules/${moduleRef.id}/module.yaml`);
+      addOperation(operations, {
+        code: "blocked/missing-module-definition",
+        subject_type: "module",
+        subject: moduleRef.id,
+        detail,
+      });
     } else if (moduleRef.version !== availableModuleVersion) {
       status = "version-change";
       detail = `installed ${moduleRef.version ?? "unknown"} differs from local ${availableModuleVersion}`;
       actions.push(`candidate: module ${moduleRef.id} ${moduleRef.version ?? "unknown"} -> ${availableModuleVersion}`);
+      addOperation(operations, {
+        code: "review/module-version-change",
+        subject_type: "module",
+        subject: moduleRef.id,
+        detail,
+      });
+    } else {
+      addOperation(operations, {
+        code: "safe/noop",
+        subject_type: "module",
+        subject: moduleRef.id,
+        detail,
+      });
     }
 
     modules.push({
@@ -297,6 +364,14 @@ function buildPlan({ root }) {
         ? "module is available from the source registry but is not installed"
         : `source module definition ${registryEntry.path ?? "unknown"} is ${loadedModule.error}`,
     });
+    addOperation(operations, {
+      code: "deferred/installable-module-available",
+      subject_type: "module",
+      subject: registryEntry.id,
+      detail: loadedModule.module
+        ? "module is available from the source registry but is not installed"
+        : `source module definition ${registryEntry.path ?? "unknown"} is ${loadedModule.error}`,
+    });
   }
 
   for (const file of harness.managed_files ?? []) {
@@ -304,12 +379,49 @@ function buildPlan({ root }) {
     managedFiles.push(state);
     if (state.status === "missing") {
       blockers.push(`managed file '${state.path}' is missing`);
+      addOperation(operations, {
+        code: "blocked/missing-managed-file",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: state.detail,
+      });
     } else if (state.status === "present-modified" && state.mode !== "observe") {
       warnings.push(`managed file '${state.path}' differs from lock fingerprint`);
+      addOperation(operations, {
+        code: "review/modified-managed-file",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: state.detail,
+      });
     } else if (state.status === "present-unlocked" && state.mode !== "observe") {
       warnings.push(`managed file '${state.path}' has no lock fingerprint`);
+      addOperation(operations, {
+        code: "review/unlocked-managed-file",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: state.detail,
+      });
+      addOperation(operations, {
+        code: "safe/refresh-lock",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: "after review, harness lock refresh can add the missing file fingerprint",
+      });
     } else if (state.status === "present-unmarked" && state.mode !== "observe") {
       warnings.push(`managed file '${state.path}' lacks harness management marker`);
+      addOperation(operations, {
+        code: "review/unmarked-managed-file",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: state.detail,
+      });
+    } else {
+      addOperation(operations, {
+        code: "safe/noop",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: state.detail,
+      });
     }
   }
 
@@ -318,13 +430,31 @@ function buildPlan({ root }) {
     commands.push({ name, command, ...state });
     if (state.status === "blocker") {
       blockers.push(`command '${name}' is not runnable: ${state.detail}`);
+      addOperation(operations, {
+        code: "blocked/unrunnable-command",
+        subject_type: "command",
+        subject: name,
+        detail: state.detail,
+      });
     } else if (state.status === "unknown") {
       warnings.push(`command '${name}' is not mechanically checked`);
+      addOperation(operations, {
+        code: "review/unchecked-command",
+        subject_type: "command",
+        subject: name,
+        detail: state.detail,
+      });
     }
   }
 
   notes.push("apply is not implemented; this command only reports a plan");
   notes.push("version source is local-checkout; external package discovery is deferred");
+  addOperation(operations, {
+    code: "deferred/apply-not-implemented",
+    subject_type: "upgrade-apply",
+    subject: "harness upgrade apply",
+    detail: "upgrade apply is not implemented; this command only reports a plan",
+  });
 
   return {
     ok: true,
@@ -345,6 +475,7 @@ function buildPlan({ root }) {
       modules,
       managed_files: managedFiles,
       commands,
+      operations,
       actions,
       warnings,
       blockers,
@@ -392,6 +523,11 @@ function printPlan(plan) {
   for (const command of plan.commands) {
     console.log(`  ${command.name}: ${command.status} (${command.command})`);
     console.log(`    ${command.detail}`);
+  }
+  console.log("operations:");
+  for (const operation of plan.operations) {
+    console.log(`  ${operation.code}: ${operation.subject_type} ${operation.subject}`);
+    console.log(`    ${operation.detail}`);
   }
   printList("actions", plan.actions);
   printList("warnings", plan.warnings);

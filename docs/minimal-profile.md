@@ -57,6 +57,8 @@ The command is read-only. It reports:
 - Lock state.
 - Managed-file state, including clean, modified, unlocked, and missing files.
 - Command wiring state.
+- Typed operation records, including safe, review, blocked, and deferred
+  operations.
 - Actions, warnings, blockers, and notes.
 
 ## Lock Maintenance

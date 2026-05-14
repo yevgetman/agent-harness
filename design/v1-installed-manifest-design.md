@@ -147,6 +147,7 @@ The plan reports:
 - Lock state.
 - Managed-file state.
 - Command wiring state.
+- Typed operation records.
 - Actions, warnings, blockers, and notes.
 
 ## Upgrade version source

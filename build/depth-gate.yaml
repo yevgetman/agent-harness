@@ -203,41 +203,78 @@ build_strategy:
             - The dogfood repo carries .harness/lock.yaml.
             - npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo after lock generation.
 
+    - id: lock-refresh-check-command
+      breadth_unit: >
+        Add first-class lock refresh and check commands so installed-file
+        provenance can be maintained without ad hoc scripts.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness lock refresh rebuilds .harness/lock.yaml from .harness/manifest.yaml and current installed files.
+            - harness lock check reports lock drift without writing.
+            - harness lock refresh --check aliases the read-only check behavior.
+        - id: validation
+          status: satisfied
+          evidence:
+            - harness lock refresh refuses to write when expected manifest/module/managed files are missing.
+            - harness doctor hints now point to harness lock refresh when lock provenance is missing.
+            - upgrade planning continues to consume refreshed lock fingerprints.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers clean lock check after init.
+            - npm test covers drift detection after managed-file modification.
+            - npm test covers lock refresh restoring a clean check.
+            - npm test covers lock refresh refusing missing expected files.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-lock-provenance-design.md defines lock refresh and check behavior.
+            - AGENTS.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, index.yaml, and design/v1-product-spec-and-roadmap.md describe the lock command surface.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - The dogfood manifest exposes lock-refresh and lock-check.
+            - npm run lock:refresh has been used to refresh .harness/lock.yaml.
+            - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: lock-refresh-check-command
+    id: upgrade-plan-operation-classification
     breadth_unit: >
-      Add first-class lock refresh and check commands so installed-file
-      provenance can be maintained without ad hoc scripts.
+      Add typed upgrade-plan operation records so detected state maps to safe,
+      review-required, blocked, or deferred work.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness lock refresh rebuilds .harness/lock.yaml from .harness/manifest.yaml and current installed files.
-          - harness lock check reports lock drift without writing.
-          - harness lock refresh --check aliases the read-only check behavior.
+          - harness upgrade --plan emits an operations list in addition to actions, warnings, blockers, and notes.
+          - Operations include safe/noop, safe/refresh-lock, review/*, blocked/*, and deferred/* classes.
+          - Operation records include code, status, subject type, subject, and detail.
       - id: validation
         status: satisfied
         evidence:
-          - harness lock refresh refuses to write when expected manifest/module/managed files are missing.
-          - harness doctor hints now point to harness lock refresh when lock provenance is missing.
-          - upgrade planning continues to consume refreshed lock fingerprints.
+          - Missing managed files are classified as blocked/missing-managed-file.
+          - Modified managed files are classified as review/modified-managed-file.
+          - Missing and unlocked lock provenance produce review operations plus safe refresh-lock follow-ups.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers clean lock check after init.
-          - npm test covers drift detection after managed-file modification.
-          - npm test covers lock refresh restoring a clean check.
-          - npm test covers lock refresh refusing missing expected files.
+          - npm test covers clean safe/noop and deferred/apply-not-implemented operations.
+          - npm test covers blocked/missing-managed-file for missing managed files.
+          - npm test covers review/modified-managed-file for lock drift.
+          - npm test covers review/missing-lock and review/unlocked-managed-file scenarios.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-lock-provenance-design.md defines lock refresh and check behavior.
-          - AGENTS.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, index.yaml, and design/v1-product-spec-and-roadmap.md describe the lock command surface.
+          - design/v1-lock-provenance-design.md defines initial operation codes.
+          - design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe operation classification.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood manifest exposes lock-refresh and lock-check.
-          - npm run lock:refresh has been used to refresh .harness/lock.yaml.
-          - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.
+          - npm run upgrade:plan has been run against the dogfood repo and reports typed operations with no blockers or warnings.
+          - npm run lock:check, npm run doctor, and npm test pass against the dogfood repo.

@@ -14,7 +14,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
@@ -62,6 +62,16 @@ function readFixture(file) {
 
 function readLock(root) {
   return parseYaml(readFileSync(join(root, ".harness", "lock.yaml"), "utf8")).lock;
+}
+
+function writeLock(root, lock) {
+  writeFileSync(join(root, ".harness", "lock.yaml"), stringifyYaml({ lock }));
+}
+
+function hasOperation(plan, code, subject = null) {
+  return plan.operations.some((operation) =>
+    operation.code === code && (subject == null || operation.subject === subject),
+  );
 }
 
 function initGitRepo(path) {
@@ -219,6 +229,16 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
   assert.equal(upgrade.plan.commands.length, 7, "upgrade plan should include command states");
+  assert.equal(
+    hasOperation(upgrade.plan, "safe/noop", "AGENTS.md"),
+    true,
+    "upgrade plan should classify clean managed files as safe noop operations",
+  );
+  assert.equal(
+    hasOperation(upgrade.plan, "deferred/apply-not-implemented", "harness upgrade apply"),
+    true,
+    "upgrade plan should classify apply behavior as deferred",
+  );
   const availableDecisionModule = upgrade.plan.modules.find((module) => module.id === "decisions-open-questions");
   assert.equal(
     availableDecisionModule?.status,
@@ -520,6 +540,11 @@ withTempDir((root) => {
     true,
     "upgrade --plan should report missing managed file blockers",
   );
+  assert.equal(
+    hasOperation(missingFilePlan.plan, "blocked/missing-managed-file", "status.md"),
+    true,
+    "upgrade --plan should classify missing managed files as blocked operations",
+  );
 });
 
 withTempDir((root) => {
@@ -538,6 +563,38 @@ withTempDir((root) => {
     driftPlan.plan.warnings.some((item) => item.includes("managed file 'AGENTS.md' differs from lock fingerprint")),
     true,
     "upgrade --plan should report lock drift warnings",
+  );
+  assert.equal(
+    hasOperation(driftPlan.plan, "review/modified-managed-file", "AGENTS.md"),
+    true,
+    "upgrade --plan should classify modified managed files as review operations",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before unlocked managed-file test");
+
+  const lock = readLock(target);
+  lock.files = lock.files.filter((file) => file.path !== "AGENTS.md");
+  writeLock(target, lock);
+
+  const unlockedPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(unlockedPlan.ok, true, "upgrade --plan should return a plan with unlocked-file warnings");
+  assert.equal(
+    hasOperation(unlockedPlan.plan, "review/unlocked-managed-file", "AGENTS.md"),
+    true,
+    "upgrade --plan should classify unlocked managed files as review operations",
+  );
+  assert.equal(
+    hasOperation(unlockedPlan.plan, "safe/refresh-lock", "AGENTS.md"),
+    true,
+    "upgrade --plan should classify lock refresh as a safe follow-up after review",
   );
 });
 
@@ -604,6 +661,16 @@ withTempDir((root) => {
     legacyPlan.plan.warnings.some((item) => item.includes(".harness/lock.yaml is missing")),
     true,
     "upgrade --plan should warn when lock provenance is missing",
+  );
+  assert.equal(
+    hasOperation(legacyPlan.plan, "review/missing-lock", ".harness/lock.yaml"),
+    true,
+    "upgrade --plan should classify missing locks as review operations",
+  );
+  assert.equal(
+    hasOperation(legacyPlan.plan, "safe/refresh-lock", ".harness/lock.yaml"),
+    true,
+    "upgrade --plan should classify lock refresh as the safe follow-up operation",
   );
 
   const legacyDoctor = quiet(() => runDoctor({ cwd: target }));

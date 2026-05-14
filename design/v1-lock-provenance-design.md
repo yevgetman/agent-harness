@@ -154,6 +154,27 @@ Planning effects:
 This keeps upgrade behavior plan-first: the harness reports what it can safely
 infer and defers mutation when provenance is ambiguous.
 
+Upgrade plans also include typed operation records. Operation records are the
+bridge between state detection and future mutation. They do not apply changes;
+they classify what a later `harness upgrade apply` might do or refuse to do.
+
+Initial operation codes:
+
+- `safe/noop` — current state already matches the available baseline.
+- `safe/refresh-lock` — refreshing lock fingerprints is mechanically safe after
+  review accepts current file contents as baseline.
+- `review/modified-managed-file` — a managed file differs from its lock
+  fingerprint and requires human/agent review before mutation.
+- `review/unlocked-managed-file` — a managed file exists but has no lock entry.
+- `review/missing-lock` — lock provenance is absent and current files need
+  review before accepting them as baseline.
+- `blocked/missing-managed-file` — a managed file is missing.
+- `blocked/invalid-lock` — lock state is malformed.
+- `blocked/unrunnable-command` — a manifest command is not runnable.
+- `deferred/installable-module-available` — a registry module is available but
+  not installed.
+- `deferred/apply-not-implemented` — upgrade application is not implemented.
+
 ## Limits
 
 This first implementation is intentionally narrow.

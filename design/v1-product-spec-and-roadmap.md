@@ -241,6 +241,8 @@ Initial behavior:
 - `harness doctor` validates lock shape, locked files, and fingerprint drift.
 - `harness upgrade --plan` reports lock status and classifies managed files as
   clean, modified, unlocked, or missing.
+- `harness upgrade --plan` emits typed operation records such as safe, review,
+  blocked, and deferred operations.
 
 Exit signal:
 

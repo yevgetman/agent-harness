@@ -417,7 +417,7 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Read-only upgrade planning command for installed harness state, including lock-aware managed-file classification.
+    summary: Read-only upgrade planning command for installed harness state, including lock-aware managed-file state and typed operation classification.
     depends_on:
       - v1-installed-manifest-design
       - v1-lock-provenance-design

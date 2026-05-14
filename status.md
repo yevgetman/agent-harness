@@ -4,9 +4,9 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Phase 3 Lock And Provenance depth pass. The lock refresh/check command
-increment is implemented and depth-complete enough for the next narrow breadth
-decision.
+Phase 3 Lock And Provenance depth pass. The upgrade-plan operation
+classification increment is implemented and depth-complete enough for the next
+narrow breadth decision.
 
 The repo currently has exploratory specs, seven formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -22,9 +22,9 @@ Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
 command, and doctor validation. Baseline installed-file provenance exists via
 `.harness/lock.yaml`, `harness lock refresh`, `harness lock check`, lock-aware
-doctor checks, and lock-aware upgrade planning. No upgrade apply command,
-profile switching, semantic provenance, or full external CLI distribution exists
-yet.
+doctor checks, and lock-aware upgrade planning with typed operation records. No
+upgrade apply command, profile switching, semantic provenance, or full external
+CLI distribution exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -102,7 +102,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   changes.
 - The upgrade planner uses the explicit v1 version source `local-checkout`.
 - The upgrade planner reports modules, registry-available modules, managed
-  files, lock state, command wiring, actions, warnings, blockers, and notes.
+  files, lock state, command wiring, typed operations, actions, warnings,
+  blockers, and notes.
 - The dogfood repo's current upgrade plan reports no blockers or warnings.
 - Dogfood managed files now include harness-management markers.
 - `harness init` writes `.harness/lock.yaml` for installed non-directory
@@ -116,6 +117,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   drift.
 - `npm run upgrade:plan` uses lock fingerprints to distinguish clean, modified,
   unlocked, and missing managed files.
+- `npm run upgrade:plan` now emits operation records such as `safe/noop`,
+  `safe/refresh-lock`, `review/modified-managed-file`,
+  `blocked/missing-managed-file`, and `deferred/apply-not-implemented`.
 - `npm run decisions:list` lists decision records.
 - `npm run questions:list` lists open questions.
 - `npm run modules:list` lists registry modules with installed/installable
@@ -127,8 +131,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   preflight, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` now records `lock-refresh-check-command` as the
-  current complete depth pass and moves `lock-provenance-baseline` into
+- `build/depth-gate.yaml` now records `upgrade-plan-operation-classification`
+  as the current complete depth pass and moves `lock-refresh-check-command` into
   completed passes.
 
 ## Active Artifacts
@@ -190,8 +194,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 ## Next Work
 
 - Choose the next Phase 3 depth increment before adding new process-domain
-  breadth. Likely candidates are richer template/source provenance, upgrade-plan
-  operation classification, or preparing safe upgrade-apply scaffolding.
+  breadth. Likely candidates are richer template/source provenance, operation
+  grouping/summarization, or preparing safe upgrade-apply scaffolding.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 
