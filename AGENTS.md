@@ -111,9 +111,12 @@ Use `npm run questions:list` to inspect unresolved questions.
 
 Use `npm run upgrade:plan` to inspect installed harness state before changing
 upgrade-related behavior. The command is read-only; it does not apply changes.
+Use `node scripts/harness.mjs upgrade --plan --json` when stable
+machine-readable plan output matters.
 
 `npm run upgrade:apply` exists only as a safe scaffold. It may apply no-op and
-lock-refresh-safe operations, and must refuse blocked or review-required plans.
+lock-refresh-safe operations plus deterministic command repairs, and must
+refuse blocked or review-required plans.
 
 ## Lock And Provenance Discipline
 

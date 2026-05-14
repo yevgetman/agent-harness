@@ -142,6 +142,7 @@ Current commands:
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
+- `harness upgrade --plan --json`
 - `harness upgrade apply`
 
 Current dogfood modules:
@@ -216,7 +217,8 @@ that can carry process-domain improvements into target repos.
 
 ### Phase 3: Lock And Provenance
 
-Status: active; baseline lock/provenance increment implemented and dogfooded.
+Status: active; closeout lock/provenance contract increment implemented and
+dogfooded.
 
 Purpose:
 
@@ -244,13 +246,20 @@ Initial behavior:
   clean, modified, unlocked, or missing.
 - `harness upgrade --plan` emits typed operation records such as safe, review,
   blocked, and deferred operations.
+- `harness upgrade --plan --json` emits a stable machine-readable plan with
+  `plan_schema_version` and `operation_contract_version`.
 - `harness upgrade apply` is scaffolded for safe/noop and safe/refresh-lock
-  operations only.
+  operations plus deterministic package-script command repair.
+- `.harness/lock.yaml` records semantic file provenance such as artifact role,
+  owner type, module id, merge strategy, source kind, source path, and source
+  fingerprint.
 
 Exit signal:
 
 - Upgrade plan can distinguish clean files from locally changed files.
 - Upgrade plan reports safe, blocked, and review-required file operations.
+- Upgrade behavior is governed by a formal operation contract before Phase 4
+  breadth begins.
 
 ### Phase 4: Additional Process Domains
 
@@ -324,5 +333,7 @@ When choosing the next increment:
   strategy.
 - `design/v1-lock-provenance-design.md` defines Phase 3 installed-file
   provenance behavior.
+- `design/v1-upgrade-operation-contract.md` defines Phase 3 upgrade-plan and
+  apply safety behavior.
 - `spec/` contains exploratory source material and does not override formal
   product or design documents.

@@ -226,6 +226,12 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after init");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after init");
   assert.equal(upgrade.plan.lock.status, "present", "upgrade --plan should report present lock state");
+  assert.equal(upgrade.plan.plan_schema_version, 1, "upgrade plan should expose a schema version");
+  assert.equal(
+    upgrade.plan.operation_contract_version,
+    1,
+    "upgrade plan should expose an operation contract version",
+  );
   assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
   assert.equal(upgrade.plan.commands.length, 8, "upgrade plan should include command states");
@@ -251,6 +257,17 @@ withTempDir((root) => {
     apply.apply.applied.some((item) => item.includes("safe/noop")),
     true,
     "upgrade apply should report satisfied noop operations",
+  );
+  const jsonPlan = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "upgrade", "--plan", "--json"],
+    { cwd: gitTarget, encoding: "utf8" },
+  ));
+  assert.equal(jsonPlan.plan_schema_version, 1, "upgrade --plan --json should emit parseable plan JSON");
+  assert.equal(
+    jsonPlan.operation_summary.by_code["safe/noop"] > 0,
+    true,
+    "JSON upgrade plan should include operation summary counts",
   );
   const availableDecisionModule = upgrade.plan.modules.find((module) => module.id === "decisions-open-questions");
   assert.equal(
@@ -374,6 +391,11 @@ withTempDir((root) => {
   const openQuestionsLock = lock.files.find((file) => file.path === "open-questions.yaml");
   assert.equal(Boolean(openQuestionsLock), true, "modules add should add installed artifacts to the lock");
   assert.equal(openQuestionsLock.source, "module-template", "modules add should record template source kind");
+  assert.equal(openQuestionsLock.source_kind, "module-template", "modules add should record semantic source kind");
+  assert.equal(openQuestionsLock.artifact_role, "managed-file", "modules add should record artifact role");
+  assert.equal(openQuestionsLock.owner_type, "module", "modules add should record owner type");
+  assert.equal(openQuestionsLock.module_id, "decisions-open-questions", "modules add should record module id");
+  assert.equal(openQuestionsLock.merge_strategy, "merge", "modules add should record merge strategy");
   assert.equal(
     openQuestionsLock.source_path,
     "modules/decisions-open-questions/templates/open-questions.yaml",
@@ -388,6 +410,11 @@ withTempDir((root) => {
     lock.files.some((file) => file.path === ".harness/manifest.yaml"),
     true,
     "modules add should refresh the manifest lock entry",
+  );
+  assert.equal(
+    lock.files.find((file) => file.path === ".harness/manifest.yaml")?.artifact_role,
+    "installed-manifest",
+    "lock should record manifest artifact role",
   );
 
   const doctor = quiet(() => runDoctor({ cwd: target }));
@@ -739,6 +766,53 @@ withTempDir((root) => {
     commandPlan.plan.blockers.some((item) => item.includes("command 'doctor' is not runnable")),
     true,
     "upgrade --plan should report command blockers",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before command repair mutation");
+
+  mkdirSync(join(target, "scripts"), { recursive: true });
+  writeFileSync(join(target, "scripts", "harness.mjs"), "#!/usr/bin/env node\n");
+  writeFileSync(join(target, "package.json"), `${JSON.stringify({
+    name: "repair-target",
+    type: "module",
+    scripts: {},
+  }, null, 2)}\n`);
+
+  const manifestPath = join(target, ".harness", "manifest.yaml");
+  const manifest = readFileSync(manifestPath, "utf8").replace(
+    "    doctor: harness doctor\n",
+    "    doctor: npm run doctor\n",
+  );
+  writeFileSync(manifestPath, manifest);
+
+  const repairPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(repairPlan.ok, true, "upgrade --plan should return a plan with repairable commands");
+  assert.equal(repairPlan.plan.blockers.length, 0, "repairable commands should not be blockers");
+  assert.equal(
+    hasOperation(repairPlan.plan, "safe/repair-command", "doctor"),
+    true,
+    "upgrade --plan should classify deterministic command repairs as safe",
+  );
+
+  const repairApply = quiet(() => runUpgrade({ cwd: target, args: ["apply"] }));
+  assert.equal(repairApply.ok, true, "upgrade apply should apply safe command repairs");
+  assert.equal(
+    repairApply.apply.applied.some((item) => item.includes("safe/repair-command")),
+    true,
+    "upgrade apply should report command repairs",
+  );
+  assert.equal(
+    JSON.parse(readFileSync(join(target, "package.json"), "utf8")).scripts.doctor,
+    "node scripts/harness.mjs doctor",
+    "upgrade apply should restore the expected package script",
   );
 });
 

@@ -47,10 +47,13 @@ The profile records a plan-first upgrade policy and exposes:
 
 ```bash
 harness upgrade --plan
+harness upgrade --plan --json
 ```
 
-The command is read-only. It reports:
+The plan command is read-only. The JSON form is the machine-readable upgrade
+plan contract. It reports:
 
+- Plan schema and operation contract versions.
 - Version source, currently `local-checkout`.
 - Installed and available harness versions.
 - Installed module state.
@@ -68,8 +71,9 @@ The profile also exposes:
 harness upgrade apply
 ```
 
-The initial apply surface only handles `safe/noop` and `safe/refresh-lock`
-operations. It refuses blocked or review-required plans.
+The initial apply surface only handles `safe/noop`, `safe/refresh-lock`, and
+deterministic `safe/repair-command` operations. It refuses blocked or
+review-required plans.
 
 ## Lock Maintenance
 
@@ -87,6 +91,10 @@ Use `harness lock refresh` after intentional edits to harness-managed files.
 The refresh command refuses to write when expected manifest, module, or managed
 files are missing.
 
+Lock entries include file fingerprints and semantic provenance fields such as
+artifact role, owner type, module id, merge strategy, source kind, source path,
+and source fingerprint when known.
+
 ## Module Installation
 
 The minimal profile exposes module discovery and installation commands through
@@ -103,10 +111,12 @@ The first mechanically installable follow-on module is
 ## Current Limits
 
 - The profile does not install Decisions And Open Questions by default.
-- Upgrade behavior is plan-only; applying upgrades is not implemented yet.
+- Upgrade apply is intentionally narrow and does not rewrite human-facing
+  managed files yet.
 - Module installation is collision-averse and does not merge existing
   human-authored files.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
-- Lock refresh rebuilds file fingerprints, but semantic diffing and general
-  file/template upgrade application are not implemented yet.
+- Lock refresh rebuilds file fingerprints and semantic provenance, but
+  semantic diffing and general file/template upgrade application are not
+  implemented yet.

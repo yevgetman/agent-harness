@@ -4,11 +4,12 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Phase 3 Lock And Provenance depth pass. Operation summaries, richer source
-provenance, and the safe upgrade-apply scaffold are implemented and
-depth-complete enough for the next narrow breadth decision.
+Phase 3 Lock And Provenance closeout pass. The formal upgrade operation
+contract, JSON upgrade plans, semantic lock provenance, and deterministic safe
+command repair are implemented. Pause before adding Phase 4 process-domain
+breadth.
 
-The repo currently has exploratory specs, seven formal v1 documents, a root
+The repo currently has exploratory specs, eight formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
 lock file, three active module definitions, a runnable `harness doctor`
@@ -22,10 +23,10 @@ Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
 command, and doctor validation. Baseline installed-file provenance exists via
 `.harness/lock.yaml`, `harness lock refresh`, `harness lock check`, lock-aware
-doctor checks, lock-aware upgrade planning with typed operation records and
-operation summaries, and a limited safe `harness upgrade apply` scaffold. No
-general upgrade apply, profile switching, semantic provenance, or full external
-CLI distribution exists yet.
+doctor checks, semantic lock metadata, lock-aware upgrade planning with typed
+operation records, JSON plans, operation summaries, and a limited safe
+`harness upgrade apply` scaffold. No general file/template upgrade apply,
+profile switching, or full external CLI distribution exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -38,8 +39,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Phase 2 Module And Profile Installation is substantially complete for the v1
   install/list lifecycle; profile switching and profile inspection are deferred
   follow-ons rather than blockers.
-- Phase 3 Lock And Provenance is active; the first baseline implementation is
-  `.harness/lock.yaml`.
+- Phase 3 Lock And Provenance is active; the closeout implementation includes
+  `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
+  upgrade operation contract.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -102,9 +104,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run upgrade:plan` reports installed harness state without applying
   changes.
 - The upgrade planner uses the explicit v1 version source `local-checkout`.
-- The upgrade planner reports modules, registry-available modules, managed
-  files, lock state, command wiring, typed operations, operation summaries,
-  actions, warnings, blockers, and notes.
+- The upgrade planner reports plan schema, operation contract version, modules,
+  registry-available modules, managed files, lock state, command wiring, typed
+  operations, operation summaries, actions, warnings, blockers, and notes.
+- `node scripts/harness.mjs upgrade --plan --json` emits stable
+  machine-readable upgrade plans.
 - The dogfood repo's current upgrade plan reports no blockers or warnings.
 - Dogfood managed files now include harness-management markers.
 - `harness init` writes `.harness/lock.yaml` for installed non-directory
@@ -121,10 +125,12 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run upgrade:plan` now emits operation records such as `safe/noop`,
   `safe/refresh-lock`, `review/modified-managed-file`,
   `blocked/missing-managed-file`, and `deferred/apply-not-implemented`.
-- `npm run upgrade:apply` is a safe scaffold that only permits `safe/noop` and
-  `safe/refresh-lock` operations and refuses blocked or review-required plans.
-- Lock entries now preserve richer source metadata with optional `source_path`
-  and `source_sha256` fields for module definitions and template artifacts.
+- `npm run upgrade:apply` is a safe scaffold that only permits `safe/noop`,
+  `safe/refresh-lock`, and deterministic `safe/repair-command` operations and
+  refuses blocked or review-required plans.
+- Lock entries now preserve semantic provenance fields including
+  `artifact_role`, `owner_type`, `module_id`, `merge_strategy`, `source_kind`,
+  optional `source_path`, and optional `source_sha256`.
 - `npm run decisions:list` lists decision records.
 - `npm run questions:list` lists open questions.
 - `npm run modules:list` lists registry modules with installed/installable
@@ -136,9 +142,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   preflight, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` now records `safe-upgrade-apply-scaffold` as the
-  current complete depth pass and moves `upgrade-plan-operation-classification`
-  into completed passes.
+- `build/depth-gate.yaml` records `upgrade-operation-contract-closeout` as the
+  current complete depth pass before Phase 4 breadth.
 
 ## Active Artifacts
 
@@ -157,6 +162,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `design/v1-module-profile-installation-design.md` — formal module/profile
   installation design.
 - `design/v1-lock-provenance-design.md` — formal Lock And Provenance design.
+- `design/v1-upgrade-operation-contract.md` — formal Upgrade Operation
+  Contract design.
 - `build/depth-gate.yaml` — repo-local depth gate for the current build
   methodology.
 - `docs/minimal-profile.md` — reference for the current minimal install
@@ -181,6 +188,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   initial lock/provenance artifact.
 - `decisions/0007-adopt-safe-upgrade-apply-scaffold.md` — decision record for
   the limited safe upgrade apply scaffold.
+- `decisions/0008-adopt-upgrade-operation-contract-closeout.md` — decision
+  record for the formal operation contract, JSON plans, semantic provenance,
+  and safe command repair.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -191,7 +201,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   harness CLI, installer, decision/question commands, module/profile commands,
   lock command/helpers, upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
-  modules, upgrade planning, depth-gate validation, and doctor fixtures.
+  modules, semantic lock provenance, upgrade planning/apply behavior,
+  depth-gate validation, and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
@@ -200,9 +211,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Choose the next Phase 3 depth increment before adding new process-domain
-  breadth. Likely candidates are semantic provenance, operation-specific apply
-  expansion, or profile switching if lifecycle breadth becomes more valuable.
+- Pause before Phase 4 breadth. The next likely move is selecting the first
+  additional process-domain module, with Structured Metadata or Plans And
+  Status as leading candidates.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

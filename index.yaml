@@ -28,6 +28,7 @@ reading_order:
   - v1-decisions-open-questions-design
   - v1-module-profile-installation-design
   - v1-lock-provenance-design
+  - v1-upgrade-operation-contract
   - installed-manifest
   - installed-lock
   - module-registry
@@ -45,6 +46,7 @@ reading_order:
   - decision-0005
   - decision-0006
   - decision-0007
+  - decision-0008
   - decision-template
   - package
   - harness-cli
@@ -155,9 +157,19 @@ documents:
     title: "Formal Design: V1 Lock And Provenance"
     kind: formal-design
     status: active
-    summary: Accepted baseline for installed-file provenance, lock validation, and lock-aware upgrade planning.
+    summary: Accepted baseline for installed-file provenance, semantic lock metadata, lock validation, and lock-aware upgrade planning.
     depends_on:
       - v1-product-spec-and-roadmap
+      - v1-installed-manifest-design
+
+  - doc_id: v1-upgrade-operation-contract
+    file: design/v1-upgrade-operation-contract.md
+    title: "Formal Design: V1 Upgrade Operation Contract"
+    kind: formal-design
+    status: active
+    summary: Accepted baseline for machine-readable upgrade plans, operation classes, apply-enabled operations, and safe command repair.
+    depends_on:
+      - v1-lock-provenance-design
       - v1-installed-manifest-design
 
   - doc_id: installed-manifest
@@ -174,7 +186,7 @@ documents:
     title: Installed Harness Lock
     kind: dogfood-state
     status: active
-    summary: Dogfood lock recording installed-file fingerprints for harness-managed artifacts.
+    summary: Dogfood lock recording installed-file fingerprints and semantic provenance for harness-managed artifacts.
     depends_on:
       - v1-lock-provenance-design
       - installed-manifest
@@ -323,6 +335,16 @@ documents:
       - v1-lock-provenance-design
       - decision-0006
 
+  - doc_id: decision-0008
+    file: decisions/0008-adopt-upgrade-operation-contract-closeout.md
+    title: Adopt Upgrade Operation Contract Closeout
+    kind: decision
+    status: active
+    summary: Decision record adopting the formal upgrade operation contract, JSON plans, semantic provenance, and safe command repair.
+    depends_on:
+      - v1-upgrade-operation-contract
+      - decision-0007
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -401,7 +423,7 @@ documents:
     title: Harness Lock CLI
     kind: cli
     status: active
-    summary: Lock/provenance command and helpers for checking drift, refreshing lock state, hashing files, creating lock entries, reading locks, and updating locks.
+    summary: Lock/provenance command and helpers for semantic provenance, checking drift, refreshing lock state, hashing files, creating lock entries, reading locks, and updating locks.
     depends_on:
       - v1-lock-provenance-design
 
@@ -428,10 +450,11 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Upgrade planner and safe apply scaffold for installed harness state, lock-aware managed-file state, operation summaries, and typed operation classification.
+    summary: Upgrade planner and safe apply scaffold for installed harness state, JSON plans, lock-aware managed-file state, operation summaries, typed operation classification, and deterministic command repair.
     depends_on:
       - v1-installed-manifest-design
       - v1-lock-provenance-design
+      - v1-upgrade-operation-contract
 
   - doc_id: doctor
     file: scripts/doctor.mjs
@@ -449,7 +472,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, lock/provenance behavior, upgrade planning, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

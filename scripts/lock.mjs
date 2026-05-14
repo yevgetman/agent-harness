@@ -63,6 +63,37 @@ function defaultSource(path, sourceByPath = {}) {
   return "generated";
 }
 
+function artifactRole(path, harness, sourceByPath = {}) {
+  if (path === ".harness/manifest.yaml") return "installed-manifest";
+  if (moduleIdFromDefinition(path)) return "module-definition";
+  if (managedFileMap(harness).has(path)) return "managed-file";
+  if (defaultSource(path, sourceByPath) === "module-template") return "module-artifact";
+  return "generated-file";
+}
+
+function ownerType(path, harness) {
+  return defaultOwner(path, harness) === "harness-lifecycle" ? "harness-lifecycle" : "module";
+}
+
+function moduleIdFor(path, harness) {
+  const moduleId = moduleIdFromDefinition(path);
+  if (moduleId) return moduleId;
+
+  const owner = defaultOwner(path, harness);
+  return owner === "harness-lifecycle" ? null : owner;
+}
+
+function semanticFields(path, harness, sourceByPath = {}) {
+  const moduleId = moduleIdFor(path, harness);
+  return {
+    artifact_role: artifactRole(path, harness, sourceByPath),
+    owner_type: ownerType(path, harness),
+    source_kind: defaultSource(path, sourceByPath),
+    merge_strategy: defaultMode(path, harness),
+    ...(moduleId ? { module_id: moduleId } : {}),
+  };
+}
+
 function defaultSourcePath(path, sourceByPath = {}) {
   const source = sourceByPath[path];
   if (typeof source === "string" && source.startsWith("module-template:")) {
@@ -146,8 +177,13 @@ function normalizeLockFiles(files) {
     .map((file) => ({
       path: file.path,
       owner: file.owner ?? "harness-lifecycle",
+      ...(file.owner_type ? { owner_type: file.owner_type } : {}),
+      ...(file.module_id ? { module_id: file.module_id } : {}),
       mode: file.mode ?? "replace",
+      ...(file.merge_strategy ? { merge_strategy: file.merge_strategy } : {}),
+      ...(file.artifact_role ? { artifact_role: file.artifact_role } : {}),
       source: file.source ?? "generated",
+      ...(file.source_kind ? { source_kind: file.source_kind } : {}),
       ...(file.source_path ? { source_path: file.source_path } : {}),
       ...(file.source_sha256 ? { source_sha256: file.source_sha256 } : {}),
       sha256: file.sha256,
@@ -166,6 +202,7 @@ export function lockEntryForContent({ path, content, harness, sourceByPath = {} 
   return withOptionalSourceFields({
     path,
     owner: defaultOwner(path, harness),
+    ...semanticFields(path, harness, sourceByPath),
     mode: defaultMode(path, harness),
     source: defaultSource(path, sourceByPath),
     sha256: sha256(content),
@@ -195,6 +232,7 @@ export function lockEntriesFromPaths(root, paths, harness, sourceByPath = {}) {
     .map((path) => withOptionalSourceFields({
       path,
       owner: defaultOwner(path, harness),
+      ...semanticFields(path, harness, sourceByPath),
       mode: defaultMode(path, harness),
       source: defaultSource(path, sourceByPath),
       sha256: hashFile(root, path),
@@ -332,7 +370,19 @@ function fileDrift(currentLock, expectedLock) {
       continue;
     }
 
-    for (const key of ["owner", "mode", "source", "source_path", "source_sha256", "sha256"]) {
+    for (const key of [
+      "owner",
+      "owner_type",
+      "module_id",
+      "mode",
+      "merge_strategy",
+      "artifact_role",
+      "source",
+      "source_kind",
+      "source_path",
+      "source_sha256",
+      "sha256",
+    ]) {
       if (String(current[key] ?? "") !== String(expected[key] ?? "")) {
         drift.push(`${path}: ${key} differs from current file state`);
         break;

@@ -52,8 +52,13 @@ lock:
   files:
     - path: open-questions.yaml
       owner: decisions-open-questions
+      owner_type: module
+      module_id: decisions-open-questions
       mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
       source: module-template
+      source_kind: module-template
       source_path: modules/decisions-open-questions/templates/open-questions.yaml
       source_sha256: <sha256>
       sha256: <sha256>
@@ -103,7 +108,8 @@ lock before final validation.
 - reads `.harness/manifest.yaml`
 - computes the lock that would be produced from current files
 - compares current lock metadata, module records, file ownership, modes,
-  sources, and SHA-256 fingerprints against expected state
+  semantic provenance fields, sources, and SHA-256 fingerprints against
+  expected state
 - reports drift without writing
 
 `harness lock refresh --check [--target <path>]` is equivalent to
@@ -118,6 +124,8 @@ lock before final validation.
 - `lock.files` is a list.
 - file entries have unique paths.
 - file entries have valid SHA-256 values.
+- source fingerprints have valid SHA-256 values when present.
+- semantic provenance fields use known v1 values when present.
 - locked files exist.
 - current file fingerprints match the lock, or produce warnings when they do
   not.
@@ -182,6 +190,16 @@ Plans include `operation_summary` with total counts by operation status and by
 operation code. The summary is for quick scanability; individual operation
 records remain authoritative.
 
+Plans also expose `plan_schema_version` and `operation_contract_version`.
+Machine-readable consumers should use:
+
+```bash
+harness upgrade --plan --json
+```
+
+The formal operation contract lives in
+`design/v1-upgrade-operation-contract.md`.
+
 ## Apply Behavior
 
 `harness upgrade apply` is intentionally narrow.
@@ -190,6 +208,8 @@ It may apply:
 
 - `safe/noop` by reporting already-satisfied operations
 - `safe/refresh-lock` by rebuilding `.harness/lock.yaml`
+- `safe/repair-command` by restoring deterministic missing package scripts
+  when local prerequisites exist
 
 It refuses to apply when the plan contains:
 
@@ -207,7 +227,6 @@ It does not yet:
 
 - compute semantic diffs
 - identify which human edited a file
-- record template hashes separately from installed file hashes
 - support remote package provenance
 - apply general file/template upgrades
 - merge local edits into upgraded templates
@@ -224,6 +243,7 @@ Before completing Phase 3 work, run:
 npm run doctor
 npm run lock:check
 npm run upgrade:plan
+npm run upgrade:apply
 npm test
 ```
 

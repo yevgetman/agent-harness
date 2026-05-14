@@ -134,10 +134,16 @@ The current implementation exposes only:
 
 ```text
 harness upgrade --plan
+harness upgrade --plan --json
+harness upgrade apply
 ```
 
-This command reads installed state and reports a plan. It does not apply
-upgrades, fetch remote package metadata, or mutate managed files.
+The plan command reads installed state and reports a plan. The JSON form is the
+machine-readable contract. Upgrade planning does not fetch remote package
+metadata.
+
+The apply command is intentionally narrow. It does not rewrite human-facing
+managed files.
 
 The plan reports:
 
@@ -147,6 +153,7 @@ The plan reports:
 - Lock state.
 - Managed-file state.
 - Command wiring state.
+- Plan schema and operation contract versions.
 - Typed operation records.
 - Operation summary counts.
 - Actions, warnings, blockers, and notes.
@@ -186,7 +193,8 @@ Initial checks:
 - Manifest command records may expose `harness lock refresh` and
   `harness lock check` for installed-file provenance maintenance.
 - Manifest command records may expose `harness upgrade apply`; the initial
-  apply surface only permits safe/noop and safe/refresh-lock operations.
+  apply surface only permits safe/noop, safe/refresh-lock, and deterministic
+  safe/repair-command operations.
 - Manifest commands are wired when the target repo exposes local package
   scripts or node entrypoints.
 - `index.yaml` document entries point to real files.

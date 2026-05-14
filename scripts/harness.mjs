@@ -25,6 +25,7 @@ Usage:
   harness lock refresh
   harness lock check
   harness upgrade --plan
+  harness upgrade --plan --json
   harness upgrade apply
   harness doctor   Validate installed harness health
   harness help     Show this help

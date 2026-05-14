@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
@@ -6,6 +6,9 @@ import { createLockFromManifest, hashFile, lockFileMap, readLock, writeLock } fr
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
+const PLAN_SCHEMA_VERSION = 1;
+const OPERATION_CONTRACT_VERSION = 1;
+const SAFE_APPLY_CODES = new Set(["safe/noop", "safe/refresh-lock", "safe/repair-command"]);
 
 function readJsonFile(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -13,6 +16,10 @@ function readJsonFile(path) {
 
 function readPackageVersion() {
   return readJsonFile(join(SOURCE_ROOT, "package.json")).version;
+}
+
+function readSourcePackageScripts() {
+  return readJsonFile(join(SOURCE_ROOT, "package.json")).scripts ?? {};
 }
 
 function readYamlFile(path) {
@@ -24,11 +31,13 @@ function printHelp() {
 
 Usage:
   harness upgrade --plan
+  harness upgrade --plan --json
   harness upgrade plan
   harness upgrade apply
 
 The apply command is currently limited to safe/noop and safe/refresh-lock
-operations. It refuses blocked and review-required plans.
+operations plus deterministic safe/repair-command package-script repairs. It
+refuses blocked and review-required plans.
 `);
 }
 
@@ -109,6 +118,25 @@ function loadPackageScripts(root) {
   }
 }
 
+function packageScriptPrereqsExist(root, scriptCommand) {
+  const nodeFile = scriptCommand.match(/^node ([^\s]+)(?:\s|$)/);
+  if (!nodeFile) return true;
+  return existsSync(join(root, nodeFile[1]));
+}
+
+function repairablePackageScript(root, script, scripts) {
+  if (!scripts || scripts[script]) return null;
+
+  const expected = readSourcePackageScripts()[script];
+  if (!expected || !packageScriptPrereqsExist(root, expected)) return null;
+
+  return {
+    kind: "package-script",
+    script,
+    value: expected,
+  };
+}
+
 function commandStatus(root, command, scripts) {
   if (typeof command !== "string" || command.trim() === "") {
     return { status: "blocker", detail: "command must be a non-empty string" };
@@ -116,8 +144,10 @@ function commandStatus(root, command, scripts) {
 
   if (command === "npm test") {
     if (!scripts) return { status: "blocker", detail: "package.json is missing or invalid" };
-    return scripts.test
-      ? { status: "present", detail: "package script test exists" }
+    if (scripts.test) return { status: "present", detail: "package script test exists" };
+    const repair = repairablePackageScript(root, "test", scripts);
+    return repair
+      ? { status: "repairable", detail: "package script test is missing but can be restored", repair }
       : { status: "blocker", detail: "package script test is missing" };
   }
 
@@ -125,8 +155,10 @@ function commandStatus(root, command, scripts) {
   if (npmRun) {
     if (!scripts) return { status: "blocker", detail: "package.json is missing or invalid" };
     const script = npmRun[1];
-    return scripts[script]
-      ? { status: "present", detail: `package script ${script} exists` }
+    if (scripts[script]) return { status: "present", detail: `package script ${script} exists` };
+    const repair = repairablePackageScript(root, script, scripts);
+    return repair
+      ? { status: "repairable", detail: `package script ${script} is missing but can be restored`, repair }
       : { status: "blocker", detail: `package script ${script} is missing` };
   }
 
@@ -217,7 +249,7 @@ function collectAvailableRegistryModules() {
   return Array.from(byId.values());
 }
 
-function addOperation(operations, { code, subject_type: subjectType, subject, detail }) {
+function addOperation(operations, { code, subject_type: subjectType, subject, detail, ...extra }) {
   const [status] = code.split("/");
   operations.push({
     code,
@@ -225,6 +257,7 @@ function addOperation(operations, { code, subject_type: subjectType, subject, de
     subject_type: subjectType,
     subject,
     detail,
+    ...extra,
   });
 }
 
@@ -453,6 +486,14 @@ function buildPlan({ root }) {
         subject: name,
         detail: state.detail,
       });
+    } else if (state.status === "repairable") {
+      addOperation(operations, {
+        code: "safe/repair-command",
+        subject_type: "command",
+        subject: name,
+        detail: state.detail,
+        repair: state.repair,
+      });
     } else if (state.status === "unknown") {
       warnings.push(`command '${name}' is not mechanically checked`);
       addOperation(operations, {
@@ -464,7 +505,7 @@ function buildPlan({ root }) {
     }
   }
 
-  notes.push("apply is limited to safe/noop and safe/refresh-lock operations");
+  notes.push("apply is limited to safe/noop, safe/refresh-lock, and safe/repair-command operations");
   notes.push("version source is local-checkout; external package discovery is deferred");
   addOperation(operations, {
     code: "deferred/apply-not-implemented",
@@ -476,6 +517,8 @@ function buildPlan({ root }) {
   return {
     ok: true,
     plan: {
+      plan_schema_version: PLAN_SCHEMA_VERSION,
+      operation_contract_version: OPERATION_CONTRACT_VERSION,
       target: root,
       policy: harness.upgrade?.policy ?? "unknown",
       installed_harness_version: installedVersion,
@@ -505,6 +548,9 @@ function buildPlan({ root }) {
 function applyPlan({ root, plan }) {
   const blockers = plan.operations.filter((operation) => operation.status === "blocked");
   const reviews = plan.operations.filter((operation) => operation.status === "review");
+  const unsupportedSafe = plan.operations.filter((operation) =>
+    operation.status === "safe" && !SAFE_APPLY_CODES.has(operation.code),
+  );
   if (blockers.length > 0 || reviews.length > 0) {
     return {
       ok: false,
@@ -519,8 +565,72 @@ function applyPlan({ root, plan }) {
       ],
     };
   }
+  if (unsupportedSafe.length > 0) {
+    return {
+      ok: false,
+      target: root,
+      applied: [],
+      skipped: plan.operations.filter((operation) => operation.status === "deferred"),
+      blockers,
+      reviews,
+      errors: unsupportedSafe.map((operation) => `${operation.code}: safe operation is not apply-enabled`),
+    };
+  }
 
   const applied = [];
+  const commandRepairs = plan.operations.filter((operation) => operation.code === "safe/repair-command");
+  for (const operation of commandRepairs) {
+    const repair = operation.repair;
+    if (repair?.kind !== "package-script" || !repair.script || !repair.value) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: unsupported repair payload for ${operation.subject}`],
+      };
+    }
+
+    const packagePath = join(root, "package.json");
+    if (!existsSync(packagePath)) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: package.json is missing`],
+      };
+    }
+
+    let packageJson;
+    try {
+      packageJson = readJsonFile(packagePath);
+    } catch (parseError) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: package.json parse error: ${parseError.message}`],
+      };
+    }
+
+    packageJson.scripts ??= {};
+    if (!packageJson.scripts[repair.script]) {
+      packageJson.scripts[repair.script] = repair.value;
+      writeFileSync(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
+      applied.push(`safe/repair-command: package script ${repair.script}`);
+    } else {
+      applied.push(`safe/repair-command: package script ${repair.script} already present`);
+    }
+  }
+
   const refreshLock = plan.operations.some((operation) => operation.code === "safe/refresh-lock");
   if (refreshLock) {
     const loaded = loadManifest(root);
@@ -643,6 +753,7 @@ export function runUpgrade({ cwd = process.cwd(), args = [] } = {}) {
   const wantsHelp = args.includes("--help") || args.includes("-h") || args[0] === "help";
   const wantsPlan = args.includes("--plan") || args[0] === "plan";
   const wantsApply = args[0] === "apply";
+  const wantsJson = args.includes("--json");
 
   if (wantsHelp || args.length === 0) {
     printHelp();
@@ -662,12 +773,20 @@ export function runUpgrade({ cwd = process.cwd(), args = [] } = {}) {
   }
 
   if (wantsPlan) {
-    printPlan(result.plan);
+    if (wantsJson) {
+      console.log(JSON.stringify(result.plan, null, 2));
+    } else {
+      printPlan(result.plan);
+    }
     return result;
   }
 
   const applied = applyPlan({ root, plan: result.plan });
-  printApplyResult(applied);
+  if (wantsJson) {
+    console.log(JSON.stringify({ plan: result.plan, apply: applied }, null, 2));
+  } else {
+    printApplyResult(applied);
+  }
   return { ok: applied.ok, plan: result.plan, apply: applied };
 }
 

@@ -278,41 +278,81 @@ build_strategy:
             - npm run upgrade:plan has been run against the dogfood repo and reports typed operations with no blockers or warnings.
             - npm run lock:check, npm run doctor, and npm test pass against the dogfood repo.
 
+    - id: safe-upgrade-apply-scaffold
+      breadth_unit: >
+        Add operation summaries, richer source provenance, and a limited upgrade
+        apply scaffold for safe/noop and safe/refresh-lock operations.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness upgrade --plan emits operation_summary counts by status and code.
+            - Lock entries preserve source_path and source_sha256 for module definitions and template artifacts when source data is available.
+            - harness upgrade apply accepts safe/noop plans and can execute safe/refresh-lock operations.
+        - id: validation
+          status: satisfied
+          evidence:
+            - harness upgrade apply refuses blocked plans.
+            - harness upgrade apply refuses review-required plans.
+            - harness doctor validates the upgrade-apply command wiring in the dogfood manifest.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers operation summaries.
+            - npm test covers template source provenance on module-installed artifacts.
+            - npm test covers safe upgrade apply, blocked apply refusal, and review-required apply refusal.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-lock-provenance-design.md defines operation summaries and safe apply behavior.
+            - decisions/0007-adopt-safe-upgrade-apply-scaffold.md records the safe apply decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe the current apply scaffold.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - The dogfood manifest exposes upgrade-apply.
+            - npm run upgrade:apply has been run against the dogfood repo.
+            - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: safe-upgrade-apply-scaffold
+    id: upgrade-operation-contract-closeout
     breadth_unit: >
-      Add operation summaries, richer source provenance, and a limited upgrade
-      apply scaffold for safe/noop and safe/refresh-lock operations.
+      Close Phase 3 lifecycle depth with a formal upgrade operation contract,
+      stable JSON plans, semantic lock provenance, and deterministic safe
+      command repair.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness upgrade --plan emits operation_summary counts by status and code.
-          - Lock entries preserve source_path and source_sha256 for module definitions and template artifacts when source data is available.
-          - harness upgrade apply accepts safe/noop plans and can execute safe/refresh-lock operations.
+          - harness upgrade --plan includes plan_schema_version and operation_contract_version.
+          - harness upgrade --plan --json emits parseable machine-readable plan JSON.
+          - Lock entries include semantic provenance fields such as artifact_role, owner_type, module_id, merge_strategy, and source_kind.
+          - harness upgrade apply can execute safe/repair-command by restoring deterministic missing package scripts.
       - id: validation
         status: satisfied
         evidence:
-          - harness upgrade apply refuses blocked plans.
-          - harness upgrade apply refuses review-required plans.
-          - harness doctor validates the upgrade-apply command wiring in the dogfood manifest.
+          - harness doctor validates semantic lock provenance field shapes.
+          - harness upgrade apply still refuses blocked and review-required plans.
+          - safe/repair-command requires a known source package script and local file prerequisites.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers operation summaries.
-          - npm test covers template source provenance on module-installed artifacts.
-          - npm test covers safe upgrade apply, blocked apply refusal, and review-required apply refusal.
+          - npm test covers JSON upgrade plans.
+          - npm test covers semantic lock provenance fields.
+          - npm test covers deterministic safe command repair.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-lock-provenance-design.md defines operation summaries and safe apply behavior.
-          - decisions/0007-adopt-safe-upgrade-apply-scaffold.md records the safe apply decision.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe the current apply scaffold.
+          - design/v1-upgrade-operation-contract.md defines the operation contract.
+          - design/v1-lock-provenance-design.md describes semantic provenance and apply behavior.
+          - decisions/0008-adopt-upgrade-operation-contract-closeout.md records the closeout decision.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe the current contract.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood manifest exposes upgrade-apply.
-          - npm run upgrade:apply has been run against the dogfood repo.
-          - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.
+          - The dogfood repo emits a clean JSON upgrade plan.
+          - npm run lock:check, npm run doctor, npm run upgrade:plan, npm run upgrade:apply, and npm test pass against the dogfood repo.

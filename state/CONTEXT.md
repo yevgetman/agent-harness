@@ -9,6 +9,7 @@ generated_from:
   - design/v1-decisions-open-questions-design.md
   - design/v1-module-profile-installation-design.md
   - design/v1-lock-provenance-design.md
+  - design/v1-upgrade-operation-contract.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -90,14 +91,15 @@ Current dogfood state:
   uses a `local-checkout` version source, reads `.harness/lock.yaml`, and
   reports no blockers or warnings for this dogfood repo. It now emits typed
   operation records plus operation summary counts so future apply behavior has
-  an explicit safety model.
+  an explicit safety model. `harness upgrade --plan --json` is the stable
+  machine-readable plan output.
 - The first apply scaffold exists as `npm run upgrade:apply`; it only permits
-  safe/noop and safe/refresh-lock operations and refuses blocked or
-  review-required plans.
+  safe/noop, safe/refresh-lock, and deterministic safe/repair-command
+  operations and refuses blocked or review-required plans.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
   add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
-  validation, and lock-aware upgrade planning.
+  validation, semantic provenance fields, and lock-aware upgrade planning.
 - The first module/profile installation surface exists via
   `modules/registry.yaml`, `profiles/`, `npm run modules:list`, and
   `node scripts/harness.mjs modules add <module-id> --target <path>`.
@@ -128,7 +130,7 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The next useful step is to choose the next Phase 3 depth increment before
+The current useful step is to finish the Phase 3 closeout validation before
 adding more process-domain breadth.
 
 - Keep `harness doctor` focused on installed harness health plus active module
@@ -138,6 +140,7 @@ adding more process-domain breadth.
   selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Prefer lock depth next: richer semantic provenance, operation-specific apply
-  expansion, or a broader upgrade-apply design.
+- Phase 3 closeout now centers on the formal upgrade operation contract, JSON
+  plans, richer semantic provenance, and narrow operation-specific apply
+  expansion.
 - Keep `status.md` current after significant choices.

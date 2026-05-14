@@ -8,6 +8,14 @@ const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
 const VALID_OPEN_QUESTION_STATUSES = new Set(["open", "in_progress", "resolved", "deferred"]);
 const VALID_DEPTH_STATUSES = new Set(["pending", "partial", "satisfied", "deferred"]);
+const VALID_LOCK_ARTIFACT_ROLES = new Set([
+  "generated-file",
+  "installed-manifest",
+  "managed-file",
+  "module-artifact",
+  "module-definition",
+]);
+const VALID_LOCK_OWNER_TYPES = new Set(["harness-lifecycle", "module"]);
 const VALID_SHA256 = /^[a-f0-9]{64}$/;
 
 function rel(root, file) {
@@ -506,6 +514,25 @@ function checkLock(root, manifest, diagnostics) {
     if (!VALID_SHA256.test(String(file.sha256 ?? ""))) {
       error(diagnostics, `.harness/lock.yaml: file '${file.path}' has invalid sha256`);
       continue;
+    }
+
+    if (file.source_sha256 && !VALID_SHA256.test(String(file.source_sha256))) {
+      error(diagnostics, `.harness/lock.yaml: file '${file.path}' has invalid source_sha256`);
+    }
+
+    if (file.artifact_role && !VALID_LOCK_ARTIFACT_ROLES.has(file.artifact_role)) {
+      error(diagnostics, `.harness/lock.yaml: file '${file.path}' has invalid artifact_role '${file.artifact_role}'`);
+    }
+
+    if (file.owner_type && !VALID_LOCK_OWNER_TYPES.has(file.owner_type)) {
+      error(diagnostics, `.harness/lock.yaml: file '${file.path}' has invalid owner_type '${file.owner_type}'`);
+    }
+
+    if (file.merge_strategy && !VALID_MANAGED_FILE_MODES.has(file.merge_strategy)) {
+      error(
+        diagnostics,
+        `.harness/lock.yaml: file '${file.path}' has invalid merge_strategy '${file.merge_strategy}'`,
+      );
     }
 
     if (!existsSync(rel(root, file.path))) {
