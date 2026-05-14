@@ -2,6 +2,7 @@
 title: Harness Context Briefing
 generated_on: 2026-05-14
 generated_from:
+  - design/v1-product-spec-and-roadmap.md
   - design/v1-process-domain-design.md
   - design/v1-installed-manifest-design.md
   - design/v1-incremental-build-strategy.md
@@ -25,7 +26,15 @@ state, business state, research corpora, or other agent-operable systems.
 
 ## Current design baseline
 
-The formal baseline is `design/v1-process-domain-design.md`.
+The product-level baseline is `design/v1-product-spec-and-roadmap.md`.
+
+The process-domain baseline is `design/v1-process-domain-design.md`.
+
+The product spec preserves the broad vision for this codebase: a portable,
+agnostic, manifest/module-driven harness that acts partly like a CLI, partly
+like an installable scaffold, and partly like an agent operating manual. It
+should support docs, code, mixed repos, personal scope, business scope, research
+corpora, and other durable agent-operable workspaces.
 
 V1 defines 15 formal **harness process domains**:
 
@@ -48,12 +57,13 @@ V1 defines 15 formal **harness process domains**:
 The exploratory specs under `spec/` remain source material and capability
 inventory. They are not binding when they conflict with a formal design.
 
-The build strategy is `design/v1-incremental-build-strategy.md`: every process
-domain integration should force concrete tooling, and every tooling improvement
-should serve a process domain already dogfooded here. The current second layer
-is breadth, then depth to the maximum prudent extent, before adding more
-breadth. This strategy is local to building this repo, not a portable process
-domain. The repo-local gate state is `build/depth-gate.yaml`.
+The product spec is directional, not a canonical build plan. The build strategy
+is `design/v1-incremental-build-strategy.md`: every process domain integration
+should force concrete tooling, and every tooling improvement should serve a
+process domain already dogfooded here. The current second layer is breadth,
+then depth to the maximum prudent extent, before adding more breadth. This
+strategy is local to building this repo, not a portable process domain. The
+repo-local gate state is `build/depth-gate.yaml`.
 
 ## Dogfood posture
 
@@ -106,6 +116,8 @@ The next useful step is to choose the next narrow breadth unit:
   before adding breadth.
 - Likely candidates are a module/profile installer or richer installed
   manifest lock/provenance.
+- Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
+  reference when making that choice.
 - Add the next process domain only when it forces one concrete tooling
   improvement and can be dogfooded immediately.
 - Keep `status.md` current after significant choices.

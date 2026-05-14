@@ -7,7 +7,7 @@ Last updated: 2026-05-14
 Design baseline and dogfood bootstrap. The read-only upgrade planning depth
 pass is complete enough to select the next narrow breadth item.
 
-The repo currently has exploratory specs, four formal v1 design documents, a
+The repo currently has exploratory specs, five formal v1 documents, a
 root agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, three active
 module definitions, a runnable `harness doctor` command, a minimal
@@ -26,6 +26,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 - The top-level v1 workflow model is **15 formal harness process domains**, not
   the full 37-item exploratory shape catalog.
+- `design/v1-product-spec-and-roadmap.md` is the directional product north star
+  for v1. It guides sequencing and tradeoffs but does not supersede
+  depth-gated incremental development.
 - The 37-item shape catalog remains supporting vocabulary and capability
   inventory.
 - Canonical term: **harness process domain**. Casual shorthand: **process
@@ -83,6 +86,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `AGENTS.md` — current agent operating contract for this repo.
 - `index.yaml` — current orientation manifest and reading order.
 - `state/CONTEXT.md` — condensed context briefing for fresh agents.
+- `design/v1-product-spec-and-roadmap.md` — formal directional v1 product spec
+  and roadmap.
 - `design/v1-process-domain-design.md` — formal v1 process-domain design
   baseline.
 - `design/v1-installed-manifest-design.md` — formal installed-manifest design
@@ -101,6 +106,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   dogfood decision record, created with the new decisions command.
 - `decisions/0002-adopt-depth-gate-and-plan-first-upgrade-surface.md` —
   decision record for depth-gate validation and plan-first upgrade planning.
+- `decisions/0003-adopt-product-spec-and-roadmap-as-directional-v1-north-star.md`
+  — decision record for adding the product spec and roadmap as product-level
+  guidance.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
   `scripts/questions.mjs` / `scripts/upgrade.mjs` / `scripts/doctor.mjs` —
   minimal CLI, installer, decision/question commands, upgrade planner, and
@@ -117,6 +125,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 - Decide whether the next narrow breadth increment should be a module/profile
   installer or a richer installed manifest lock.
+- Use `design/v1-product-spec-and-roadmap.md` as the product-level reference
+  for that choice, and `build/depth-gate.yaml` as the readiness gate.
 - Add the next process domain only when it forces one concrete tooling
   improvement and can be dogfooded immediately.
 

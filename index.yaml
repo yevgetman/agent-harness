@@ -21,6 +21,7 @@ reading_order:
   - agents
   - status
   - context
+  - v1-product-spec-and-roadmap
   - v1-process-domain-design
   - v1-installed-manifest-design
   - v1-incremental-build-strategy
@@ -33,6 +34,7 @@ reading_order:
   - open-questions
   - decision-0001
   - decision-0002
+  - decision-0003
   - decision-template
   - package
   - harness-cli
@@ -72,7 +74,18 @@ documents:
     status: active
     summary: Condensed briefing for fresh agents; points to formal design and specs.
     depends_on:
+      - v1-product-spec-and-roadmap
       - v1-process-domain-design
+
+  - doc_id: v1-product-spec-and-roadmap
+    file: design/v1-product-spec-and-roadmap.md
+    title: "Formal Product Spec: V1 Portable Agent Harness"
+    kind: formal-product-spec
+    status: active
+    summary: Directional v1 product intent, success criteria, roadmap phases, sequencing rules, and relationship to depth-gated incremental development.
+    depends_on:
+      - agnostic-harness-shape
+      - portability-model
 
   - doc_id: v1-process-domain-design
     file: design/v1-process-domain-design.md
@@ -81,6 +94,7 @@ documents:
     status: active
     summary: Accepted baseline for the 15 formal v1 harness process domains and portable harness architecture.
     depends_on:
+      - v1-product-spec-and-roadmap
       - agnostic-harness-shape
       - portability-model
 
@@ -188,6 +202,16 @@ documents:
     depends_on:
       - v1-incremental-build-strategy
       - v1-installed-manifest-design
+
+  - doc_id: decision-0003
+    file: decisions/0003-adopt-product-spec-and-roadmap-as-directional-v1-north-star.md
+    title: Adopt Product Spec And Roadmap As Directional V1 North Star
+    kind: decision
+    status: active
+    summary: Decision record adopting the product spec and roadmap as directional product guidance without replacing depth-gated incremental development.
+    depends_on:
+      - v1-product-spec-and-roadmap
+      - v1-incremental-build-strategy
 
   - doc_id: decision-template
     file: templates/decision.md

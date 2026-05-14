@@ -25,8 +25,10 @@ On every substantive session:
 2. Read `status.md`.
 3. Read `index.yaml`.
 4. Read `state/CONTEXT.md`.
-5. Read the relevant formal design document under `design/`.
-6. Use `spec/` only as supporting source material unless the task explicitly
+5. Read `design/v1-product-spec-and-roadmap.md` when making product, roadmap,
+   or sequencing decisions.
+6. Read the relevant formal design document under `design/`.
+7. Use `spec/` only as supporting source material unless the task explicitly
    asks to revise a spec.
 
 This boot sequence is the first dogfood implementation of the Progressive
@@ -61,6 +63,8 @@ Keep `state/CONTEXT.md` concise. It should summarize current design posture and
 where to go next, not duplicate formal designs or exploratory specs.
 
 ## Harness Build Strategy
+
+Product direction lives in `design/v1-product-spec-and-roadmap.md`.
 
 This repo currently uses the build-specific strategy in
 `design/v1-incremental-build-strategy.md`.

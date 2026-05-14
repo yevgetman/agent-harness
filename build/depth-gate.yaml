@@ -71,7 +71,7 @@ build_strategy:
       - id: docs
         status: satisfied
         evidence:
-          - status.md, index.yaml, docs/minimal-profile.md, and design/v1-installed-manifest-design.md describe the plan-first command and local-checkout version source.
+          - status.md, index.yaml, docs/minimal-profile.md, design/v1-product-spec-and-roadmap.md, and design/v1-installed-manifest-design.md describe the plan-first command, local-checkout version source, and product roadmap context.
       - id: dogfood-usage
         status: satisfied
         evidence:
