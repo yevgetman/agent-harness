@@ -10,6 +10,7 @@ generated_from:
   - design/v1-module-profile-installation-design.md
   - design/v1-lock-provenance-design.md
   - design/v1-upgrade-operation-contract.md
+  - design/v1-structured-metadata-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -79,6 +80,9 @@ Current dogfood state:
 - Plans And Status exists in minimal form via `status.md`.
 - Progressive Orientation exists in minimal form via `index.yaml` and this
   context briefing.
+- Structured Metadata exists in first dogfood form via
+  `metadata/artifacts.yaml`, `npm run metadata:list`,
+  `npm run metadata:check`, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -130,8 +134,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to finish the Phase 3 closeout validation before
-adding more process-domain breadth.
+The current useful step is to deepen the new Structured Metadata module before
+adding more Phase 4 breadth.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -140,7 +144,8 @@ adding more process-domain breadth.
   selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Phase 3 closeout now centers on the formal upgrade operation contract, JSON
-  plans, richer semantic provenance, and narrow operation-specific apply
-  expansion.
+- Phase 4 has started with Structured Metadata as the first additional
+  process-domain module.
+- Candidate next depth for Structured Metadata: JSON output, tag filtering,
+  dependency validation, or generated metadata reports.
 - Keep `status.md` current after significant choices.

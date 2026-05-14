@@ -1,0 +1,41 @@
+# Harness managed file: structured-metadata
+metadata:
+  version: 1
+  updated: 2026-05-14
+  scope: target-repo
+  artifacts:
+    - id: agents
+      path: AGENTS.md
+      kind: operating-contract
+      status: active
+      owner_domain: agent-operating-contract
+      tags:
+        - agents
+        - orientation
+
+    - id: status
+      path: status.md
+      kind: state-projection
+      status: active
+      owner_domain: agent-operating-contract
+      tags:
+        - status
+        - current-state
+
+    - id: index
+      path: index.yaml
+      kind: orientation-manifest
+      status: active
+      owner_domain: progressive-orientation
+      tags:
+        - orientation
+        - graph
+
+    - id: context
+      path: state/CONTEXT.md
+      kind: context-briefing
+      status: active
+      owner_domain: progressive-orientation
+      tags:
+        - orientation
+        - briefing

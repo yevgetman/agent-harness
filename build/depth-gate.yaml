@@ -316,43 +316,83 @@ build_strategy:
             - npm run upgrade:apply has been run against the dogfood repo.
             - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.
 
+    - id: upgrade-operation-contract-closeout
+      breadth_unit: >
+        Close Phase 3 lifecycle depth with a formal upgrade operation contract,
+        stable JSON plans, semantic lock provenance, and deterministic safe
+        command repair.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness upgrade --plan includes plan_schema_version and operation_contract_version.
+            - harness upgrade --plan --json emits parseable machine-readable plan JSON.
+            - Lock entries include semantic provenance fields such as artifact_role, owner_type, module_id, merge_strategy, and source_kind.
+            - harness upgrade apply can execute safe/repair-command by restoring deterministic missing package scripts.
+        - id: validation
+          status: satisfied
+          evidence:
+            - harness doctor validates semantic lock provenance field shapes.
+            - harness upgrade apply still refuses blocked and review-required plans.
+            - safe/repair-command requires a known source package script and local file prerequisites.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers JSON upgrade plans.
+            - npm test covers semantic lock provenance fields.
+            - npm test covers deterministic safe command repair.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-upgrade-operation-contract.md defines the operation contract.
+            - design/v1-lock-provenance-design.md describes semantic provenance and apply behavior.
+            - decisions/0008-adopt-upgrade-operation-contract-closeout.md records the closeout decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe the current contract.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - The dogfood repo emits a clean JSON upgrade plan.
+            - npm run lock:check, npm run doctor, npm run upgrade:plan, npm run upgrade:apply, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: upgrade-operation-contract-closeout
+    id: structured-metadata-module
     breadth_unit: >
-      Close Phase 3 lifecycle depth with a formal upgrade operation contract,
-      stable JSON plans, semantic lock provenance, and deterministic safe
-      command repair.
+      Add Structured Metadata as the first Phase 4 process-domain module with
+      an artifact registry, metadata list/check commands, doctor validation,
+      profile wiring, and dogfood installation.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness upgrade --plan includes plan_schema_version and operation_contract_version.
-          - harness upgrade --plan --json emits parseable machine-readable plan JSON.
-          - Lock entries include semantic provenance fields such as artifact_role, owner_type, module_id, merge_strategy, and source_kind.
-          - harness upgrade apply can execute safe/repair-command by restoring deterministic missing package scripts.
+          - harness metadata list lists metadata/artifacts.yaml entries.
+          - harness metadata check validates metadata/artifacts.yaml.
+          - structured-metadata is installable through modules add.
+          - The dogfood profile includes structured-metadata.
       - id: validation
         status: satisfied
         evidence:
-          - harness doctor validates semantic lock provenance field shapes.
-          - harness upgrade apply still refuses blocked and review-required plans.
-          - safe/repair-command requires a known source package script and local file prerequisites.
+          - harness doctor validates metadata/artifacts.yaml when structured-metadata is installed.
+          - Metadata validation checks version, required fields, unique IDs, allowed statuses, list fields, and active artifact paths.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers JSON upgrade plans.
-          - npm test covers semantic lock provenance fields.
-          - npm test covers deterministic safe command repair.
+          - npm test covers structured-metadata module installation.
+          - npm test covers metadata list/check success.
+          - npm test covers metadata check failure for missing active artifact paths.
+          - npm test covers dogfood profile installation with structured-metadata.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-upgrade-operation-contract.md defines the operation contract.
-          - design/v1-lock-provenance-design.md describes semantic provenance and apply behavior.
-          - decisions/0008-adopt-upgrade-operation-contract-closeout.md records the closeout decision.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe the current contract.
+          - design/v1-structured-metadata-design.md defines the Structured Metadata domain baseline.
+          - decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md records the decision.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood repo emits a clean JSON upgrade plan.
-          - npm run lock:check, npm run doctor, npm run upgrade:plan, npm run upgrade:apply, and npm test pass against the dogfood repo.
+          - structured-metadata is installed in .harness/manifest.yaml.
+          - metadata/artifacts.yaml describes current dogfood artifacts.
+          - npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.

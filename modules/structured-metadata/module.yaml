@@ -1,0 +1,37 @@
+module:
+  id: structured-metadata
+  version: 0.1.0
+  status: active
+  process_domains:
+    - structured-metadata
+  provides:
+    - artifact-metadata-registry
+    - metadata-list-command
+    - metadata-check-command
+    - metadata-shape-validation
+  creates:
+    - metadata/
+    - metadata/artifacts.yaml
+  managed_files:
+    - path: metadata/artifacts.yaml
+      mode: merge
+  commands:
+    metadata-list: harness metadata list
+    metadata-check: harness metadata check
+  install:
+    artifacts:
+      - path: metadata/
+        type: directory
+      - path: metadata/artifacts.yaml
+        type: template
+        source: modules/structured-metadata/templates/artifacts.yaml
+  validates:
+    - metadata/artifacts.yaml parses as YAML
+    - metadata version is supported
+    - artifact IDs are unique
+    - active artifact paths exist
+    - artifact statuses are allowed
+  instructions:
+    - Keep artifact metadata concise and machine-readable.
+    - Record durable repo artifacts that agents should be able to list or validate.
+    - Use tags for retrieval hints, not prose summaries.

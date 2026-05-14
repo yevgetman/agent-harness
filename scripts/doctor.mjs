@@ -3,6 +3,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { expectedLockPaths, hashFile, lockFileMap, readLock } from "./lock.mjs";
+import { validateMetadata } from "./metadata.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
@@ -737,6 +738,21 @@ function checkDecisionsOpenQuestions(root, installedModules, diagnostics) {
   checkDecisionRecords(root, diagnostics);
 }
 
+function checkStructuredMetadata(root, installedModules, diagnostics) {
+  if (!installedModules.has("structured-metadata")) return;
+
+  const result = validateMetadata(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `metadata/artifacts.yaml: ${result.artifacts.length} artifact(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -876,6 +892,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkIndex(root, diagnostics);
   checkStatus(root, diagnostics);
   checkDecisionsOpenQuestions(root, installedModules, diagnostics);
+  checkStructuredMetadata(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

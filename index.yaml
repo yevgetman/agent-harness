@@ -29,14 +29,17 @@ reading_order:
   - v1-module-profile-installation-design
   - v1-lock-provenance-design
   - v1-upgrade-operation-contract
+  - v1-structured-metadata-design
   - installed-manifest
   - installed-lock
+  - metadata-artifacts
   - module-registry
   - profile-minimal
   - profile-dogfood
   - module-agent-operating-contract
   - module-progressive-orientation
   - module-decisions-open-questions
+  - module-structured-metadata
   - depth-gate
   - open-questions
   - decision-0001
@@ -47,6 +50,7 @@ reading_order:
   - decision-0006
   - decision-0007
   - decision-0008
+  - decision-0009
   - decision-template
   - package
   - harness-cli
@@ -54,6 +58,7 @@ reading_order:
   - minimal-profile
   - modules-cli
   - profiles-cli
+  - metadata-cli
   - lock-cli
   - decisions-cli
   - questions-cli
@@ -172,6 +177,16 @@ documents:
       - v1-lock-provenance-design
       - v1-installed-manifest-design
 
+  - doc_id: v1-structured-metadata-design
+    file: design/v1-structured-metadata-design.md
+    title: "Formal Design: V1 Structured Metadata"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the first Phase 4 process-domain module: artifact metadata registry, metadata commands, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-module-profile-installation-design
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -190,6 +205,15 @@ documents:
     depends_on:
       - v1-lock-provenance-design
       - installed-manifest
+
+  - doc_id: metadata-artifacts
+    file: metadata/artifacts.yaml
+    title: Structured Artifact Metadata
+    kind: metadata-registry
+    status: active
+    summary: Machine-readable registry of durable repo artifacts for listing, validation, future retrieval, and gardening.
+    depends_on:
+      - v1-structured-metadata-design
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -246,6 +270,16 @@ documents:
     summary: Module definition for decision records and open-question tracking.
     depends_on:
       - v1-decisions-open-questions-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-structured-metadata
+    file: modules/structured-metadata/module.yaml
+    title: Structured Metadata Module
+    kind: module-definition
+    status: active
+    summary: Module definition for artifact metadata registry, metadata list/check commands, and validation.
+    depends_on:
+      - v1-structured-metadata-design
       - v1-installed-manifest-design
 
   - doc_id: open-questions
@@ -345,6 +379,16 @@ documents:
       - v1-upgrade-operation-contract
       - decision-0007
 
+  - doc_id: decision-0009
+    file: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
+    title: Adopt Structured Metadata As First Phase 4 Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Structured Metadata as the first Phase 4 process-domain module.
+    depends_on:
+      - v1-structured-metadata-design
+      - v1-product-spec-and-roadmap
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -359,7 +403,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, profiles, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
+    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -369,7 +413,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, lock maintenance, upgrade planning/apply scaffolding, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, lock maintenance, upgrade planning/apply scaffolding, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -417,6 +461,16 @@ documents:
       - v1-module-profile-installation-design
       - profile-minimal
       - profile-dogfood
+
+  - doc_id: metadata-cli
+    file: scripts/metadata.mjs
+    title: Harness Metadata CLI
+    kind: cli
+    status: active
+    summary: Structured Metadata command implementation for listing and validating metadata/artifacts.yaml.
+    depends_on:
+      - v1-structured-metadata-design
+      - metadata-artifacts
 
   - doc_id: lock-cli
     file: scripts/lock.mjs
@@ -472,10 +526,11 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
+      - metadata-cli
       - lock-cli
       - decisions-cli
       - questions-cli

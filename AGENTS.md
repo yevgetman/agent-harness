@@ -145,6 +145,14 @@ surface is collision-averse and does not merge human-authored files.
 Use `npm run profiles:list` to inspect available install profiles before
 changing profile-backed init behavior.
 
+## Structured Metadata Discipline
+
+Keep `metadata/artifacts.yaml` current when adding durable formal docs,
+modules, CLI entrypoints, or other artifacts future agents should be able to
+list and validate.
+
+Use `npm run metadata:check` to validate the artifact registry.
+
 ## Current Design Vocabulary
 
 - **Harness process domain** is the canonical term for a conceptual operating

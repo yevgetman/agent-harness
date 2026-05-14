@@ -4,15 +4,14 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Phase 3 Lock And Provenance closeout pass. The formal upgrade operation
-contract, JSON upgrade plans, semantic lock provenance, and deterministic safe
-command repair are implemented. Pause before adding Phase 4 process-domain
-breadth.
+Phase 4 Additional Process Domains breadth pass. Structured Metadata is the
+first Phase 4 module and is installed in the dogfood repo with metadata
+commands, doctor validation, and `metadata/artifacts.yaml`.
 
-The repo currently has exploratory specs, eight formal v1 documents, a root
+The repo currently has exploratory specs, nine formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
-lock file, three active module definitions, a runnable `harness doctor`
+lock file, four active module definitions, a runnable `harness doctor`
 command, a profile-backed `harness init --profile <profile>` installer, a
 repo-local depth gate, and a read-only `harness upgrade --plan` command. The
 first module/profile installation surface exists through `modules/registry.yaml`,
@@ -28,6 +27,10 @@ operation records, JSON plans, operation summaries, and a limited safe
 `harness upgrade apply` scaffold. No general file/template upgrade apply,
 profile switching, or full external CLI distribution exists yet.
 
+Structured Metadata exists via `metadata/artifacts.yaml`,
+`harness metadata list`, `harness metadata check`, package scripts for local
+dogfood use, and doctor validation when `structured-metadata` is installed.
+
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
 Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
@@ -42,6 +45,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Phase 3 Lock And Provenance is active; the closeout implementation includes
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
+- Phase 4 Additional Process Domains is active; the first breadth unit is
+  Structured Metadata.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -64,12 +69,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Installed harness state is recorded at `.harness/manifest.yaml`.
 - Installed-file provenance is recorded at `.harness/lock.yaml`.
 - Active module definitions are `agent-operating-contract`,
-  `progressive-orientation`, and `decisions-open-questions`.
+  `progressive-orientation`, `decisions-open-questions`, and
+  `structured-metadata`.
 - `modules/registry.yaml` is the source registry for available modules.
   `agent-operating-contract` and `progressive-orientation` are bootstrap
   modules installed by `harness init --profile minimal`;
-  `decisions-open-questions` is the first standalone `modules add`
-  installable module.
+  `decisions-open-questions` and `structured-metadata` are standalone
+  `modules add` installable modules.
 - Profiles now exist under `profiles/` for `minimal` and `dogfood`.
 - `npm run profiles:list` lists available source profiles and their module
   bundles.
@@ -133,17 +139,20 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   optional `source_path`, and optional `source_sha256`.
 - `npm run decisions:list` lists decision records.
 - `npm run questions:list` lists open questions.
+- `npm run metadata:list` lists structured artifact metadata.
+- `npm run metadata:check` validates `metadata/artifacts.yaml`.
 - `npm run modules:list` lists registry modules with installed/installable
   state.
 - `node scripts/harness.mjs modules add <module-id> --target <path>` installs
   the first registry-backed modules into a target manifest.
 - Module install tests cover clean install, collision refusal, force install,
   unknown module failure, bootstrap module no-op, missing source template
-  preflight, doctor after install, and upgrade plan after install.
+  preflight, structured metadata install, doctor after install, and upgrade
+  plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `upgrade-operation-contract-closeout` as the
-  current complete depth pass before Phase 4 breadth.
+- `build/depth-gate.yaml` records `structured-metadata-module` as the current
+  complete depth pass for the first Phase 4 breadth unit.
 
 ## Active Artifacts
 
@@ -164,12 +173,15 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `design/v1-lock-provenance-design.md` — formal Lock And Provenance design.
 - `design/v1-upgrade-operation-contract.md` — formal Upgrade Operation
   Contract design.
+- `design/v1-structured-metadata-design.md` — formal Structured Metadata
+  design.
 - `build/depth-gate.yaml` — repo-local depth gate for the current build
   methodology.
 - `docs/minimal-profile.md` — reference for the current minimal install
   profile.
 - `.harness/manifest.yaml` — dogfood installed harness manifest.
 - `.harness/lock.yaml` — dogfood installed-file provenance lock.
+- `metadata/artifacts.yaml` — dogfood structured artifact metadata registry.
 - `modules/*/module.yaml` — active module definitions.
 - `open-questions.yaml` — structured unresolved questions.
 - `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
@@ -191,15 +203,18 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0008-adopt-upgrade-operation-contract-closeout.md` — decision
   record for the formal operation contract, JSON plans, semantic provenance,
   and safe command repair.
+- `decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md` —
+  decision record for adopting Structured Metadata as the first Phase 4 module.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
   definitions.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
-  `scripts/profiles.mjs` / `scripts/lock.mjs` / `scripts/doctor.mjs` —
+  `scripts/profiles.mjs` / `scripts/metadata.mjs` / `scripts/lock.mjs` /
+  `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
-  lock command/helpers, upgrade planner, and doctor command.
+  metadata commands, lock command/helpers, upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, semantic lock provenance, upgrade planning/apply behavior,
   depth-gate validation, and doctor fixtures.
@@ -211,9 +226,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Pause before Phase 4 breadth. The next likely move is selecting the first
-  additional process-domain module, with Structured Metadata or Plans And
-  Status as leading candidates.
+- Deepen Structured Metadata before adding the next Phase 4 breadth unit.
+  Likely depth candidates are JSON output, tag filtering, dependency
+  validation, or generated metadata reports.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

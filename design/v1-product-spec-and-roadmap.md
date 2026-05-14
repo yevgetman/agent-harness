@@ -139,6 +139,8 @@ Current commands:
 - `harness modules list`
 - `harness modules add <module>`
 - `harness profiles list`
+- `harness metadata list`
+- `harness metadata check`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
@@ -150,6 +152,7 @@ Current dogfood modules:
 - `agent-operating-contract`
 - `progressive-orientation`
 - `decisions-open-questions`
+- `structured-metadata`
 
 Current repo-local build support:
 
@@ -263,7 +266,8 @@ Exit signal:
 
 ### Phase 4: Additional Process Domains
 
-Status: planned.
+Status: active; first Structured Metadata breadth increment implemented and
+dogfooded.
 
 Purpose:
 
@@ -272,10 +276,21 @@ Purpose:
 
 Likely candidates:
 
-- Structured Metadata
 - Canonical State
 - Plans And Status
 - Invariants And Golden Principles
+
+Initial implemented module:
+
+- `structured-metadata`
+
+Initial behavior:
+
+- `metadata/artifacts.yaml` records durable artifact metadata.
+- `harness metadata list` lists artifact IDs, statuses, kinds, and paths.
+- `harness metadata check` validates metadata shape.
+- `harness doctor` validates metadata when the module is installed.
+- The dogfood profile installs the Structured Metadata module.
 
 Exit signal:
 

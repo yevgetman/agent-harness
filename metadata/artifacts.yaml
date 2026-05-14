@@ -1,0 +1,122 @@
+# Harness managed file: structured-metadata
+metadata:
+  version: 1
+  updated: 2026-05-14
+  scope: harness-source-repo
+  artifacts:
+    - id: agents
+      path: AGENTS.md
+      kind: operating-contract
+      status: active
+      owner_domain: agent-operating-contract
+      tags:
+        - agents
+        - orientation
+
+    - id: status
+      path: status.md
+      kind: state-projection
+      status: active
+      owner_domain: agent-operating-contract
+      tags:
+        - status
+        - current-state
+
+    - id: index
+      path: index.yaml
+      kind: orientation-manifest
+      status: active
+      owner_domain: progressive-orientation
+      tags:
+        - orientation
+        - graph
+
+    - id: context
+      path: state/CONTEXT.md
+      kind: context-briefing
+      status: active
+      owner_domain: progressive-orientation
+      tags:
+        - orientation
+        - briefing
+
+    - id: product-spec
+      path: design/v1-product-spec-and-roadmap.md
+      kind: formal-product-spec
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - roadmap
+        - product
+
+    - id: process-domain-design
+      path: design/v1-process-domain-design.md
+      kind: formal-design
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - process-domains
+        - architecture
+
+    - id: structured-metadata-design
+      path: design/v1-structured-metadata-design.md
+      kind: formal-design
+      status: active
+      owner_domain: structured-metadata
+      tags:
+        - structured-metadata
+        - phase-4
+
+    - id: metadata-artifacts
+      path: metadata/artifacts.yaml
+      kind: metadata-registry
+      status: active
+      owner_domain: structured-metadata
+      tags:
+        - metadata
+        - registry
+
+    - id: installed-manifest
+      path: .harness/manifest.yaml
+      kind: installed-state
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - manifest
+        - lifecycle
+
+    - id: installed-lock
+      path: .harness/lock.yaml
+      kind: installed-state
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - lock
+        - provenance
+
+    - id: module-registry
+      path: modules/registry.yaml
+      kind: module-registry
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - modules
+        - registry
+
+    - id: structured-metadata-module
+      path: modules/structured-metadata/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: structured-metadata
+      tags:
+        - module
+        - structured-metadata
+
+    - id: metadata-cli
+      path: scripts/metadata.mjs
+      kind: cli
+      status: active
+      owner_domain: structured-metadata
+      tags:
+        - cli
+        - validation

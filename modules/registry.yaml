@@ -13,3 +13,8 @@ modules:
     path: modules/decisions-open-questions/module.yaml
     status: active
     installable: true
+
+  - id: structured-metadata
+    path: modules/structured-metadata/module.yaml
+    status: active
+    installable: true

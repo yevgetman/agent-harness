@@ -23,6 +23,11 @@ harness:
       status: active
       process_domains:
         - decisions-and-open-questions
+    - id: structured-metadata
+      version: 0.1.0
+      status: active
+      process_domains:
+        - structured-metadata
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -42,6 +47,9 @@ harness:
     - path: templates/decision.md
       owner: decisions-open-questions
       mode: merge
+    - path: metadata/artifacts.yaml
+      owner: structured-metadata
+      mode: merge
   commands:
     init: npm run init
     decisions-new: node scripts/harness.mjs decisions new
@@ -56,5 +64,7 @@ harness:
     upgrade-apply: npm run upgrade:apply
     doctor: npm run doctor
     test: npm test
+    metadata-list: npm run metadata:list
+    metadata-check: npm run metadata:check
   upgrade:
     policy: plan-first

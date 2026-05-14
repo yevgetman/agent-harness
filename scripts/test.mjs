@@ -19,6 +19,7 @@ import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
 import { runLock } from "./lock.mjs";
+import { runMetadata } from "./metadata.mjs";
 import { runModules } from "./modules.mjs";
 import { runProfiles } from "./profiles.mjs";
 import { runQuestions } from "./questions.mjs";
@@ -310,6 +311,66 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before structured metadata module add");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "structured-metadata", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install structured-metadata");
+  assertExists(target, "modules/structured-metadata/module.yaml");
+  assertExists(target, "metadata/artifacts.yaml");
+
+  const check = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "metadata check should pass after install");
+  assert.equal(check.artifacts.length, 4, "metadata check should return installed template artifacts");
+
+  const list = quiet(() => runMetadata({ cwd: target, args: ["list"] }));
+  assert.equal(list.ok, true, "metadata list should pass after install");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate structured metadata after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("metadata/artifacts.yaml")),
+    true,
+    "doctor should report metadata validation",
+  );
+
+  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after structured metadata install");
+  assert.equal(upgrade.plan.managed_files.length, 5, "structured metadata should add one managed file");
+  assert.equal(upgrade.plan.commands.length, 10, "structured metadata should add two command records");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "structured-metadata")?.status,
+    "unchanged",
+    "upgrade --plan should report structured metadata as installed",
+  );
+
+  writeFileSync(join(target, "metadata", "artifacts.yaml"), `metadata:
+  version: 1
+  artifacts:
+    - id: missing
+      path: missing.md
+      kind: fixture
+      status: active
+`);
+  const bad = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
+  assert.equal(bad.ok, false, "metadata check should fail missing active artifact paths");
+  assert.equal(
+    bad.errors.some((item) => item.includes("missing.md")),
+    true,
+    "metadata check should report missing active artifact paths",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -334,7 +395,9 @@ withTempDir((root) => {
     "modules/agent-operating-contract/module.yaml",
     "modules/progressive-orientation/module.yaml",
     "modules/decisions-open-questions/module.yaml",
+    "modules/structured-metadata/module.yaml",
     "open-questions.yaml",
+    "metadata/artifacts.yaml",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -355,6 +418,14 @@ withTempDir((root) => {
     true,
     "dogfood profile init should install decisions-open-questions",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "structured-metadata")?.installed,
+    true,
+    "dogfood profile init should install structured-metadata",
+  );
+
+  const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
+  assert.equal(metadata.ok, true, "dogfood profile init should install valid metadata");
 
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");

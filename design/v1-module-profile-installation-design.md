@@ -55,6 +55,9 @@ implementation, `agent-operating-contract` and `progressive-orientation` are
 bootstrapped by `harness init --profile minimal`; `decisions-open-questions` is
 the first module installable through `harness modules add`.
 
+`structured-metadata` is the next installable module and exercises the same
+module/profile lifecycle for Phase 4 process-domain breadth.
+
 ## Profile Shape
 
 Profiles live under:

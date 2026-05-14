@@ -15,6 +15,8 @@ lock:
       version: 0.1.0
     - id: decisions-open-questions
       version: 0.1.0
+    - id: structured-metadata
+      version: 0.1.0
   files:
     - path: .harness/manifest.yaml
       owner: harness-lifecycle
@@ -24,7 +26,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: 2fcbcde296dd2520453679e52d2bfd138024bfcadc21823be97f3243f68c75f0
+      sha256: 0f76f2d144746a7ce45993a65c667aa2d35857de974745983fb84a820ccc851e
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -34,7 +36,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: c609ef4358265170ddbc1c4856f0657a9d295d73d7142ba21e1b1077ce4900dc
+      sha256: b687f3f8693437601acaf8603811492250df7aacdb1c3ade745225e531e42a89
     - path: index.yaml
       owner: progressive-orientation
       owner_type: module
@@ -44,7 +46,19 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: b66f812621b80a7a4a0d2ba80f138aca81efd642cc9195f38ad6758a7b2f4185
+      sha256: d73fdaca7a1592b4c1ba7f58eac52272f024ac754c94bdf85363f5d8f58e5a11
+    - path: metadata/artifacts.yaml
+      owner: structured-metadata
+      owner_type: module
+      module_id: structured-metadata
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/structured-metadata/templates/artifacts.yaml
+      source_sha256: 8edcad204d2091fe4ddb91fdad2941f4b2e4e56546cb57fa7b8f0bf2dd64b6ff
+      sha256: d08b9dfb493fe51f1fb9aea46115fffae904f4750a2f9c2030a11919abb7372a
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -81,6 +95,18 @@ lock:
       source_path: modules/progressive-orientation/module.yaml
       source_sha256: 82baabc082a08b478193b5a1c05f7f97355b85bf245f9788f9fb8da581093c89
       sha256: 82baabc082a08b478193b5a1c05f7f97355b85bf245f9788f9fb8da581093c89
+    - path: modules/structured-metadata/module.yaml
+      owner: structured-metadata
+      owner_type: module
+      module_id: structured-metadata
+      mode: replace
+      merge_strategy: replace
+      artifact_role: module-definition
+      source: module-definition
+      source_kind: module-definition
+      source_path: modules/structured-metadata/module.yaml
+      source_sha256: 3c9c0b9ba5c1b589d887c6c4d945a2316dac690cdea3af095f1f4f7e4c586aa1
+      sha256: 3c9c0b9ba5c1b589d887c6c4d945a2316dac690cdea3af095f1f4f7e4c586aa1
     - path: open-questions.yaml
       owner: decisions-open-questions
       owner_type: module
@@ -102,7 +128,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: dcad1949c22f36b47db02de54c0fd1a93ba6f8940f8471d83a03f1501d0e598f
+      sha256: 4ee97bbc1338722d8e5c0baa59aec9456616787ad14b2f00281735897d941307
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -112,7 +138,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 2769f198c37a9e77fda7e50816c1e46cf92974545325dfe4537c88e6feb55fa7
+      sha256: 47166c4c96261c5365e7bc6ab36ae23f3154abc61a7205e875671f614842a5d2
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module
