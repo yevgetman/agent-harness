@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import { hashFile, lockFileMap, readLock } from "./lock.mjs";
+import { expectedLockPaths, hashFile, lockFileMap, readLock } from "./lock.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
@@ -465,22 +465,11 @@ function checkManagedFiles(root, manifest, installedModules, diagnostics) {
   }
 }
 
-function expectedLockedPaths(manifest) {
-  const paths = new Set([".harness/manifest.yaml"]);
-  for (const file of manifest?.managed_files ?? []) {
-    if (file?.path) paths.add(file.path);
-  }
-  for (const moduleRef of manifest?.modules ?? []) {
-    if (moduleRef?.id) paths.add(`modules/${moduleRef.id}/module.yaml`);
-  }
-  return paths;
-}
-
 function checkLock(root, manifest, diagnostics) {
   const loaded = readLock(root);
   if (loaded.status === "missing") {
     warn(diagnostics, ".harness/lock.yaml: missing; provenance checks are unavailable");
-    hint(diagnostics, "Run harness init or a future lock refresh command to recreate installed-file provenance.");
+    hint(diagnostics, "Run `harness lock refresh` to recreate installed-file provenance.");
     return;
   }
 
@@ -533,7 +522,7 @@ function checkLock(root, manifest, diagnostics) {
   }
 
   const lockedPaths = lockFileMap(lock);
-  for (const path of expectedLockedPaths(manifest)) {
+  for (const path of expectedLockPaths(manifest, { root })) {
     if (!lockedPaths.has(path)) {
       warn(diagnostics, `.harness/lock.yaml: expected lock entry for '${path}'`);
     }

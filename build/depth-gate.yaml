@@ -165,41 +165,79 @@ build_strategy:
             - npm run profiles:list has been run against the dogfood repo.
             - npm run doctor, npm test, and npm run upgrade:plan pass against the dogfood repo.
 
+    - id: lock-provenance-baseline
+      breadth_unit: >
+        Add baseline installed-file provenance with .harness/lock.yaml and make
+        doctor and upgrade planning consume it.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness init writes .harness/lock.yaml for planned non-directory install artifacts.
+            - harness modules add updates .harness/lock.yaml for module artifacts and .harness/manifest.yaml.
+            - harness upgrade --plan reports lock status and classifies managed files with lock fingerprints.
+        - id: validation
+          status: satisfied
+          evidence:
+            - harness doctor validates lock version, file entries, SHA-256 shape, locked-file presence, and fingerprint drift.
+            - harness upgrade --plan treats missing managed files as blockers and modified locked managed files as warnings.
+            - Legacy missing-lock targets remain diagnosable through warnings.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers lock creation during init.
+            - npm test covers module add updating lock entries.
+            - npm test covers upgrade-plan lock reporting, missing-file blockers, and modified-file warnings.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-lock-provenance-design.md defines the lock shape and Phase 3 behavior.
+            - design/v1-product-spec-and-roadmap.md marks Phase 3 active and records baseline lock behavior.
+            - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe the current lock/provenance surface.
+            - decisions/0006-adopt-installed-lock-provenance.md records the provenance decision.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - The dogfood repo carries .harness/lock.yaml.
+            - npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo after lock generation.
+
   current_depth_pass:
-    id: lock-provenance-baseline
+    id: lock-refresh-check-command
     breadth_unit: >
-      Add baseline installed-file provenance with .harness/lock.yaml and make
-      doctor and upgrade planning consume it.
+      Add first-class lock refresh and check commands so installed-file
+      provenance can be maintained without ad hoc scripts.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness init writes .harness/lock.yaml for planned non-directory install artifacts.
-          - harness modules add updates .harness/lock.yaml for module artifacts and .harness/manifest.yaml.
-          - harness upgrade --plan reports lock status and classifies managed files with lock fingerprints.
+          - harness lock refresh rebuilds .harness/lock.yaml from .harness/manifest.yaml and current installed files.
+          - harness lock check reports lock drift without writing.
+          - harness lock refresh --check aliases the read-only check behavior.
       - id: validation
         status: satisfied
         evidence:
-          - harness doctor validates lock version, file entries, SHA-256 shape, locked-file presence, and fingerprint drift.
-          - harness upgrade --plan treats missing managed files as blockers and modified locked managed files as warnings.
-          - Legacy missing-lock targets remain diagnosable through warnings.
+          - harness lock refresh refuses to write when expected manifest/module/managed files are missing.
+          - harness doctor hints now point to harness lock refresh when lock provenance is missing.
+          - upgrade planning continues to consume refreshed lock fingerprints.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers lock creation during init.
-          - npm test covers module add updating lock entries.
-          - npm test covers upgrade-plan lock reporting, missing-file blockers, and modified-file warnings.
+          - npm test covers clean lock check after init.
+          - npm test covers drift detection after managed-file modification.
+          - npm test covers lock refresh restoring a clean check.
+          - npm test covers lock refresh refusing missing expected files.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-lock-provenance-design.md defines the lock shape and Phase 3 behavior.
-          - design/v1-product-spec-and-roadmap.md marks Phase 3 active and records baseline lock behavior.
-          - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe the current lock/provenance surface.
-          - decisions/0006-adopt-installed-lock-provenance.md records the provenance decision.
+          - design/v1-lock-provenance-design.md defines lock refresh and check behavior.
+          - AGENTS.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, index.yaml, and design/v1-product-spec-and-roadmap.md describe the lock command surface.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood repo carries .harness/lock.yaml.
-          - npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo after lock generation.
+          - The dogfood manifest exposes lock-refresh and lock-check.
+          - npm run lock:refresh has been used to refresh .harness/lock.yaml.
+          - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.

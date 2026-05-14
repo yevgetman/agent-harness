@@ -20,17 +20,17 @@ lock:
       owner: harness-lifecycle
       mode: replace
       source: generated-manifest
-      sha256: bc8e8f3e910746baa46c659bd52f007759b67766d97d89e63d8ec421126a97e0
+      sha256: 12650297b6630e00334630be4dc1610ad70f2277deea38b132ddb77c84f28e2c
     - path: AGENTS.md
       owner: agent-operating-contract
       mode: merge
       source: generated
-      sha256: 07b78ae85011428a78a7b4d3cd9986193cf3efe1abefe1f315bb1841cf3d6967
+      sha256: 32dd62325b513b25978c58cca1d9868d990ab6f53e962d9a2f83dd142d018070
     - path: index.yaml
       owner: progressive-orientation
       mode: merge
       source: generated
-      sha256: f3d7e4e7f90fd2acbd1ac41bd809474183351f1a90fac755927ee7e7c52bea42
+      sha256: eab9941cf5bddee410bf8266b7b8bb27198ca6273401b0974bee5c814e96d6a2
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       mode: replace
@@ -55,12 +55,12 @@ lock:
       owner: progressive-orientation
       mode: merge
       source: generated
-      sha256: 8c24d75768173355efb16902d2e8983541d1795bb1fe7b4f562b59739587f55b
+      sha256: 9afbdc066cc205b6b9a1d7aea939bd396a8461df5714a2fc9a46207ee7fee06e
     - path: status.md
       owner: agent-operating-contract
       mode: merge
       source: generated
-      sha256: 3d452870243e09763770a19a4ec30f4423a291855f279bc3b59ed597d5115113
+      sha256: 523947d3af75d323163eec59a3566ff9d3b225aa187626ef0470526fc1710d04
     - path: templates/decision.md
       owner: decisions-open-questions
       mode: merge

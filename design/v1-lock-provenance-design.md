@@ -78,9 +78,34 @@ updating `.harness/manifest.yaml`. The refresh upserts fingerprints for:
 - the installed module definition
 - non-directory artifacts written by the module
 
-The first implementation does not yet expose a standalone lock refresh command.
+`harness lock refresh` rebuilds `.harness/lock.yaml` from
+`.harness/manifest.yaml` and current installed files. It refuses to write a
+new lock when expected manifest/module/managed files are missing.
+
 Feature work that intentionally changes locked dogfood files must refresh the
 lock before final validation.
+
+## Lock Command Behavior
+
+`harness lock refresh [--target <path>]`:
+
+- reads `.harness/manifest.yaml`
+- computes expected lock paths from the manifest, installed module definitions,
+  managed files, and non-directory module install artifacts
+- refuses to write if expected files are missing
+- rebuilds `.harness/lock.yaml` from current file fingerprints
+- reports the number of locked files
+
+`harness lock check [--target <path>]`:
+
+- reads `.harness/manifest.yaml`
+- computes the lock that would be produced from current files
+- compares current lock metadata, module records, file ownership, modes,
+  sources, and SHA-256 fingerprints against expected state
+- reports drift without writing
+
+`harness lock refresh --check [--target <path>]` is equivalent to
+`harness lock check [--target <path>]`.
 
 ## Doctor Behavior
 
@@ -140,7 +165,6 @@ It does not yet:
 - record template hashes separately from installed file hashes
 - support remote package provenance
 - apply upgrades
-- expose `harness lock refresh`
 - merge local edits into upgraded templates
 
 Those are future depth increments after baseline provenance is dogfooded.
@@ -153,6 +177,7 @@ Before completing Phase 3 work, run:
 
 ```bash
 npm run doctor
+npm run lock:check
 npm run upgrade:plan
 npm test
 ```

@@ -117,9 +117,15 @@ upgrade-related behavior. The command is read-only; it does not apply changes.
 `.harness/lock.yaml` records installed-file fingerprints for harness-managed
 artifacts. Treat lock diffs as lifecycle changes, not incidental churn.
 
+Use `npm run lock:check` to inspect whether the installed lock matches current
+managed-file state.
+
 When intentionally changing locked dogfood files, refresh the lock before final
-validation and push. Until a dedicated lock refresh command exists, preserve
-the schema in `design/v1-lock-provenance-design.md`.
+validation and push:
+
+```bash
+npm run lock:refresh
+```
 
 ## Module Installation Discipline
 

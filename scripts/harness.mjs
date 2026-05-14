@@ -7,6 +7,7 @@ import { runQuestions } from "./questions.mjs";
 import { runUpgrade } from "./upgrade.mjs";
 import { runModules } from "./modules.mjs";
 import { runProfiles } from "./profiles.mjs";
+import { runLock } from "./lock.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -21,6 +22,8 @@ Usage:
   harness modules list
   harness modules add <module-id>
   harness profiles list
+  harness lock refresh
+  harness lock check
   harness upgrade --plan
   harness doctor   Validate installed harness health
   harness help     Show this help
@@ -64,6 +67,11 @@ if (command === "modules") {
 
 if (command === "profiles") {
   const result = runProfiles({ args });
+  process.exit(result.ok ? 0 : 2);
+}
+
+if (command === "lock") {
+  const result = runLock({ cwd: process.cwd(), args });
   process.exit(result.ok ? 0 : 2);
 }
 

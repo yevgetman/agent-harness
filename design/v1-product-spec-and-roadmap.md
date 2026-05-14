@@ -139,6 +139,8 @@ Current commands:
 - `harness modules list`
 - `harness modules add <module>`
 - `harness profiles list`
+- `harness lock refresh`
+- `harness lock check`
 - `harness upgrade --plan`
 
 Current dogfood modules:
@@ -233,6 +235,9 @@ Initial behavior:
 - `harness init` writes installed-file fingerprints to `.harness/lock.yaml`.
 - `harness modules add <module>` updates the lock for module artifacts and the
   manifest.
+- `harness lock refresh` rebuilds installed-file provenance from current
+  manifest state.
+- `harness lock check` reports lock drift without writing.
 - `harness doctor` validates lock shape, locked files, and fingerprint drift.
 - `harness upgrade --plan` reports lock status and classifies managed files as
   clean, modified, unlocked, or missing.

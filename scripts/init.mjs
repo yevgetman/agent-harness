@@ -175,6 +175,8 @@ function commandsFor(modules) {
     "modules-list": "harness modules list",
     "modules-add": "harness modules add",
     "profiles-list": "harness profiles list",
+    "lock-refresh": "harness lock refresh",
+    "lock-check": "harness lock check",
     "upgrade-plan": "harness upgrade --plan",
   };
 
@@ -289,6 +291,13 @@ On every substantive session:
 
 After significant choices, build steps, or repo-structure changes, update
 \`status.md\` in place so future sessions can orient quickly.
+
+## Lock Discipline
+
+Use \`harness lock check\` to inspect installed-file provenance drift.
+
+After intentional changes to harness-managed files, use
+\`harness lock refresh\` before final validation.
 `,
       },
       {

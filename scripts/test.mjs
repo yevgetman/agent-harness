@@ -18,6 +18,7 @@ import { parse as parseYaml } from "yaml";
 import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
+import { runLock } from "./lock.mjs";
 import { runModules } from "./modules.mjs";
 import { runProfiles } from "./profiles.mjs";
 import { runQuestions } from "./questions.mjs";
@@ -217,7 +218,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.lock.status, "present", "upgrade --plan should report present lock state");
   assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 5, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 7, "upgrade plan should include command states");
   const availableDecisionModule = upgrade.plan.modules.find((module) => module.id === "decisions-open-questions");
   assert.equal(
     availableDecisionModule?.status,
@@ -363,7 +364,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
   assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
-  assert.equal(upgrade.plan.commands.length, 8, "module add should extend command state");
+  assert.equal(upgrade.plan.commands.length, 10, "module add should extend command state");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
     "unchanged",
@@ -537,6 +538,53 @@ withTempDir((root) => {
     driftPlan.plan.warnings.some((item) => item.includes("managed file 'AGENTS.md' differs from lock fingerprint")),
     true,
     "upgrade --plan should report lock drift warnings",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before lock command tests");
+
+  const clean = quiet(() => runLock({ cwd: root, args: ["check", "--target", target] }));
+  assert.equal(clean.ok, true, "lock check should pass after init");
+
+  writeFileSync(join(target, "AGENTS.md"), "# Custom Agent Instructions\n");
+  const drift = quiet(() => runLock({ cwd: root, args: ["check", "--target", target] }));
+  assert.equal(drift.ok, false, "lock check should fail after managed-file drift");
+  assert.equal(
+    drift.drift.some((item) => item.includes("AGENTS.md")),
+    true,
+    "lock check should report the drifted file",
+  );
+
+  const refresh = quiet(() => runLock({ cwd: root, args: ["refresh", "--target", target] }));
+  assert.equal(refresh.ok, true, "lock refresh should update the lock after intentional changes");
+
+  const refreshed = quiet(() => runLock({ cwd: root, args: ["check", "--target", target] }));
+  assert.equal(refreshed.ok, true, "lock check should pass after refresh");
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before lock refresh missing-file test");
+
+  unlinkSync(join(target, "status.md"));
+  const refresh = quiet(() => runLock({ cwd: root, args: ["refresh", "--target", target] }));
+  assert.equal(refresh.ok, false, "lock refresh should refuse missing expected files");
+  assert.equal(
+    refresh.errors.some((item) => item.includes("status.md")),
+    true,
+    "lock refresh should report the missing expected file",
   );
 });
 

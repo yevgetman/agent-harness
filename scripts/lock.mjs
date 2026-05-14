@@ -1,12 +1,25 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 const LOCK_PATH = ".harness/lock.yaml";
 
 function sortByPath(files) {
   return [...files].sort((a, b) => a.path.localeCompare(b.path));
+}
+
+function argValue(args, flag, fallback = null) {
+  const i = args.indexOf(flag);
+  return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback;
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function readYamlFile(path) {
+  return parseYaml(readFileSync(path, "utf8"));
 }
 
 function managedFileMap(harness) {
@@ -46,6 +59,45 @@ function defaultSource(path, sourceByPath = {}) {
   if (path === ".harness/manifest.yaml") return "generated-manifest";
   if (moduleIdFromDefinition(path)) return "module-definition";
   return "generated";
+}
+
+function moduleArtifactPaths(root, harness) {
+  if (!root) return [];
+
+  const paths = [];
+  for (const moduleRef of harness?.modules ?? []) {
+    if (!moduleRef?.id) continue;
+    const modulePath = join(root, "modules", moduleRef.id, "module.yaml");
+    if (!existsSync(modulePath)) continue;
+
+    try {
+      const moduleYaml = readYamlFile(modulePath);
+      for (const artifact of moduleYaml?.module?.install?.artifacts ?? []) {
+        if (artifact?.type !== "directory" && artifact?.path) {
+          paths.push(artifact.path);
+        }
+      }
+    } catch {
+      // Shape and parse errors are reported by doctor; lock commands only use
+      // readable module definitions to discover additional artifact paths.
+    }
+  }
+
+  return paths;
+}
+
+export function expectedLockPaths(harness, { root = null } = {}) {
+  const paths = new Set([".harness/manifest.yaml"]);
+  for (const file of harness?.managed_files ?? []) {
+    if (file?.path) paths.add(file.path);
+  }
+  for (const moduleRef of harness?.modules ?? []) {
+    if (moduleRef?.id) paths.add(`modules/${moduleRef.id}/module.yaml`);
+  }
+  for (const path of moduleArtifactPaths(root, harness)) {
+    paths.add(path);
+  }
+  return Array.from(paths).sort();
 }
 
 function normalizeLockFiles(files) {
@@ -172,6 +224,218 @@ export function updateLockFromPaths({ root, harness, paths, generatedAt, sourceB
   });
   writeLock(root, lock);
   return lock;
+}
+
+function loadManifest(root) {
+  const path = join(root, ".harness", "manifest.yaml");
+  if (!existsSync(path)) {
+    return { error: ".harness/manifest.yaml: missing" };
+  }
+
+  try {
+    const manifest = readYamlFile(path);
+    if (!manifest?.harness) {
+      return { error: ".harness/manifest.yaml: missing top-level harness key" };
+    }
+    return { manifest, harness: manifest.harness };
+  } catch (parseError) {
+    return { error: `.harness/manifest.yaml: YAML parse error: ${parseError.message}` };
+  }
+}
+
+export function createLockFromManifest({ root, harness, generatedAt }) {
+  const paths = expectedLockPaths(harness, { root });
+  const missing = paths.filter((path) => !existsSync(join(root, path)));
+  const files = lockEntriesFromPaths(root, paths, harness);
+  return {
+    paths,
+    missing,
+    lock: createLock({ harness, generatedAt, files }),
+  };
+}
+
+function metadataDrift(current, expected) {
+  const drift = [];
+  for (const key of ["package", "harness_version", "profile"]) {
+    if (String(current?.[key] ?? "") !== String(expected?.[key] ?? "")) {
+      drift.push(`metadata.${key}: ${current?.[key] ?? "missing"} -> ${expected?.[key] ?? "missing"}`);
+    }
+  }
+
+  if (JSON.stringify(current?.source ?? {}) !== JSON.stringify(expected?.source ?? {})) {
+    drift.push("metadata.source: differs from manifest source");
+  }
+
+  if (JSON.stringify(current?.modules ?? []) !== JSON.stringify(expected?.modules ?? [])) {
+    drift.push("metadata.modules: differs from manifest modules");
+  }
+
+  return drift;
+}
+
+function fileDrift(currentLock, expectedLock) {
+  const drift = [];
+  const currentFiles = lockFileMap(currentLock);
+  const expectedFiles = lockFileMap(expectedLock);
+
+  for (const [path, expected] of expectedFiles.entries()) {
+    const current = currentFiles.get(path);
+    if (!current) {
+      drift.push(`${path}: missing lock entry`);
+      continue;
+    }
+
+    for (const key of ["owner", "mode", "source", "sha256"]) {
+      if (String(current[key] ?? "") !== String(expected[key] ?? "")) {
+        drift.push(`${path}: ${key} differs from current file state`);
+        break;
+      }
+    }
+  }
+
+  for (const path of currentFiles.keys()) {
+    if (!expectedFiles.has(path)) {
+      drift.push(`${path}: stale lock entry`);
+    }
+  }
+
+  return drift;
+}
+
+export function checkLockState({ root, generatedAt = todayIso() }) {
+  const loadedManifest = loadManifest(root);
+  if (loadedManifest.error) {
+    return {
+      ok: false,
+      root,
+      errors: [loadedManifest.error],
+      drift: [],
+      missing: [],
+      lock: null,
+    };
+  }
+
+  const expected = createLockFromManifest({
+    root,
+    harness: loadedManifest.harness,
+    generatedAt,
+  });
+  const loadedLock = readLock(root);
+  const errors = [];
+
+  if (loadedLock.status !== "present") {
+    errors.push(loadedLock.error);
+  }
+
+  for (const path of expected.missing) {
+    errors.push(`${path}: expected lock path is missing`);
+  }
+
+  const drift = loadedLock.lock
+    ? [
+      ...metadataDrift(loadedLock.lock, expected.lock),
+      ...fileDrift(loadedLock.lock, expected.lock),
+    ]
+    : [];
+
+  return {
+    ok: errors.length === 0 && drift.length === 0,
+    root,
+    errors,
+    drift,
+    missing: expected.missing,
+    lock: loadedLock.lock,
+    expectedLock: expected.lock,
+  };
+}
+
+function printItems(label, items) {
+  console.log(`${label}:`);
+  if (items.length === 0) {
+    console.log("  none");
+    return;
+  }
+
+  for (const item of items) {
+    console.log(`  ${item}`);
+  }
+}
+
+function printLockHelp() {
+  console.log(`harness lock
+
+Usage:
+  harness lock refresh [--target <path>]
+  harness lock check [--target <path>]
+  harness lock refresh --check [--target <path>]
+
+Commands:
+  refresh   Rebuild .harness/lock.yaml from the installed manifest and current files.
+  check     Report whether .harness/lock.yaml matches current installed state.
+`);
+}
+
+function runCheck(root) {
+  const result = checkLockState({ root });
+  console.log("Harness lock check");
+  console.log(`target: ${root}`);
+  console.log(`status: ${result.ok ? "ok" : "drift-or-error"}`);
+  printItems("errors", result.errors);
+  printItems("drift", result.drift);
+  return result;
+}
+
+function runRefresh(root) {
+  const loadedManifest = loadManifest(root);
+  if (loadedManifest.error) {
+    console.error(`fail ${loadedManifest.error}`);
+    return { ok: false, root, errors: [loadedManifest.error] };
+  }
+
+  const generated = createLockFromManifest({
+    root,
+    harness: loadedManifest.harness,
+    generatedAt: todayIso(),
+  });
+
+  if (generated.missing.length > 0) {
+    for (const path of generated.missing) {
+      console.error(`fail ${path}: expected lock path is missing`);
+    }
+    return { ok: false, root, errors: generated.missing };
+  }
+
+  writeLock(root, generated.lock);
+  console.log("Harness lock refresh");
+  console.log(`target: ${root}`);
+  console.log(`files: ${generated.lock.files.length}`);
+  console.log("status: refreshed");
+  return { ok: true, root, lock: generated.lock, files: generated.lock.files.length };
+}
+
+export function runLock({ cwd = process.cwd(), args = [] } = {}) {
+  const [subcommand, ...rest] = args;
+
+  if (!subcommand || subcommand === "--help" || subcommand === "-h" || subcommand === "help") {
+    printLockHelp();
+    return { ok: true };
+  }
+
+  const commandArgs = subcommand === "refresh" || subcommand === "check" ? rest : args;
+  const targetArg = argValue(commandArgs, "--target", cwd);
+  const root = resolve(cwd, targetArg);
+
+  if (subcommand === "check" || (subcommand === "refresh" && rest.includes("--check"))) {
+    return runCheck(root);
+  }
+
+  if (subcommand === "refresh") {
+    return runRefresh(root);
+  }
+
+  console.error(`fail unknown lock command '${subcommand}'`);
+  printLockHelp();
+  return { ok: false };
 }
 
 export { LOCK_PATH };

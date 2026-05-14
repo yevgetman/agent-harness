@@ -59,6 +59,22 @@ The command is read-only. It reports:
 - Command wiring state.
 - Actions, warnings, blockers, and notes.
 
+## Lock Maintenance
+
+The profile records installed-file provenance at `.harness/lock.yaml` and
+exposes:
+
+```bash
+harness lock check
+harness lock refresh
+```
+
+Use `harness lock check` to report drift without writing.
+
+Use `harness lock refresh` after intentional edits to harness-managed files.
+The refresh command refuses to write when expected manifest, module, or managed
+files are missing.
+
 ## Module Installation
 
 The minimal profile exposes module discovery and installation commands through
@@ -80,4 +96,5 @@ The first mechanically installable follow-on module is
   human-authored files.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
-- A standalone lock refresh command is not implemented yet.
+- Lock refresh rebuilds file fingerprints, but semantic diffing and upgrade
+  application are not implemented yet.

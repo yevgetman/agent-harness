@@ -91,7 +91,8 @@ Current dogfood state:
   reports no blockers or warnings for this dogfood repo.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
-  add`, doctor fingerprint validation, and lock-aware upgrade planning.
+  add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
+  validation, and lock-aware upgrade planning.
 - The first module/profile installation surface exists via
   `modules/registry.yaml`, `profiles/`, `npm run modules:list`, and
   `node scripts/harness.mjs modules add <module-id> --target <path>`.
@@ -132,6 +133,7 @@ adding more process-domain breadth.
   selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Prefer lock depth next: a standalone lock refresh command, richer
-  source/template provenance, or clearer upgrade operation classification.
+- Prefer lock depth next: richer source/template provenance, clearer upgrade
+  operation classification, or lock refresh integration into future apply
+  behavior.
 - Keep `status.md` current after significant choices.

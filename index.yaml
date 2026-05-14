@@ -51,7 +51,7 @@ reading_order:
   - minimal-profile
   - modules-cli
   - profiles-cli
-  - lock-helper
+  - lock-cli
   - decisions-cli
   - questions-cli
   - upgrade-cli
@@ -326,7 +326,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, profiles, upgrade planning, doctor, and test commands.
+    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, profiles, lock maintenance, upgrade planning, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -336,7 +336,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, upgrade planning, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, lock maintenance, upgrade planning, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -385,12 +385,12 @@ documents:
       - profile-minimal
       - profile-dogfood
 
-  - doc_id: lock-helper
+  - doc_id: lock-cli
     file: scripts/lock.mjs
-    title: Harness Lock Helper
-    kind: cli-helper
+    title: Harness Lock CLI
+    kind: cli
     status: active
-    summary: Shared lock/provenance helpers for hashing files, creating lock entries, reading locks, and updating locks.
+    summary: Lock/provenance command and helpers for checking drift, refreshing lock state, hashing files, creating lock entries, reading locks, and updating locks.
     depends_on:
       - v1-lock-provenance-design
 
@@ -442,7 +442,7 @@ documents:
     depends_on:
       - init
       - profiles-cli
-      - lock-helper
+      - lock-cli
       - decisions-cli
       - questions-cli
       - upgrade-cli

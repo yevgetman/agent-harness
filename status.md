@@ -4,8 +4,9 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Phase 3 Lock And Provenance baseline. The initial installed-lock increment is
-implemented and depth-complete enough for the next narrow breadth decision.
+Phase 3 Lock And Provenance depth pass. The lock refresh/check command
+increment is implemented and depth-complete enough for the next narrow breadth
+decision.
 
 The repo currently has exploratory specs, seven formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -20,9 +21,10 @@ first module/profile installation surface exists through `modules/registry.yaml`
 Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
 command, and doctor validation. Baseline installed-file provenance exists via
-`.harness/lock.yaml`, lock-aware doctor checks, and lock-aware upgrade planning.
-No upgrade apply command, profile switching, standalone lock refresh command,
-or full external CLI distribution exists yet.
+`.harness/lock.yaml`, `harness lock refresh`, `harness lock check`, lock-aware
+doctor checks, and lock-aware upgrade planning. No upgrade apply command,
+profile switching, semantic provenance, or full external CLI distribution exists
+yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -107,6 +109,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   artifacts.
 - `harness modules add <module-id>` updates `.harness/lock.yaml` for module
   artifacts and `.harness/manifest.yaml`.
+- `npm run lock:refresh` rebuilds `.harness/lock.yaml` from the installed
+  manifest and current installed files.
+- `npm run lock:check` reports lock drift without writing.
 - `npm run doctor` validates lock shape, locked-file presence, and fingerprint
   drift.
 - `npm run upgrade:plan` uses lock fingerprints to distinguish clean, modified,
@@ -122,9 +127,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   preflight, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` now records `lock-provenance-baseline` as the current
-  complete depth pass and moves `profile-backed-init-and-listing` into completed
-  passes.
+- `build/depth-gate.yaml` now records `lock-refresh-check-command` as the
+  current complete depth pass and moves `lock-provenance-baseline` into
+  completed passes.
 
 ## Active Artifacts
 
@@ -173,7 +178,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
   `scripts/profiles.mjs` / `scripts/lock.mjs` / `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
-  lock helpers, upgrade planner, and doctor command.
+  lock command/helpers, upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, upgrade planning, depth-gate validation, and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
@@ -185,8 +190,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 ## Next Work
 
 - Choose the next Phase 3 depth increment before adding new process-domain
-  breadth. Likely candidates are a standalone lock refresh command, richer
-  template/source provenance, or upgrade-plan operation classification.
+  breadth. Likely candidates are richer template/source provenance, upgrade-plan
+  operation classification, or preparing safe upgrade-apply scaffolding.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

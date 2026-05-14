@@ -181,6 +181,8 @@ Initial checks:
 - Managed files have valid management modes.
 - `.harness/lock.yaml` is validated when present.
 - Locked file fingerprints match current files or produce drift warnings.
+- Manifest command records may expose `harness lock refresh` and
+  `harness lock check` for installed-file provenance maintenance.
 - Manifest commands are wired when the target repo exposes local package
   scripts or node entrypoints.
 - `index.yaml` document entries point to real files.
