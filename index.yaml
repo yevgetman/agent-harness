@@ -25,8 +25,10 @@ reading_order:
   - module-agent-operating-contract
   - module-progressive-orientation
   - module-decisions-open-questions
+  - depth-gate
   - open-questions
   - decision-0001
+  - decision-0002
   - decision-template
   - package
   - harness-cli
@@ -34,6 +36,7 @@ reading_order:
   - minimal-profile
   - decisions-cli
   - questions-cli
+  - upgrade-cli
   - doctor
   - test
   - doctor-fixtures
@@ -154,6 +157,15 @@ documents:
     depends_on:
       - v1-decisions-open-questions-design
 
+  - doc_id: depth-gate
+    file: build/depth-gate.yaml
+    title: Depth Gate
+    kind: build-state
+    status: active
+    summary: Repo-local build methodology gate recording completed depth passes and the current upgrade-plan depth pass.
+    depends_on:
+      - v1-incremental-build-strategy
+
   - doc_id: decision-0001
     file: decisions/0001-adopt-decisions-and-open-questions-domain.md
     title: Adopt Decisions And Open Questions Domain
@@ -162,6 +174,16 @@ documents:
     summary: Decision record adopting the Decisions And Open Questions process domain as the next dogfooded domain.
     depends_on:
       - v1-decisions-open-questions-design
+
+  - doc_id: decision-0002
+    file: decisions/0002-adopt-depth-gate-and-plan-first-upgrade-surface.md
+    title: Adopt Depth Gate And Plan-First Upgrade Surface
+    kind: decision
+    status: active
+    summary: Decision record adopting repo-local depth-gate validation and the read-only upgrade plan surface.
+    depends_on:
+      - v1-incremental-build-strategy
+      - v1-installed-manifest-design
 
   - doc_id: decision-template
     file: templates/decision.md
@@ -177,7 +199,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, decisions, questions, doctor, and test commands.
+    summary: Node package wiring for the initial harness CLI, init, decisions, questions, upgrade planning, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -187,7 +209,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, upgrade planning, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -229,12 +251,21 @@ documents:
     depends_on:
       - v1-decisions-open-questions-design
 
+  - doc_id: upgrade-cli
+    file: scripts/upgrade.mjs
+    title: Harness Upgrade CLI
+    kind: cli
+    status: active
+    summary: Read-only upgrade planning command for installed harness state.
+    depends_on:
+      - v1-installed-manifest-design
+
   - doc_id: doctor
     file: scripts/doctor.mjs
     title: Harness Doctor
     kind: cli
     status: active
-    summary: Installed-harness health validator with grouped diagnostics, hints, index checks, and active module checks.
+    summary: Installed-harness health validator with grouped diagnostics, hints, index checks, command checks, depth-gate checks, and active module checks.
     depends_on:
       - v1-installed-manifest-design
       - v1-decisions-open-questions-design
@@ -244,11 +275,12 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, doctor validation, decisions, questions, and doctor fixtures.
+    summary: Executable tests for init safety, doctor validation, decisions, questions, upgrade planning, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - decisions-cli
       - questions-cli
+      - upgrade-cli
       - doctor
 
   - doc_id: doctor-fixtures

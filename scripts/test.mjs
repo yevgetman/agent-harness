@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -16,6 +17,7 @@ import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
 import { runQuestions } from "./questions.mjs";
+import { runUpgrade } from "./upgrade.mjs";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -36,8 +38,26 @@ function withTempDir(fn) {
   }
 }
 
+function quiet(fn) {
+  const log = console.log;
+  const error = console.error;
+  console.log = () => {};
+  console.error = () => {};
+  try {
+    return fn();
+  } finally {
+    console.log = log;
+    console.error = error;
+  }
+}
+
 function readFixture(file) {
   return readFileSync(join(REPO_ROOT, "fixtures", "doctor", file), "utf8");
+}
+
+function initGitRepo(path) {
+  mkdirSync(path, { recursive: true });
+  execFileSync("git", ["init"], { cwd: path, stdio: "ignore" });
 }
 
 function addDecisionsModule(target, { openQuestions, decision }) {
@@ -87,21 +107,24 @@ function addDecisionsModule(target, { openQuestions, decision }) {
 withTempDir((root) => {
   const target = join(root, "target");
 
-  const dryRun = runInit({
+  const dryRun = quiet(() => runInit({
     cwd: root,
     args: ["--target", target, "--profile", "minimal", "--dry-run", "--allow-non-git"],
-  });
+  }));
   assert.equal(dryRun.ok, true, "init --dry-run should pass");
   assertNotExists(target, "AGENTS.md");
 
-  const nonGit = runInit({ cwd: root, args: ["--target", target, "--profile", "minimal"] });
+  const nonGit = quiet(() => runInit({ cwd: root, args: ["--target", target, "--profile", "minimal"] }));
   assert.equal(nonGit.ok, false, "init should refuse non-git targets by default");
 
-  const init = runInit({
+  const gitTarget = join(root, "git-target");
+  initGitRepo(gitTarget);
+
+  const init = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "minimal", "--allow-non-git"],
-  });
-  assert.equal(init.ok, true, "initial init should pass with explicit non-git override");
+    args: ["--target", gitTarget, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "initial init should pass in a git repo");
 
   for (const file of [
     "AGENTS.md",
@@ -112,45 +135,56 @@ withTempDir((root) => {
     "modules/agent-operating-contract/module.yaml",
     "modules/progressive-orientation/module.yaml",
   ]) {
-    assertExists(target, file);
+    assertExists(gitTarget, file);
   }
 
-  const agents = readFileSync(join(target, "AGENTS.md"), "utf8");
+  const agents = readFileSync(join(gitTarget, "AGENTS.md"), "utf8");
   assert.match(agents, /version: 0\.1\.0/, "installed AGENTS.md should include harness version");
 
-  const doctor = runDoctor({ cwd: target });
+  const doctor = quiet(() => runDoctor({ cwd: gitTarget }));
   assert.equal(doctor.ok, true, "doctor should pass after init");
 
-  const duplicate = runInit({
+  const dryRunCollision = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "minimal", "--allow-non-git"],
-  });
+    args: ["--target", gitTarget, "--profile", "minimal", "--dry-run"],
+  }));
+  assert.equal(dryRunCollision.ok, true, "init --dry-run should report collisions without failing");
+  assert.equal(dryRunCollision.collisions.length, 7, "dry-run should report planned file collisions");
+
+  const duplicate = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", gitTarget, "--profile", "minimal"],
+  }));
   assert.equal(duplicate.ok, false, "init should refuse to overwrite without --force");
 
-  const forced = runInit({
+  const forced = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "minimal", "--force", "--allow-non-git"],
-  });
+    args: ["--target", gitTarget, "--profile", "minimal", "--force"],
+  }));
   assert.equal(forced.ok, true, "init --force should overwrite and pass");
+
+  const upgrade = quiet(() => runUpgrade({ cwd: gitTarget, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after init");
+  assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after init");
 });
 
 withTempDir((root) => {
-  const bad = runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] });
+  const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
 
 withTempDir((root) => {
-  const first = runDecisions({
+  const first = quiet(() => runDecisions({
     cwd: root,
     args: ["new", "Adopt test decision command"],
-  });
+  }));
   assert.equal(first.ok, true, "first decision should be created");
   assertExists(root, "decisions/0001-adopt-test-decision-command.md");
 
-  const second = runDecisions({
+  const second = quiet(() => runDecisions({
     cwd: root,
     args: ["new", "--status", "accepted", "Add another decision: with colon"],
-  });
+  }));
   assert.equal(second.ok, true, "second decision should be created");
   assertExists(root, "decisions/0002-add-another-decision-with-colon.md");
   assert.match(
@@ -159,40 +193,45 @@ withTempDir((root) => {
     "decision --status should set initial status",
   );
 
-  const list = runDecisions({ cwd: root, args: ["list"] });
+  const list = quiet(() => runDecisions({ cwd: root, args: ["list"] }));
   assert.equal(list.ok, true, "decisions list should pass");
   assert.equal(list.decisions.length, 2, "decisions list should return created decisions");
 
-  const badStatus = runDecisions({
+  const badStatus = quiet(() => runDecisions({
     cwd: root,
     args: ["new", "--status", "blocked", "Invalid status"],
-  });
+  }));
   assert.equal(badStatus.ok, false, "unsupported decision status should fail");
 
-  const missingTitle = runDecisions({ cwd: root, args: ["new"] });
+  const missingTitle = quiet(() => runDecisions({ cwd: root, args: ["new"] }));
   assert.equal(missingTitle.ok, false, "missing decision title should fail");
 });
 
 withTempDir((root) => {
   writeFileSync(join(root, "open-questions.yaml"), readFixture("good-open-questions.yaml"));
-  const questions = runQuestions({ cwd: root, args: ["list"] });
+  const questions = quiet(() => runQuestions({ cwd: root, args: ["list"] }));
   assert.equal(questions.ok, true, "questions list should pass");
   assert.equal(questions.questions.length, 1, "questions list should return fixture questions");
 });
 
 withTempDir((root) => {
+  const upgrade = quiet(() => runUpgrade({ cwd: root, args: ["--plan"] }));
+  assert.equal(upgrade.ok, false, "upgrade --plan should fail without a manifest");
+});
+
+withTempDir((root) => {
   const target = join(root, "target");
-  const init = runInit({
+  const init = quiet(() => runInit({
     cwd: root,
     args: ["--target", target, "--profile", "minimal", "--allow-non-git"],
-  });
+  }));
   assert.equal(init.ok, true, "init should pass before doctor fixture mutation");
 
   addDecisionsModule(target, {
     openQuestions: "bad-open-questions.yaml",
     decision: "good-decision.md",
   });
-  const badQuestions = runDoctor({ cwd: target });
+  const badQuestions = quiet(() => runDoctor({ cwd: target }));
   assert.equal(badQuestions.ok, false, "doctor should reject invalid open question status");
   assert.equal(
     badQuestions.diagnostics.errors.some((item) => item.includes("invalid status 'blocked'")),
@@ -203,22 +242,63 @@ withTempDir((root) => {
 
 withTempDir((root) => {
   const target = join(root, "target");
-  const init = runInit({
+  const init = quiet(() => runInit({
     cwd: root,
     args: ["--target", target, "--profile", "minimal", "--allow-non-git"],
-  });
+  }));
   assert.equal(init.ok, true, "init should pass before doctor fixture mutation");
 
   addDecisionsModule(target, {
     openQuestions: "good-open-questions.yaml",
     decision: "bad-decision-id.md",
   });
-  const badDecision = runDoctor({ cwd: target });
+  const badDecision = quiet(() => runDoctor({ cwd: target }));
   assert.equal(badDecision.ok, false, "doctor should reject decision id mismatch");
   assert.equal(
     badDecision.diagnostics.errors.some((item) => item.includes("does not match filename id")),
     true,
     "doctor should report decision id mismatch",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal", "--allow-non-git"],
+  }));
+  assert.equal(init.ok, true, "init should pass before depth-gate fixture mutation");
+
+  mkdirSync(join(target, "build"), { recursive: true });
+  writeFileSync(
+    join(target, "build", "depth-gate.yaml"),
+    `build_strategy:
+  version: 1
+  status: active
+  scope: harness-repo-local
+  strategy_doc: AGENTS.md
+  portable_process_domain: true
+  enforcement:
+    - fixture
+  completed_depth_passes: []
+  current_depth_pass:
+    id: fixture
+    breadth_unit: fixture
+    ready_for_next_breadth: true
+    depth_criteria:
+      - id: fixture
+        status: partial
+        evidence:
+          - fixture
+`,
+  );
+
+  const badGate = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(badGate.ok, false, "doctor should reject invalid depth-gate state");
+  assert.equal(
+    badGate.diagnostics.errors.some((item) => item.includes("portable_process_domain must be false")),
+    true,
+    "doctor should report depth-gate portability error",
   );
 });
 

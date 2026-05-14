@@ -4,6 +4,7 @@ import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
 import { runDecisions } from "./decisions.mjs";
 import { runQuestions } from "./questions.mjs";
+import { runUpgrade } from "./upgrade.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -15,6 +16,7 @@ Usage:
   harness decisions new "<title>"
   harness decisions list
   harness questions list
+  harness upgrade --plan
   harness doctor   Validate installed harness health
   harness help     Show this help
 `);
@@ -42,6 +44,11 @@ if (command === "decisions") {
 
 if (command === "questions") {
   const result = runQuestions({ cwd: process.cwd(), args });
+  process.exit(result.ok ? 0 : 2);
+}
+
+if (command === "upgrade") {
+  const result = runUpgrade({ cwd: process.cwd(), args });
   process.exit(result.ok ? 0 : 2);
 }
 

@@ -9,3 +9,10 @@
   owner: maintainer
   trigger: before the CLI needs to be consumed outside this local checkout
   notes: Candidate targets are Bun, npm, Homebrew, and standalone binary.
+
+- id: upgrade-version-source
+  title: How should upgrade discover available harness and module versions?
+  status: open
+  owner: maintainer
+  trigger: before harness upgrade --plan is used outside this local checkout
+  notes: Current upgrade planning compares installed state to the local package and module definitions only.

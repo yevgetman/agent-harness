@@ -34,10 +34,21 @@ Use `--dry-run` to inspect the install plan without writing files.
 Use `--force` only after reviewing local changes. The installer will otherwise
 refuse to overwrite existing managed files.
 
+## Upgrade Planning
+
+The profile records a plan-first upgrade policy and exposes:
+
+```bash
+harness upgrade --plan
+```
+
+The command is read-only. It reports installed harness version, available local
+package version, module state, managed-file blockers, and known limits.
+
 ## Current Limits
 
 - The profile does not install Decisions And Open Questions.
-- There is no upgrade path yet.
+- Upgrade behavior is plan-only; applying upgrades is not implemented yet.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
 - The generated files include harness package, version, and profile metadata,

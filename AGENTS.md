@@ -70,6 +70,9 @@ Short version:
 This strategy is not a harness process domain and should not be exported as
 portable harness behavior by default.
 
+The current gate state lives in `build/depth-gate.yaml`. Treat it as
+repo-local build methodology, not a portable process-domain artifact.
+
 ## Decisions And Open Questions Discipline
 
 Create a decision record when a future agent would reasonably ask why a choice
@@ -85,6 +88,11 @@ Capture unresolved blockers or compatibility questions in `open-questions.yaml`
 rather than letting them accumulate in `status.md`.
 
 Use `npm run questions:list` to inspect unresolved questions.
+
+## Upgrade Planning Discipline
+
+Use `npm run upgrade:plan` to inspect installed harness state before changing
+upgrade-related behavior. The command is read-only; it does not apply changes.
 
 ## Current Design Vocabulary
 

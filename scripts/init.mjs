@@ -61,7 +61,7 @@ function writePlannedFiles(targetRoot, planned) {
   }
 }
 
-function printPlan({ targetRoot, profile, files, dryRun }) {
+function printPlan({ targetRoot, profile, files, dryRun, collisions = [] }) {
   const label = dryRun ? "dry-run plan" : "install plan";
   console.log(`Harness init: ${label}`);
   console.log(`target: ${targetRoot}`);
@@ -69,6 +69,12 @@ function printPlan({ targetRoot, profile, files, dryRun }) {
   console.log(`files:`);
   for (const file of files) {
     console.log(`  ${file.path}`);
+  }
+  if (collisions.length > 0) {
+    console.log(`collisions:`);
+    for (const file of collisions) {
+      console.log(`  ${file}`);
+    }
   }
 }
 
@@ -274,6 +280,7 @@ purpose, current state, and next work are known.
       mode: merge
   commands:
     doctor: harness doctor
+    upgrade-plan: harness upgrade --plan
   upgrade:
     policy: plan-first
 `,
@@ -312,8 +319,21 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
     errors.push(`${targetRoot}: target is not a git repo (pass --allow-non-git to override)`);
   }
 
+  const collisions = errors.length === 0 ? collectCollisions(targetRoot, plan.files, force) : [];
+
+  if (dryRun && errors.length === 0) {
+    printPlan({ targetRoot, profile, files: plan.files, dryRun, collisions });
+    console.log("");
+    console.log("Harness init: dry run complete; no files written");
+    return {
+      ok: true,
+      targetRoot,
+      planned: plan.files.map((file) => file.path),
+      collisions,
+    };
+  }
+
   if (errors.length === 0) {
-    const collisions = collectCollisions(targetRoot, plan.files, force);
     for (const file of collisions) {
       errors.push(`${file}: already exists (pass --force to overwrite)`);
     }
@@ -325,12 +345,6 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
   }
 
   printPlan({ targetRoot, profile, files: plan.files, dryRun });
-
-  if (dryRun) {
-    console.log("");
-    console.log("Harness init: dry run complete; no files written");
-    return { ok: true, targetRoot, planned: plan.files.map((file) => file.path) };
-  }
 
   mkdirSync(targetRoot, { recursive: true });
   writePlannedFiles(targetRoot, plan.files);

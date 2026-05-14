@@ -1,0 +1,76 @@
+build_strategy:
+  version: 1
+  status: active
+  scope: harness-repo-local
+  strategy_doc: design/v1-incremental-build-strategy.md
+  portable_process_domain: false
+  enforcement:
+    - AGENTS.md cites the strategy document.
+    - state/CONTEXT.md summarizes the active strategy.
+    - harness doctor validates this file when present.
+
+  completed_depth_passes:
+    - id: initial-tooling-and-first-domains
+      breadth_unit: >
+        Agent Operating Contract, Progressive Orientation, Decisions And Open
+        Questions, minimal init, doctor, and list/create commands.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - npm run init installs the minimal profile.
+            - npm run doctor validates dogfood and installed targets.
+            - npm run decisions:new creates decision records.
+            - npm run decisions:list lists decision records.
+            - npm run questions:list lists open questions.
+        - id: validation
+          status: satisfied
+          evidence:
+            - doctor validates manifest, module, managed-file, index, status, decision, and question shape.
+            - doctor validates this depth-gate artifact when present.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers init safety, doctor success and failure paths, decisions, questions, and fixtures.
+        - id: docs
+          status: satisfied
+          evidence:
+            - AGENTS.md, status.md, state/CONTEXT.md, index.yaml, and docs/minimal-profile.md describe current behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - The harness repo runs as the first dogfood target.
+            - The dogfood manifest records active modules and commands.
+
+  current_depth_pass:
+    id: upgrade-plan-lifecycle
+    breadth_unit: >
+      Add a narrow harness lifecycle surface through harness upgrade --plan.
+    status: depth-in-progress
+    ready_for_next_breadth: false
+    depth_criteria:
+      - id: executable-behavior
+        status: satisfied
+        evidence:
+          - harness upgrade --plan produces a read-only upgrade plan.
+      - id: validation
+        status: partial
+        evidence:
+          - doctor validates that the upgrade plan command is wired.
+          - upgrade plan does not yet compare against remote package versions.
+      - id: tests
+        status: satisfied
+        evidence:
+          - npm test covers upgrade plan success and missing-manifest failure.
+      - id: docs
+        status: satisfied
+        evidence:
+          - status.md, index.yaml, and docs/minimal-profile.md describe the plan-first command.
+      - id: dogfood-usage
+        status: partial
+        evidence:
+          - The dogfood manifest exposes upgrade-plan.
+          - npm run upgrade:plan has been run against the dogfood repo and reports no blockers.
+          - No real target repo upgrade has been exercised yet.

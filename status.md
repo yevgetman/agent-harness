@@ -4,18 +4,20 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Design baseline and dogfood bootstrap, with the current work focused on
-deepening the already-integrated domains before adding more breadth.
+Design baseline and dogfood bootstrap. The initial tooling/domain depth pass is
+complete enough to permit one narrow new breadth item: read-only upgrade
+planning.
 
 The repo currently has exploratory specs, four formal v1 design documents, a
 root agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, three active
-module definitions, a runnable `harness doctor` command, and a minimal
-`harness init --profile minimal` installer. Decisions And Open Questions is
+module definitions, a runnable `harness doctor` command, a minimal
+`harness init --profile minimal` installer, a repo-local depth gate, and a
+read-only `harness upgrade --plan` command. Decisions And Open Questions is
 dogfooded with `decisions/`, `open-questions.yaml`, a decision template,
 decision and question list commands, a decision creation command, and doctor
-validation. No upgrade command, profile system beyond `minimal`, or full CLI
-exists yet.
+validation. No upgrade apply command, profile system beyond `minimal`, or full
+CLI exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -56,12 +58,18 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 - Second-layer build strategy is **add breadth, then work depth to the maximum
   prudent extent before adding more breadth**. This is specific to building this
   repo and is not a harness process domain or portable default behavior.
+- `build/depth-gate.yaml` records the repo-local depth gate. `npm run doctor`
+  validates it when present.
 - `npm run init` now supports `--dry-run`, refuses non-git targets unless
   `--allow-non-git` is passed, reports install plans, and writes package,
   version, and profile metadata into generated files.
 - `npm run doctor` now groups diagnostics, deduplicates repeated file checks,
-  emits remediation hints, validates `index.yaml` dependencies, and checks
-  manifest/module managed-file consistency.
+  emits remediation hints, validates `index.yaml` dependencies, checks command
+  availability, checks depth-gate shape, and checks manifest/module
+  managed-file consistency.
+- `npm run upgrade:plan` reports installed harness state without applying
+  changes.
+- The dogfood repo's current upgrade plan reports no blockers.
 - `npm run decisions:list` lists decision records.
 - `npm run questions:list` lists open questions.
 
@@ -77,6 +85,8 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 - `design/v1-incremental-build-strategy.md` — formal short-term build strategy.
 - `design/v1-decisions-open-questions-design.md` — formal Decisions And Open
   Questions domain design.
+- `build/depth-gate.yaml` — repo-local depth gate for the current build
+  methodology.
 - `docs/minimal-profile.md` — reference for the current minimal install
   profile.
 - `.harness/manifest.yaml` — dogfood installed harness manifest.
@@ -84,9 +94,12 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 - `open-questions.yaml` — structured unresolved questions.
 - `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
   dogfood decision record, created with the new decisions command.
+- `decisions/0002-adopt-depth-gate-and-plan-first-upgrade-surface.md` —
+  decision record for depth-gate validation and plan-first upgrade planning.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
-  `scripts/questions.mjs` / `scripts/doctor.mjs` — minimal CLI, installer,
-  decision/question commands, and doctor command.
+  `scripts/questions.mjs` / `scripts/upgrade.mjs` / `scripts/doctor.mjs` —
+  minimal CLI, installer, decision/question commands, upgrade planner, and
+  doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
@@ -97,10 +110,10 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 
 ## Next Work
 
-- Keep hardening the existing init/doctor/decisions/questions loop until the
-  next improvement becomes speculative.
-- Decide whether the next narrow breadth increment should be a module/profile
-  installer, an upgrade-plan command, or a richer installed manifest lock.
+- Work depth on `harness upgrade --plan`: version-source design, better module
+  comparison, richer blocker reporting, and a real target-repo exercise.
+- Decide whether the next narrow breadth increment after upgrade-plan depth
+  should be a module/profile installer or a richer installed manifest lock.
 - Add the next process domain only when it forces one concrete tooling
   improvement and can be dogfooded immediately.
 

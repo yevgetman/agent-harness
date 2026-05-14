@@ -62,16 +62,24 @@ practical confidence. Only then add another unit of breadth.
 
 ## Current loop
 
-The current loop is a depth pass over the first installed surfaces:
+The initial depth pass over the first installed surfaces is complete enough to
+permit one narrow new breadth item:
 
-- Process domains: `agent-operating-contract`, `progressive-orientation`, and
-  `decisions-open-questions`.
-- Tooling: `.harness/manifest.yaml`, module definitions, `harness doctor`,
-  `harness init --profile minimal`, `harness decisions`, and
+- Initial process domains: `agent-operating-contract`,
+  `progressive-orientation`, and `decisions-open-questions`.
+- Initial tooling: `.harness/manifest.yaml`, module definitions,
+  `harness doctor`, `harness init --profile minimal`, `harness decisions`, and
   `harness questions`.
-- Depth target: make the existing domains safer and more usable through
-  validation, fixtures, tests, dry-run behavior, and clearer installed
-  metadata before adding the next process domain.
+- Repo-local gate: `build/depth-gate.yaml` records completed and current depth
+  passes and is validated by `harness doctor` when present.
+
+The current depth pass is `upgrade-plan-lifecycle`:
+
+- New breadth: `harness upgrade --plan` as a read-only Harness Lifecycle
+  surface.
+- Depth target: make upgrade planning more useful before adding another breadth
+  unit, especially version-source discovery, richer module comparison, blocker
+  reporting, and a real target-repo exercise.
 
 ## Operating rules
 

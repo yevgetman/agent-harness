@@ -49,7 +49,7 @@ domain integration should force concrete tooling, and every tooling improvement
 should serve a process domain already dogfooded here. The current second layer
 is breadth, then depth to the maximum prudent extent, before adding more
 breadth. This strategy is local to building this repo, not a portable process
-domain.
+domain. The repo-local gate state is `build/depth-gate.yaml`.
 
 ## Dogfood posture
 
@@ -65,10 +65,13 @@ Current dogfood state:
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
-  `npm test`.
+  `npm test`; doctor now validates command wiring and the depth gate when
+  present.
 - The first installer surface exists as `harness init --profile minimal`,
   exposed locally as `npm run init`; it now has dry-run, non-git safety, and
   installed metadata.
+- The first upgrade surface exists as `npm run upgrade:plan`; it is read-only
+  and does not apply changes.
 - Decisions And Open Questions exists in first dogfood form via `decisions/`,
   `open-questions.yaml`, `templates/decision.md`, and
   `npm run decisions:new -- "<title>"`, `npm run decisions:list`, and
@@ -89,14 +92,15 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The next useful step is to finish hardening the initial runnable
-infrastructure before adding another process domain:
+The next useful step is to deepen the new upgrade-plan breadth before adding
+another breadth unit:
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
 - Expand module definitions only when a command needs the additional metadata.
+- Work through the current depth pass in `build/depth-gate.yaml`.
+- Resolve or defer how upgrade planning discovers available harness and module
+  versions outside the local checkout.
 - Add the next process domain only when it forces one concrete tooling
-  improvement.
-- Likely next increment: add a narrow module/profile installer or upgrade plan
-  surface, but only after the current depth pass is stable.
+  improvement and can be dogfooded immediately.
 - Keep `status.md` current after significant choices.

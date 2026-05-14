@@ -6,6 +6,7 @@ import { parse as parseYaml } from "yaml";
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
 const VALID_OPEN_QUESTION_STATUSES = new Set(["open", "in_progress", "resolved", "deferred"]);
+const VALID_DEPTH_STATUSES = new Set(["pending", "partial", "satisfied", "deferred"]);
 
 function rel(root, file) {
   return join(root, file);
@@ -93,6 +94,19 @@ function readYaml(root, file, diagnostics) {
   }
 }
 
+function readJson(root, file, diagnostics) {
+  const text = readText(root, file, diagnostics);
+  if (text == null) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch (parseError) {
+    error(diagnostics, `${file}: JSON parse error: ${parseError.message}`);
+    hint(diagnostics, `Fix JSON syntax in ${file}, then rerun harness doctor.`);
+    return null;
+  }
+}
+
 function parseFrontmatter(text, file, diagnostics) {
   const match = text.match(/^---\n([\s\S]*?)\n---\n?/);
   if (!match) {
@@ -154,6 +168,61 @@ function checkManifest(root, diagnostics) {
   }
 
   return harness;
+}
+
+function checkCommandAvailability(root, manifest, diagnostics) {
+  if (!manifest?.commands || typeof manifest.commands !== "object" || Array.isArray(manifest.commands)) {
+    return;
+  }
+
+  const packageExists = existsSync(rel(root, "package.json"));
+  const packageJson = packageExists ? readJson(root, "package.json", diagnostics) : null;
+  const scripts = packageJson?.scripts ?? {};
+
+  for (const [name, command] of Object.entries(manifest.commands)) {
+    if (typeof command !== "string" || command.trim() === "") {
+      error(diagnostics, `.harness/manifest.yaml: command '${name}' must be a non-empty string`);
+      continue;
+    }
+
+    if (command === "npm test") {
+      if (!packageExists) {
+        error(diagnostics, `.harness/manifest.yaml: command '${name}' requires package.json`);
+      } else if (!scripts.test) {
+        error(diagnostics, `.harness/manifest.yaml: command '${name}' references missing package script 'test'`);
+      } else {
+        ok(diagnostics, `.harness/manifest.yaml: command '${name}' is wired`);
+      }
+      continue;
+    }
+
+    const npmRun = command.match(/^npm run ([^\s]+)$/);
+    if (npmRun) {
+      const script = npmRun[1];
+      if (!packageExists) {
+        error(diagnostics, `.harness/manifest.yaml: command '${name}' requires package.json`);
+      } else if (!scripts[script]) {
+        error(diagnostics, `.harness/manifest.yaml: command '${name}' references missing package script '${script}'`);
+      } else {
+        ok(diagnostics, `.harness/manifest.yaml: command '${name}' is wired`);
+      }
+      continue;
+    }
+
+    const nodeFile = command.match(/^node ([^\s]+)(?:\s|$)/);
+    if (nodeFile) {
+      assertFile(root, nodeFile[1], diagnostics);
+      ok(diagnostics, `.harness/manifest.yaml: command '${name}' is wired`);
+      continue;
+    }
+
+    if (command.startsWith("harness ")) {
+      ok(diagnostics, `.harness/manifest.yaml: command '${name}' declares external harness CLI`);
+      continue;
+    }
+
+    warn(diagnostics, `.harness/manifest.yaml: command '${name}' is not mechanically checked`);
+  }
 }
 
 function checkModules(root, manifest, diagnostics) {
@@ -456,6 +525,110 @@ function checkDecisionsOpenQuestions(root, installedModules, diagnostics) {
   checkDecisionRecords(root, diagnostics);
 }
 
+function checkDepthCriterion(path, criterion, diagnostics) {
+  if (!criterion?.id) {
+    error(diagnostics, `${path}: depth criterion missing id`);
+  }
+
+  if (!VALID_DEPTH_STATUSES.has(criterion?.status)) {
+    error(diagnostics, `${path}: criterion '${criterion?.id ?? "unknown"}' has invalid status '${criterion?.status}'`);
+  }
+
+  if (!Array.isArray(criterion?.evidence) || criterion.evidence.length === 0) {
+    error(diagnostics, `${path}: criterion '${criterion?.id ?? "unknown"}' must include evidence`);
+  }
+}
+
+function checkDepthPass(path, pass, diagnostics, { completed = false } = {}) {
+  if (!pass?.id) {
+    error(diagnostics, `${path}: depth pass missing id`);
+  }
+
+  if (!pass?.breadth_unit) {
+    error(diagnostics, `${path}: depth pass '${pass?.id ?? "unknown"}' missing breadth_unit`);
+  }
+
+  if (typeof pass?.ready_for_next_breadth !== "boolean") {
+    error(diagnostics, `${path}: depth pass '${pass?.id ?? "unknown"}' missing boolean ready_for_next_breadth`);
+  }
+
+  if (!Array.isArray(pass?.depth_criteria) || pass.depth_criteria.length === 0) {
+    error(diagnostics, `${path}: depth pass '${pass?.id ?? "unknown"}' must include depth_criteria`);
+    return;
+  }
+
+  for (const criterion of pass.depth_criteria) {
+    checkDepthCriterion(path, criterion, diagnostics);
+  }
+
+  const allSatisfied = pass.depth_criteria.every((criterion) =>
+    criterion.status === "satisfied" || criterion.status === "deferred",
+  );
+
+  if (pass.ready_for_next_breadth && !allSatisfied) {
+    error(
+      diagnostics,
+      `${path}: depth pass '${pass.id}' is ready_for_next_breadth but has unsatisfied criteria`,
+    );
+  }
+
+  if (!pass.ready_for_next_breadth && allSatisfied) {
+    warn(
+      diagnostics,
+      `${path}: depth pass '${pass.id}' has all criteria satisfied but ready_for_next_breadth is false`,
+    );
+  }
+
+  if (completed && !pass.ready_for_next_breadth) {
+    error(diagnostics, `${path}: completed depth pass '${pass.id}' must be ready_for_next_breadth`);
+  }
+}
+
+function checkDepthGate(root, diagnostics) {
+  const file = "build/depth-gate.yaml";
+  if (!existsSync(rel(root, file))) return;
+
+  const yaml = readYaml(root, file, diagnostics);
+  const gate = yaml?.build_strategy;
+  if (!gate) {
+    error(diagnostics, `${file}: missing top-level build_strategy key`);
+    return;
+  }
+
+  if (gate.version !== 1) {
+    error(diagnostics, `${file}: version must be 1`);
+  }
+
+  if (gate.scope !== "harness-repo-local") {
+    error(diagnostics, `${file}: scope must be harness-repo-local`);
+  }
+
+  if (gate.portable_process_domain !== false) {
+    error(diagnostics, `${file}: portable_process_domain must be false`);
+  }
+
+  if (!gate.strategy_doc) {
+    error(diagnostics, `${file}: missing strategy_doc`);
+  } else {
+    assertFile(root, gate.strategy_doc, diagnostics);
+  }
+
+  if (!Array.isArray(gate.enforcement) || gate.enforcement.length === 0) {
+    error(diagnostics, `${file}: enforcement must be a non-empty list`);
+  }
+
+  if (!Array.isArray(gate.completed_depth_passes)) {
+    error(diagnostics, `${file}: completed_depth_passes must be a list`);
+  } else {
+    for (const pass of gate.completed_depth_passes) {
+      checkDepthPass(file, pass, diagnostics, { completed: true });
+    }
+  }
+
+  checkDepthPass(file, gate.current_depth_pass, diagnostics);
+  ok(diagnostics, `${file}: depth gate validated`);
+}
+
 function printGroup(label, prefix, items) {
   if (items.length === 0) return;
   console.log(`${label}:`);
@@ -481,11 +654,13 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   const diagnostics = createDiagnostics();
 
   const manifest = checkManifest(root, diagnostics);
+  checkCommandAvailability(root, manifest, diagnostics);
   const installedModules = checkModules(root, manifest, diagnostics);
   checkManagedFiles(root, manifest, installedModules, diagnostics);
   checkIndex(root, diagnostics);
   checkStatus(root, diagnostics);
   checkDecisionsOpenQuestions(root, installedModules, diagnostics);
+  checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);
   const resultDiagnostics = publicDiagnostics(diagnostics);

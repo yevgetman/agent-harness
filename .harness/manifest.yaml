@@ -47,6 +47,7 @@ harness:
     decisions-new: node scripts/harness.mjs decisions new
     decisions-list: node scripts/harness.mjs decisions list
     questions-list: node scripts/harness.mjs questions list
+    upgrade-plan: node scripts/harness.mjs upgrade --plan
     doctor: npm run doctor
     test: npm test
   upgrade:
