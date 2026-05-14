@@ -32,6 +32,8 @@ harness:
       owner: progressive-orientation
       mode: merge
   commands:
+    init: npm run init
     doctor: npm run doctor
+    test: npm test
   upgrade:
     policy: plan-first

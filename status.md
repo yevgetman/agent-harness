@@ -7,11 +7,12 @@ Last updated: 2026-05-14
 Design baseline and dogfood bootstrap, with Progressive Orientation now being
 dogfooded.
 
-The repo currently has exploratory specs, two formal v1 design documents, a
+The repo currently has exploratory specs, three formal v1 design documents, a
 root agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, two initial
-module definitions, and a runnable `harness doctor` command. No installer,
-upgrade command, profile system, or full CLI exists yet.
+module definitions, a runnable `harness doctor` command, and a minimal
+`harness init --profile minimal` installer. No upgrade command, profile system
+beyond `minimal`, or full CLI exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -37,7 +38,15 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
   `progressive-orientation`.
 - `npm run doctor` is the first Mechanical Validation surface; it validates
   installed harness health, not the full repo content.
+- `npm run init` installs the minimal profile into a target repo: `AGENTS.md`,
+  `status.md`, `index.yaml`, `state/CONTEXT.md`, `.harness/manifest.yaml`, and
+  the two initial module definitions.
+- `npm test` covers minimal init, doctor success, overwrite refusal,
+  `--force`, and unsupported profile failure.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
+- Short-term build strategy is **incremental tooling plus process-domain
+  integration**: each process-domain integration should force concrete tooling,
+  and each tooling improvement should serve an already dogfooded domain.
 
 ## Active Artifacts
 
@@ -48,9 +57,12 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
   baseline.
 - `design/v1-installed-manifest-design.md` — formal installed-manifest design
   baseline.
+- `design/v1-incremental-build-strategy.md` — formal short-term build strategy.
 - `.harness/manifest.yaml` — dogfood installed harness manifest.
 - `modules/*/module.yaml` — first two module definitions.
-- `scripts/harness.mjs` / `scripts/doctor.mjs` — minimal CLI and doctor command.
+- `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/doctor.mjs` — minimal
+  CLI, installer, and doctor command.
+- `scripts/test.mjs` — basic executable tests for the init/doctor loop.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
 - `spec/portability-model.md` — exploratory portability model and install
@@ -60,14 +72,14 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 
 - Decide whether `index.yaml` remains an orientation-only manifest for now or
   becomes the first mechanically validated artifact.
-- Decide the first `harness init` behavior and whether it installs only
-  `agent-operating-contract` + `progressive-orientation`.
 - Decide whether `harness doctor` should stay installation-health-only or
   become a broader repo health surface.
-- Add tests around doctor behavior before expanding validation.
+- Add the next process domain only when it forces one concrete tooling
+  improvement.
+- Decide whether the next tool should be `harness add-module`, broader
+  `doctor`, or a decisions/open-questions module.
 
 ## Open Questions
 
-- What is the minimum module set for `harness init`?
 - Which distribution target should be assumed first: Bun, npm, Homebrew, or
   standalone binary?

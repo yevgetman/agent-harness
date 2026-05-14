@@ -19,12 +19,15 @@ reading_order:
   - context
   - v1-process-domain-design
   - v1-installed-manifest-design
+  - v1-incremental-build-strategy
   - installed-manifest
   - module-agent-operating-contract
   - module-progressive-orientation
   - package
   - harness-cli
+  - init
   - doctor
+  - test
   - agnostic-harness-shape
   - portability-model
 
@@ -74,6 +77,16 @@ documents:
     depends_on:
       - v1-process-domain-design
 
+  - doc_id: v1-incremental-build-strategy
+    file: design/v1-incremental-build-strategy.md
+    title: "Formal Design: V1 Incremental Build Strategy"
+    kind: formal-design
+    status: active
+    summary: Accepted short-term strategy of pairing each process-domain integration with concrete tooling and validation.
+    depends_on:
+      - v1-process-domain-design
+      - v1-installed-manifest-design
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -108,17 +121,28 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI and doctor command.
+    summary: Node package wiring for the initial harness CLI, init, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
+      - v1-incremental-build-strategy
 
   - doc_id: harness-cli
     file: scripts/harness.mjs
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for the local harness CLI.
+    summary: Minimal command dispatcher for init and doctor.
     depends_on:
+      - v1-installed-manifest-design
+
+  - doc_id: init
+    file: scripts/init.mjs
+    title: Harness Init
+    kind: cli
+    status: active
+    summary: Minimal-profile installer for the Agent Operating Contract and Progressive Orientation modules.
+    depends_on:
+      - v1-incremental-build-strategy
       - v1-installed-manifest-design
 
   - doc_id: doctor
@@ -129,6 +153,16 @@ documents:
     summary: Initial installed-harness health validator.
     depends_on:
       - v1-installed-manifest-design
+
+  - doc_id: test
+    file: scripts/test.mjs
+    title: Harness Tests
+    kind: cli
+    status: active
+    summary: Basic tests for minimal init, overwrite refusal, forced re-init, unsupported profile failure, and doctor success.
+    depends_on:
+      - init
+      - doctor
 
   - doc_id: agnostic-harness-shape
     file: spec/agnostic-harness-shape.md

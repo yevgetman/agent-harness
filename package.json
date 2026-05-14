@@ -9,7 +9,9 @@
   },
   "scripts": {
     "doctor": "node scripts/harness.mjs doctor",
-    "harness": "node scripts/harness.mjs"
+    "init": "node scripts/harness.mjs init",
+    "harness": "node scripts/harness.mjs",
+    "test": "node scripts/test.mjs"
   },
   "dependencies": {
     "yaml": "^2.6.0"
