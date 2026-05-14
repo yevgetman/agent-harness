@@ -3,6 +3,7 @@
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
 import { runDecisions } from "./decisions.mjs";
+import { runQuestions } from "./questions.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -12,6 +13,8 @@ function printHelp() {
 Usage:
   harness init     Install the minimal harness into a target repo
   harness decisions new "<title>"
+  harness decisions list
+  harness questions list
   harness doctor   Validate installed harness health
   harness help     Show this help
 `);
@@ -34,6 +37,11 @@ if (command === "init") {
 
 if (command === "decisions") {
   const result = runDecisions({ cwd: process.cwd(), args });
+  process.exit(result.ok ? 0 : 2);
+}
+
+if (command === "questions") {
+  const result = runQuestions({ cwd: process.cwd(), args });
   process.exit(result.ok ? 0 : 2);
 }
 

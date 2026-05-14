@@ -8,6 +8,8 @@ module:
     - decision-records
     - open-question-registry
     - decision-creation-command
+    - decision-list-command
+    - question-list-command
     - decision-shape-validation
   creates:
     - decisions/

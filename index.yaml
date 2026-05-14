@@ -31,9 +31,12 @@ reading_order:
   - package
   - harness-cli
   - init
+  - minimal-profile
   - decisions-cli
+  - questions-cli
   - doctor
   - test
+  - doctor-fixtures
   - agnostic-harness-shape
   - portability-model
 
@@ -88,7 +91,7 @@ documents:
     title: "Formal Design: V1 Incremental Build Strategy"
     kind: formal-design
     status: active
-    summary: Accepted short-term strategy of pairing each process-domain integration with concrete tooling and validation.
+    summary: Accepted short-term strategy of pairing process-domain integration with tooling, then deepening before adding more breadth.
     depends_on:
       - v1-process-domain-design
       - v1-installed-manifest-design
@@ -174,7 +177,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, decisions, doctor, and test commands.
+    summary: Node package wiring for the initial harness CLI, init, decisions, questions, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -184,7 +187,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -193,9 +196,19 @@ documents:
     title: Harness Init
     kind: cli
     status: active
-    summary: Minimal-profile installer for the Agent Operating Contract and Progressive Orientation modules.
+    summary: Minimal-profile installer with dry-run, non-git guard, overwrite refusal, and installed metadata.
     depends_on:
       - v1-incremental-build-strategy
+      - v1-installed-manifest-design
+
+  - doc_id: minimal-profile
+    file: docs/minimal-profile.md
+    title: Minimal Install Profile
+    kind: reference
+    status: active
+    summary: Reference for the current minimal install profile, installed files, command behavior, and limits.
+    depends_on:
+      - init
       - v1-installed-manifest-design
 
   - doc_id: decisions-cli
@@ -203,7 +216,16 @@ documents:
     title: Harness Decisions CLI
     kind: cli
     status: active
-    summary: Decision-record creation command for Decisions And Open Questions.
+    summary: Decision-record creation and listing commands for Decisions And Open Questions.
+    depends_on:
+      - v1-decisions-open-questions-design
+
+  - doc_id: questions-cli
+    file: scripts/questions.mjs
+    title: Harness Questions CLI
+    kind: cli
+    status: active
+    summary: Open-question listing command for Decisions And Open Questions.
     depends_on:
       - v1-decisions-open-questions-design
 
@@ -212,7 +234,7 @@ documents:
     title: Harness Doctor
     kind: cli
     status: active
-    summary: Initial installed-harness health validator.
+    summary: Installed-harness health validator with grouped diagnostics, hints, index checks, and active module checks.
     depends_on:
       - v1-installed-manifest-design
       - v1-decisions-open-questions-design
@@ -222,11 +244,22 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Basic tests for minimal init, overwrite refusal, forced re-init, unsupported profile failure, doctor success, and decision creation.
+    summary: Executable tests for init safety, doctor validation, decisions, questions, and doctor fixtures.
     depends_on:
       - init
       - decisions-cli
+      - questions-cli
       - doctor
+
+  - doc_id: doctor-fixtures
+    file: fixtures/doctor/README.md
+    title: Doctor Fixtures
+    kind: test-fixture
+    status: active
+    summary: Fixture descriptions for negative-path doctor validation tests.
+    depends_on:
+      - doctor
+      - test
 
   - doc_id: agnostic-harness-shape
     file: spec/agnostic-harness-shape.md

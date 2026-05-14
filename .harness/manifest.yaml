@@ -45,6 +45,8 @@ harness:
   commands:
     init: npm run init
     decisions-new: node scripts/harness.mjs decisions new
+    decisions-list: node scripts/harness.mjs decisions list
+    questions-list: node scripts/harness.mjs questions list
     doctor: npm run doctor
     test: npm test
   upgrade:

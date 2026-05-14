@@ -55,6 +55,21 @@ formal reading path.
 Keep `state/CONTEXT.md` concise. It should summarize current design posture and
 where to go next, not duplicate formal designs or exploratory specs.
 
+## Harness Build Strategy
+
+This repo currently uses the build-specific strategy in
+`design/v1-incremental-build-strategy.md`.
+
+Short version:
+
+1. Add a narrow unit of breadth.
+2. Work depth to the maximum prudent extent.
+3. Add the next unit of breadth only after the current unit has executable
+   behavior, validation, tests, docs, and dogfood usage.
+
+This strategy is not a harness process domain and should not be exported as
+portable harness behavior by default.
+
 ## Decisions And Open Questions Discipline
 
 Create a decision record when a future agent would reasonably ask why a choice
@@ -64,8 +79,12 @@ was made. Use:
 npm run decisions:new -- "<title>"
 ```
 
+Use `npm run decisions:list` to inspect existing decisions.
+
 Capture unresolved blockers or compatibility questions in `open-questions.yaml`
 rather than letting them accumulate in `status.md`.
+
+Use `npm run questions:list` to inspect unresolved questions.
 
 ## Current Design Vocabulary
 

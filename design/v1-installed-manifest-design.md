@@ -137,10 +137,16 @@ Initial checks:
 - `.harness/manifest.yaml` exists and parses.
 - `index.yaml` exists and parses.
 - Installed module IDs have local module definitions.
+- Module definitions agree with manifest module IDs.
+- Module-managed files are represented in the manifest.
 - Managed files exist.
+- Managed files have valid management modes.
 - `index.yaml` document entries point to real files.
 - `index.yaml` reading order references known document IDs.
+- `index.yaml` dependencies reference known document IDs.
 - Boot files named by `index.yaml` exist.
+- Diagnostics are grouped as successes, warnings, failures, and remediation
+  hints.
 
 This is intentionally narrower than a full linter. It validates harness
 installation health, not all repo content.
@@ -158,4 +164,3 @@ This repo is the first target repo. It should include:
 
 The installed manifest and doctor command are the first concrete implementation
 of the Harness Lifecycle and Mechanical Validation process domains.
-

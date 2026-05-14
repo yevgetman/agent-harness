@@ -4,17 +4,18 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Design baseline and dogfood bootstrap, with Progressive Orientation now being
-dogfooded.
+Design baseline and dogfood bootstrap, with the current work focused on
+deepening the already-integrated domains before adding more breadth.
 
 The repo currently has exploratory specs, four formal v1 design documents, a
 root agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, three active
 module definitions, a runnable `harness doctor` command, and a minimal
-`harness init --profile minimal` installer. Decisions And Open Questions is now
-dogfooded with `decisions/`, `open-questions.yaml`, a decision template, a
-decision creation command, and doctor validation. No upgrade command, profile
-system beyond `minimal`, or full CLI exists yet.
+`harness init --profile minimal` installer. Decisions And Open Questions is
+dogfooded with `decisions/`, `open-questions.yaml`, a decision template,
+decision and question list commands, a decision creation command, and doctor
+validation. No upgrade command, profile system beyond `minimal`, or full CLI
+exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -52,6 +53,17 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 - Short-term build strategy is **incremental tooling plus process-domain
   integration**: each process-domain integration should force concrete tooling,
   and each tooling improvement should serve an already dogfooded domain.
+- Second-layer build strategy is **add breadth, then work depth to the maximum
+  prudent extent before adding more breadth**. This is specific to building this
+  repo and is not a harness process domain or portable default behavior.
+- `npm run init` now supports `--dry-run`, refuses non-git targets unless
+  `--allow-non-git` is passed, reports install plans, and writes package,
+  version, and profile metadata into generated files.
+- `npm run doctor` now groups diagnostics, deduplicates repeated file checks,
+  emits remediation hints, validates `index.yaml` dependencies, and checks
+  manifest/module managed-file consistency.
+- `npm run decisions:list` lists decision records.
+- `npm run questions:list` lists open questions.
 
 ## Active Artifacts
 
@@ -65,15 +77,19 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 - `design/v1-incremental-build-strategy.md` — formal short-term build strategy.
 - `design/v1-decisions-open-questions-design.md` — formal Decisions And Open
   Questions domain design.
+- `docs/minimal-profile.md` — reference for the current minimal install
+  profile.
 - `.harness/manifest.yaml` — dogfood installed harness manifest.
 - `modules/*/module.yaml` — active module definitions.
 - `open-questions.yaml` — structured unresolved questions.
 - `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
   dogfood decision record, created with the new decisions command.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
-  `scripts/doctor.mjs` — minimal CLI, installer, decision command, and doctor
-  command.
-- `scripts/test.mjs` — basic executable tests for the init/doctor loop.
+  `scripts/questions.mjs` / `scripts/doctor.mjs` — minimal CLI, installer,
+  decision/question commands, and doctor command.
+- `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
+  and doctor fixtures.
+- `fixtures/doctor/` — negative-path doctor fixtures.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
 - `spec/portability-model.md` — exploratory portability model and install
@@ -81,14 +97,12 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 
 ## Next Work
 
-- Decide whether `index.yaml` remains an orientation-only manifest for now or
-  becomes the first mechanically validated artifact.
-- Decide whether `harness doctor` should stay installation-health-only or
-  become a broader repo health surface.
-- Decide whether the next tool should be `harness questions list`,
-  `harness add-module`, or broader doctor validation.
+- Keep hardening the existing init/doctor/decisions/questions loop until the
+  next improvement becomes speculative.
+- Decide whether the next narrow breadth increment should be a module/profile
+  installer, an upgrade-plan command, or a richer installed manifest lock.
 - Add the next process domain only when it forces one concrete tooling
-  improvement.
+  improvement and can be dogfooded immediately.
 
 ## Open Questions
 

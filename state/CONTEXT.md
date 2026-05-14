@@ -46,7 +46,10 @@ inventory. They are not binding when they conflict with a formal design.
 
 The build strategy is `design/v1-incremental-build-strategy.md`: every process
 domain integration should force concrete tooling, and every tooling improvement
-should serve a process domain already dogfooded here.
+should serve a process domain already dogfooded here. The current second layer
+is breadth, then depth to the maximum prudent extent, before adding more
+breadth. This strategy is local to building this repo, not a portable process
+domain.
 
 ## Dogfood posture
 
@@ -64,10 +67,12 @@ Current dogfood state:
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
   `npm test`.
 - The first installer surface exists as `harness init --profile minimal`,
-  exposed locally as `npm run init`.
+  exposed locally as `npm run init`; it now has dry-run, non-git safety, and
+  installed metadata.
 - Decisions And Open Questions exists in first dogfood form via `decisions/`,
   `open-questions.yaml`, `templates/decision.md`, and
-  `npm run decisions:new -- "<title>"`.
+  `npm run decisions:new -- "<title>"`, `npm run decisions:list`, and
+  `npm run questions:list`.
 
 ## Orientation rule
 
@@ -84,14 +89,14 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The next useful step is to harden the initial runnable infrastructure:
+The next useful step is to finish hardening the initial runnable
+infrastructure before adding another process domain:
 
-- Decide whether `harness doctor` should become the initial general validation
-  surface or stay installation-health-only.
-- Expand module definitions only when the next command needs the additional
-  metadata.
+- Keep `harness doctor` focused on installed harness health plus active module
+  validation unless a formal design expands its scope.
+- Expand module definitions only when a command needs the additional metadata.
 - Add the next process domain only when it forces one concrete tooling
   improvement.
-- Decide whether the next increment should broaden `doctor`, add
-  `harness questions list`, or introduce a module installer.
+- Likely next increment: add a narrow module/profile installer or upgrade plan
+  surface, but only after the current depth pass is stable.
 - Keep `status.md` current after significant choices.

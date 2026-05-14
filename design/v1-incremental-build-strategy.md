@@ -19,7 +19,21 @@ Every new process domain should force one concrete tooling improvement. Every
 tooling improvement should serve a process domain already dogfooded in this
 repo.
 
+Add breadth, then work depth to the maximum prudent extent before adding more
+breadth.
+
 Continue with this strategy until it outlives its usefulness.
+
+## Strategy scope
+
+This strategy is specific to building this harness repo. It is not a harness
+process domain, not part of the portable v1 process-domain set, and not a
+workflow that installed repos inherit by default.
+
+A target repo may choose to add a similar development strategy on top of an
+installed harness. In that case, the harness should respect the target repo's
+declared strategy the same way it respects other repo-local operating context,
+but the strategy remains outside the core process-domain model.
 
 ## Rationale
 
@@ -41,13 +55,23 @@ The harness should instead move in small loops:
 This keeps the design grounded in real target behavior while preserving forward
 momentum toward a portable CLI.
 
+A third failure mode is accumulating a broad set of shallow, half-built
+domains and commands. The mitigation is a depth gate: after adding a small unit
+of breadth, deepen that unit until additional polish would stop producing
+practical confidence. Only then add another unit of breadth.
+
 ## Current loop
 
-The first loop is:
+The current loop is a depth pass over the first installed surfaces:
 
-- Process domains: `agent-operating-contract`, `progressive-orientation`.
-- Tooling: `.harness/manifest.yaml`, module definitions, `harness doctor`.
-- Next tooling: `harness init --profile minimal` for the two existing modules.
+- Process domains: `agent-operating-contract`, `progressive-orientation`, and
+  `decisions-open-questions`.
+- Tooling: `.harness/manifest.yaml`, module definitions, `harness doctor`,
+  `harness init --profile minimal`, `harness decisions`, and
+  `harness questions`.
+- Depth target: make the existing domains safer and more usable through
+  validation, fixtures, tests, dry-run behavior, and clearer installed
+  metadata before adding the next process domain.
 
 ## Operating rules
 
@@ -55,6 +79,12 @@ The first loop is:
   this repo or the next installable profile.
 - Do not expand CLI surface area unless it validates, installs, migrates, or
   operates an existing process domain.
+- After adding breadth, harden the new surface before adding the next domain or
+  command family.
+- Depth means executable behavior, validation, tests, docs, and dogfood usage;
+  not just more explanatory prose.
+- Stop deepening when the next improvement would be speculative or less useful
+  than the next narrow unit of breadth.
 - Keep module definitions narrow until a command needs more metadata.
 - Prefer a small runnable command over a large complete design.
 - Prefer a formal design document when a choice will steer future command or
@@ -73,4 +103,3 @@ Revisit this strategy when one of the following becomes true:
   transitional code.
 - A target repo install reveals that the dogfood repo is no longer an adequate
   test bed.
-

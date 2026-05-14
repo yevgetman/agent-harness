@@ -1,0 +1,5 @@
+- id: fixture-question
+  title: Fixture question
+  status: open
+  owner: harness
+  trigger: Used by doctor tests.

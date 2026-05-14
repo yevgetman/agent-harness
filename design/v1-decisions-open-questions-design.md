@@ -22,6 +22,8 @@ This domain installs:
 It also adds:
 
 - `harness decisions new "<title>"`
+- `harness decisions list`
+- `harness questions list`
 - doctor validation for decision records and open questions
 
 ## Rationale
@@ -156,6 +158,14 @@ rationale.
 4. Refuse to overwrite an existing file.
 5. Populate frontmatter and required sections.
 
+The command may accept `--status` for the initial status when the decision is
+already known to be accepted or otherwise not merely proposed.
+
 The command creates a draftable skeleton. The invoking agent or human still
 fills in the rationale.
 
+`harness decisions list` should provide a compact inventory of existing
+decision IDs, statuses, titles, and files.
+
+`harness questions list` should provide a compact inventory of open-question
+IDs, statuses, and titles from `open-questions.yaml`.

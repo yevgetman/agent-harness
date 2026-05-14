@@ -1,0 +1,5 @@
+- id: fixture-question
+  title: Fixture question
+  status: blocked
+  owner: harness
+  trigger: Used by doctor tests.

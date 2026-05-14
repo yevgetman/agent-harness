@@ -5,6 +5,8 @@ import { runDoctor } from "./doctor.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
+const HARNESS_VERSION = "0.1.0";
+const PACKAGE_NAME = "portable-harness";
 
 function argValue(args, flag, fallback = null) {
   const i = args.indexOf(flag);
@@ -28,29 +30,54 @@ function readSource(file) {
   return readFileSync(join(SOURCE_ROOT, file), "utf8");
 }
 
-function writePlannedFiles(targetRoot, planned, { force, errors }) {
-  const collisions = [];
-  for (const file of planned) {
-    const outPath = join(targetRoot, file.path);
-    if (existsSync(outPath) && !force) {
-      collisions.push(file.path);
-    }
-  }
+function printInitHelp() {
+  console.log(`harness init
 
-  if (collisions.length > 0) {
-    for (const file of collisions) {
-      errors.push(`${file}: already exists (pass --force to overwrite)`);
-    }
-    return false;
-  }
+Usage:
+  harness init [--profile minimal] [--target <path>] [--force] [--dry-run]
 
+Options:
+  --profile minimal     Install the minimal process-domain profile.
+  --target <path>       Target repository root. Defaults to the current dir.
+  --force               Overwrite existing managed files.
+  --dry-run             Print the install plan without writing files.
+  --allow-non-git       Permit installation into a directory without .git.
+  -h, --help            Show this help.
+`);
+}
+
+function collectCollisions(targetRoot, planned, force) {
+  if (force) return [];
+  return planned
+    .map((file) => file.path)
+    .filter((file) => existsSync(join(targetRoot, file)));
+}
+
+function writePlannedFiles(targetRoot, planned) {
   for (const file of planned) {
     const outPath = join(targetRoot, file.path);
     ensureParent(outPath);
     writeFileSync(outPath, file.content);
   }
+}
 
-  return true;
+function printPlan({ targetRoot, profile, files, dryRun }) {
+  const label = dryRun ? "dry-run plan" : "install plan";
+  console.log(`Harness init: ${label}`);
+  console.log(`target: ${targetRoot}`);
+  console.log(`profile: ${profile}`);
+  console.log(`files:`);
+  for (const file of files) {
+    console.log(`  ${file.path}`);
+  }
+}
+
+function printFailure(errors) {
+  for (const error of errors) {
+    console.error(`fail ${error}`);
+  }
+  console.error("");
+  console.error(`Harness init: failed (${errors.length} error(s))`);
 }
 
 function buildFiles({ targetRoot, profile, date }) {
@@ -69,6 +96,11 @@ function buildFiles({ targetRoot, profile, date }) {
       {
         path: "AGENTS.md",
         content: `# Agent Instructions
+
+Harness metadata:
+- package: ${PACKAGE_NAME}
+- version: ${HARNESS_VERSION}
+- profile: ${profile}
 
 This repo has the portable harness installed with the \`minimal\` profile.
 
@@ -103,6 +135,7 @@ Harness installed with the \`minimal\` profile.
 ## Current Decisions
 
 - The repo uses the portable harness minimal profile.
+- Installed harness package: \`${PACKAGE_NAME}\` ${HARNESS_VERSION}.
 - Agents should boot through \`AGENTS.md\`, \`status.md\`, \`index.yaml\`, and
   \`state/CONTEXT.md\`.
 - \`status.md\` is current state, not a changelog.
@@ -118,6 +151,10 @@ Harness installed with the \`minimal\` profile.
         content: `repo: ${name}
 description: Harnessed target repo.
 updated: ${date}
+harness:
+  package: ${PACKAGE_NAME}
+  version: ${HARNESS_VERSION}
+  profile: ${profile}
 
 orientation:
   purpose: >
@@ -173,6 +210,10 @@ generated_from:
   - AGENTS.md
   - status.md
   - index.yaml
+harness:
+  package: ${PACKAGE_NAME}
+  version: ${HARNESS_VERSION}
+  profile: ${profile}
 ---
 
 # ${name} Context Briefing
@@ -201,11 +242,11 @@ purpose, current state, and next work are known.
         content: `harness:
   manifest_version: 1
   installed_at: ${date}
-  harness_version: 0.1.0
-  profile: minimal
+  harness_version: ${HARNESS_VERSION}
+  profile: ${profile}
   source:
     type: package
-    package: portable-harness
+    package: ${PACKAGE_NAME}
     channel: dev
   modules:
     - id: agent-operating-contract
@@ -250,32 +291,52 @@ purpose, current state, and next work are known.
 }
 
 export function runInit({ cwd = process.cwd(), args = [] } = {}) {
+  if (args.includes("--help") || args.includes("-h")) {
+    printInitHelp();
+    return { ok: true };
+  }
+
   const profile = argValue(args, "--profile", "minimal");
   const targetArg = argValue(args, "--target", cwd);
   const targetRoot = resolve(cwd, targetArg);
   const force = args.includes("--force");
+  const dryRun = args.includes("--dry-run");
+  const allowNonGit = args.includes("--allow-non-git");
   const date = todayIso();
   const errors = [];
-
-  mkdirSync(targetRoot, { recursive: true });
 
   const plan = buildFiles({ targetRoot, profile, date });
   errors.push(...plan.errors);
 
+  if (!allowNonGit && !existsSync(join(targetRoot, ".git"))) {
+    errors.push(`${targetRoot}: target is not a git repo (pass --allow-non-git to override)`);
+  }
+
   if (errors.length === 0) {
-    writePlannedFiles(targetRoot, plan.files, { force, errors });
+    const collisions = collectCollisions(targetRoot, plan.files, force);
+    for (const file of collisions) {
+      errors.push(`${file}: already exists (pass --force to overwrite)`);
+    }
   }
 
   if (errors.length > 0) {
-    for (const error of errors) {
-      console.error(`fail ${error}`);
-    }
-    console.error("");
-    console.error(`Harness init: failed (${errors.length} error(s))`);
+    printFailure(errors);
     return { ok: false, targetRoot, errors };
   }
 
-  console.log(`Harness init: installed profile '${profile}' in ${targetRoot}`);
+  printPlan({ targetRoot, profile, files: plan.files, dryRun });
+
+  if (dryRun) {
+    console.log("");
+    console.log("Harness init: dry run complete; no files written");
+    return { ok: true, targetRoot, planned: plan.files.map((file) => file.path) };
+  }
+
+  mkdirSync(targetRoot, { recursive: true });
+  writePlannedFiles(targetRoot, plan.files);
+
+  console.log("");
+  console.log(`Harness init: installed ${plan.files.length} file(s)`);
   const doctor = runDoctor({ cwd: targetRoot });
   return { ok: doctor.ok, targetRoot, errors: doctor.diagnostics.errors };
 }
