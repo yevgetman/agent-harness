@@ -112,6 +112,9 @@ Use `npm run questions:list` to inspect unresolved questions.
 Use `npm run upgrade:plan` to inspect installed harness state before changing
 upgrade-related behavior. The command is read-only; it does not apply changes.
 
+`npm run upgrade:apply` exists only as a safe scaffold. It may apply no-op and
+lock-refresh-safe operations, and must refuse blocked or review-required plans.
+
 ## Lock And Provenance Discipline
 
 `.harness/lock.yaml` records installed-file fingerprints for harness-managed

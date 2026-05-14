@@ -3,7 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDoctor } from "./doctor.mjs";
-import { createLock, lockEntriesFromPlannedEntries } from "./lock.mjs";
+import { createLock, lockEntriesFromPlannedEntries, sha256 } from "./lock.mjs";
 import { loadProfile } from "./profiles.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -178,6 +178,7 @@ function commandsFor(modules) {
     "lock-refresh": "harness lock refresh",
     "lock-check": "harness lock check",
     "upgrade-plan": "harness upgrade --plan",
+    "upgrade-apply": "harness upgrade apply",
   };
 
   for (const { module } of modules) {
@@ -190,11 +191,20 @@ function commandsFor(modules) {
 }
 
 function moduleDefinitionEntries(modules) {
-  return modules.map(({ module }) => ({
-    type: "file",
-    path: `modules/${module.id}/module.yaml`,
-    content: readSource(`modules/${module.id}/module.yaml`),
-  }));
+  return modules.map(({ module }) => {
+    const path = `modules/${module.id}/module.yaml`;
+    const content = readSource(path);
+    return {
+      type: "file",
+      path,
+      content,
+      lock_source: {
+        source: "module-definition",
+        source_path: path,
+        source_sha256: sha256(content),
+      },
+    };
+  });
 }
 
 function moduleArtifactPlan(modules) {
@@ -213,10 +223,16 @@ function moduleArtifactPlan(modules) {
           continue;
         }
 
+        const content = readSource(artifact.source);
         entries.push({
           type: "file",
           path: artifact.path,
-          content: readSource(artifact.source),
+          content,
+          lock_source: {
+            source: "module-template",
+            source_path: artifact.source,
+            source_sha256: sha256(content),
+          },
         });
       }
 

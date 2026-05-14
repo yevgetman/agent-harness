@@ -50,10 +50,12 @@ lock:
     - id: agent-operating-contract
       version: 0.1.0
   files:
-    - path: AGENTS.md
-      owner: agent-operating-contract
+    - path: open-questions.yaml
+      owner: decisions-open-questions
       mode: merge
-      source: generated
+      source: module-template
+      source_path: modules/decisions-open-questions/templates/open-questions.yaml
+      source_sha256: <sha256>
       sha256: <sha256>
 ```
 
@@ -173,7 +175,29 @@ Initial operation codes:
 - `blocked/unrunnable-command` — a manifest command is not runnable.
 - `deferred/installable-module-available` — a registry module is available but
   not installed.
-- `deferred/apply-not-implemented` — upgrade application is not implemented.
+- `deferred/apply-not-implemented` — full upgrade application is not
+  implemented beyond the safe scaffold.
+
+Plans include `operation_summary` with total counts by operation status and by
+operation code. The summary is for quick scanability; individual operation
+records remain authoritative.
+
+## Apply Behavior
+
+`harness upgrade apply` is intentionally narrow.
+
+It may apply:
+
+- `safe/noop` by reporting already-satisfied operations
+- `safe/refresh-lock` by rebuilding `.harness/lock.yaml`
+
+It refuses to apply when the plan contains:
+
+- any `blocked/*` operation
+- any `review/*` operation
+
+`deferred/*` operations are skipped and reported. Full file/template upgrade
+application remains deferred.
 
 ## Limits
 
@@ -185,7 +209,7 @@ It does not yet:
 - identify which human edited a file
 - record template hashes separately from installed file hashes
 - support remote package provenance
-- apply upgrades
+- apply general file/template upgrades
 - merge local edits into upgraded templates
 
 Those are future depth increments after baseline provenance is dogfooded.

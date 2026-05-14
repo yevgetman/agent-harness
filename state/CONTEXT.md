@@ -89,7 +89,11 @@ Current dogfood state:
 - The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
   uses a `local-checkout` version source, reads `.harness/lock.yaml`, and
   reports no blockers or warnings for this dogfood repo. It now emits typed
-  operation records so future apply behavior has an explicit safety model.
+  operation records plus operation summary counts so future apply behavior has
+  an explicit safety model.
+- The first apply scaffold exists as `npm run upgrade:apply`; it only permits
+  safe/noop and safe/refresh-lock operations and refuses blocked or
+  review-required plans.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
   add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
@@ -134,7 +138,6 @@ adding more process-domain breadth.
   selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Prefer lock depth next: richer source/template provenance, operation
-  grouping/summarization, or lock refresh integration into future apply
-  behavior.
+- Prefer lock depth next: richer semantic provenance, operation-specific apply
+  expansion, or a broader upgrade-apply design.
 - Keep `status.md` current after significant choices.

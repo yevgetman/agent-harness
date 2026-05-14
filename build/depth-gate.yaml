@@ -241,40 +241,78 @@ build_strategy:
             - npm run lock:refresh has been used to refresh .harness/lock.yaml.
             - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.
 
+    - id: upgrade-plan-operation-classification
+      breadth_unit: >
+        Add typed upgrade-plan operation records so detected state maps to safe,
+        review-required, blocked, or deferred work.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness upgrade --plan emits an operations list in addition to actions, warnings, blockers, and notes.
+            - Operations include safe/noop, safe/refresh-lock, review/*, blocked/*, and deferred/* classes.
+            - Operation records include code, status, subject type, subject, and detail.
+        - id: validation
+          status: satisfied
+          evidence:
+            - Missing managed files are classified as blocked/missing-managed-file.
+            - Modified managed files are classified as review/modified-managed-file.
+            - Missing and unlocked lock provenance produce review operations plus safe refresh-lock follow-ups.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers clean safe/noop and deferred/apply-not-implemented operations.
+            - npm test covers blocked/missing-managed-file for missing managed files.
+            - npm test covers review/modified-managed-file for lock drift.
+            - npm test covers review/missing-lock and review/unlocked-managed-file scenarios.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-lock-provenance-design.md defines initial operation codes.
+            - design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe operation classification.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run upgrade:plan has been run against the dogfood repo and reports typed operations with no blockers or warnings.
+            - npm run lock:check, npm run doctor, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: upgrade-plan-operation-classification
+    id: safe-upgrade-apply-scaffold
     breadth_unit: >
-      Add typed upgrade-plan operation records so detected state maps to safe,
-      review-required, blocked, or deferred work.
+      Add operation summaries, richer source provenance, and a limited upgrade
+      apply scaffold for safe/noop and safe/refresh-lock operations.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness upgrade --plan emits an operations list in addition to actions, warnings, blockers, and notes.
-          - Operations include safe/noop, safe/refresh-lock, review/*, blocked/*, and deferred/* classes.
-          - Operation records include code, status, subject type, subject, and detail.
+          - harness upgrade --plan emits operation_summary counts by status and code.
+          - Lock entries preserve source_path and source_sha256 for module definitions and template artifacts when source data is available.
+          - harness upgrade apply accepts safe/noop plans and can execute safe/refresh-lock operations.
       - id: validation
         status: satisfied
         evidence:
-          - Missing managed files are classified as blocked/missing-managed-file.
-          - Modified managed files are classified as review/modified-managed-file.
-          - Missing and unlocked lock provenance produce review operations plus safe refresh-lock follow-ups.
+          - harness upgrade apply refuses blocked plans.
+          - harness upgrade apply refuses review-required plans.
+          - harness doctor validates the upgrade-apply command wiring in the dogfood manifest.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers clean safe/noop and deferred/apply-not-implemented operations.
-          - npm test covers blocked/missing-managed-file for missing managed files.
-          - npm test covers review/modified-managed-file for lock drift.
-          - npm test covers review/missing-lock and review/unlocked-managed-file scenarios.
+          - npm test covers operation summaries.
+          - npm test covers template source provenance on module-installed artifacts.
+          - npm test covers safe upgrade apply, blocked apply refusal, and review-required apply refusal.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-lock-provenance-design.md defines initial operation codes.
-          - design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe operation classification.
+          - design/v1-lock-provenance-design.md defines operation summaries and safe apply behavior.
+          - decisions/0007-adopt-safe-upgrade-apply-scaffold.md records the safe apply decision.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, design/v1-installed-manifest-design.md, docs/minimal-profile.md, state/CONTEXT.md, status.md, and index.yaml describe the current apply scaffold.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run upgrade:plan has been run against the dogfood repo and reports typed operations with no blockers or warnings.
-          - npm run lock:check, npm run doctor, and npm test pass against the dogfood repo.
+          - The dogfood manifest exposes upgrade-apply.
+          - npm run upgrade:apply has been run against the dogfood repo.
+          - npm run lock:check, npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo.

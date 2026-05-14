@@ -19,6 +19,7 @@
     "lock:refresh": "node scripts/harness.mjs lock refresh",
     "lock:check": "node scripts/harness.mjs lock check",
     "upgrade:plan": "node scripts/harness.mjs upgrade --plan",
+    "upgrade:apply": "node scripts/harness.mjs upgrade apply",
     "harness": "node scripts/harness.mjs",
     "test": "node scripts/test.mjs"
   },

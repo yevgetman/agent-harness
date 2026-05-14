@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import { updateLockFromPaths } from "./lock.mjs";
+import { hashFile, updateLockFromPaths } from "./lock.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -252,8 +252,16 @@ function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT }) {
     if (artifact.type === "directory") continue;
     changedPaths.push(artifact.path);
     sourceByPath[artifact.path] = artifact.path === `modules/${moduleId}/module.yaml`
-      ? "module-definition"
-      : `module-template:${artifact.source}`;
+      ? {
+        source: "module-definition",
+        source_path: artifact.source,
+        source_sha256: hashFile(sourceRoot, artifact.source),
+      }
+      : {
+        source: "module-template",
+        source_path: artifact.source,
+        source_sha256: hashFile(sourceRoot, artifact.source),
+      };
   }
   updateLockFromPaths({
     root,

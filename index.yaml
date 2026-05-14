@@ -44,6 +44,7 @@ reading_order:
   - decision-0004
   - decision-0005
   - decision-0006
+  - decision-0007
   - decision-template
   - package
   - harness-cli
@@ -312,6 +313,16 @@ documents:
       - v1-lock-provenance-design
       - v1-installed-manifest-design
 
+  - doc_id: decision-0007
+    file: decisions/0007-adopt-safe-upgrade-apply-scaffold.md
+    title: Adopt Safe Upgrade Apply Scaffold
+    kind: decision
+    status: active
+    summary: Decision record adopting a limited apply scaffold for safe/noop and safe/refresh-lock operations only.
+    depends_on:
+      - v1-lock-provenance-design
+      - decision-0006
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -326,7 +337,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, profiles, lock maintenance, upgrade planning, doctor, and test commands.
+    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, profiles, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -336,7 +347,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, lock maintenance, upgrade planning, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, lock maintenance, upgrade planning/apply scaffolding, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -417,7 +428,7 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Read-only upgrade planning command for installed harness state, including lock-aware managed-file state and typed operation classification.
+    summary: Upgrade planner and safe apply scaffold for installed harness state, lock-aware managed-file state, operation summaries, and typed operation classification.
     depends_on:
       - v1-installed-manifest-design
       - v1-lock-provenance-design

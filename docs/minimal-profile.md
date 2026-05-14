@@ -59,7 +59,17 @@ The command is read-only. It reports:
 - Command wiring state.
 - Typed operation records, including safe, review, blocked, and deferred
   operations.
+- Operation summary counts by status and code.
 - Actions, warnings, blockers, and notes.
+
+The profile also exposes:
+
+```bash
+harness upgrade apply
+```
+
+The initial apply surface only handles `safe/noop` and `safe/refresh-lock`
+operations. It refuses blocked or review-required plans.
 
 ## Lock Maintenance
 
@@ -98,5 +108,5 @@ The first mechanically installable follow-on module is
   human-authored files.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
-- Lock refresh rebuilds file fingerprints, but semantic diffing and upgrade
-  application are not implemented yet.
+- Lock refresh rebuilds file fingerprints, but semantic diffing and general
+  file/template upgrade application are not implemented yet.

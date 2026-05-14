@@ -142,6 +142,7 @@ Current commands:
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
+- `harness upgrade apply`
 
 Current dogfood modules:
 
@@ -243,6 +244,8 @@ Initial behavior:
   clean, modified, unlocked, or missing.
 - `harness upgrade --plan` emits typed operation records such as safe, review,
   blocked, and deferred operations.
+- `harness upgrade apply` is scaffolded for safe/noop and safe/refresh-lock
+  operations only.
 
 Exit signal:
 

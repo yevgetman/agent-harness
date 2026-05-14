@@ -228,7 +228,13 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.lock.status, "present", "upgrade --plan should report present lock state");
   assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 7, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 8, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.operation_summary.by_status.safe > 0, true, "upgrade plan should summarize safe operations");
+  assert.equal(
+    upgrade.plan.operation_summary.by_code["deferred/apply-not-implemented"],
+    1,
+    "upgrade plan should summarize deferred apply scaffolding",
+  );
   assert.equal(
     hasOperation(upgrade.plan, "safe/noop", "AGENTS.md"),
     true,
@@ -238,6 +244,13 @@ withTempDir((root) => {
     hasOperation(upgrade.plan, "deferred/apply-not-implemented", "harness upgrade apply"),
     true,
     "upgrade plan should classify apply behavior as deferred",
+  );
+  const apply = quiet(() => runUpgrade({ cwd: gitTarget, args: ["apply"] }));
+  assert.equal(apply.ok, true, "upgrade apply should pass for safe/noop-only initialized targets");
+  assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/noop")),
+    true,
+    "upgrade apply should report satisfied noop operations",
   );
   const availableDecisionModule = upgrade.plan.modules.find((module) => module.id === "decisions-open-questions");
   assert.equal(
@@ -358,10 +371,18 @@ withTempDir((root) => {
     "modules add should update the target manifest",
   );
   const lock = readLock(target);
+  const openQuestionsLock = lock.files.find((file) => file.path === "open-questions.yaml");
+  assert.equal(Boolean(openQuestionsLock), true, "modules add should add installed artifacts to the lock");
+  assert.equal(openQuestionsLock.source, "module-template", "modules add should record template source kind");
   assert.equal(
-    lock.files.some((file) => file.path === "open-questions.yaml"),
+    openQuestionsLock.source_path,
+    "modules/decisions-open-questions/templates/open-questions.yaml",
+    "modules add should record template source path",
+  );
+  assert.equal(
+    /^[a-f0-9]{64}$/.test(openQuestionsLock.source_sha256),
     true,
-    "modules add should add installed artifacts to the lock",
+    "modules add should record template source fingerprint",
   );
   assert.equal(
     lock.files.some((file) => file.path === ".harness/manifest.yaml"),
@@ -384,7 +405,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
   assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
-  assert.equal(upgrade.plan.commands.length, 10, "module add should extend command state");
+  assert.equal(upgrade.plan.commands.length, 11, "module add should extend command state");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
     "unchanged",
@@ -545,6 +566,13 @@ withTempDir((root) => {
     true,
     "upgrade --plan should classify missing managed files as blocked operations",
   );
+  const missingApply = quiet(() => runUpgrade({ cwd: target, args: ["apply"] }));
+  assert.equal(missingApply.ok, false, "upgrade apply should refuse blocked plans");
+  assert.equal(
+    missingApply.apply.errors.some((item) => item.includes("blocked/missing-managed-file")),
+    true,
+    "upgrade apply should report the blocked operation",
+  );
 });
 
 withTempDir((root) => {
@@ -568,6 +596,13 @@ withTempDir((root) => {
     hasOperation(driftPlan.plan, "review/modified-managed-file", "AGENTS.md"),
     true,
     "upgrade --plan should classify modified managed files as review operations",
+  );
+  const driftApply = quiet(() => runUpgrade({ cwd: target, args: ["apply"] }));
+  assert.equal(driftApply.ok, false, "upgrade apply should refuse review-required plans");
+  assert.equal(
+    driftApply.apply.errors.some((item) => item.includes("review/modified-managed-file")),
+    true,
+    "upgrade apply should report review-required operations",
   );
 });
 

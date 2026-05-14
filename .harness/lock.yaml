@@ -20,49 +20,59 @@ lock:
       owner: harness-lifecycle
       mode: replace
       source: generated-manifest
-      sha256: 12650297b6630e00334630be4dc1610ad70f2277deea38b132ddb77c84f28e2c
+      sha256: 2fcbcde296dd2520453679e52d2bfd138024bfcadc21823be97f3243f68c75f0
     - path: AGENTS.md
       owner: agent-operating-contract
       mode: merge
       source: generated
-      sha256: 32dd62325b513b25978c58cca1d9868d990ab6f53e962d9a2f83dd142d018070
+      sha256: 223a4d437621d0c39ae778d6feec6014fb6212fc5af335e198349416e8de9e35
     - path: index.yaml
       owner: progressive-orientation
       mode: merge
       source: generated
-      sha256: 6a053cad12b84f99466ccd703df96d7433e83e4f23ce7676838c13bd3a9b0406
+      sha256: 0590e609ea3a0d476afa00e2e003cafa74cf2127ba12de138c9cdb0b8bb8761f
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       mode: replace
       source: module-definition
+      source_path: modules/agent-operating-contract/module.yaml
+      source_sha256: 82c62d9894b67eb79c709b6db928b7e3cfe40965bcb3d559dd51de00bed561dc
       sha256: 82c62d9894b67eb79c709b6db928b7e3cfe40965bcb3d559dd51de00bed561dc
     - path: modules/decisions-open-questions/module.yaml
       owner: decisions-open-questions
       mode: replace
       source: module-definition
+      source_path: modules/decisions-open-questions/module.yaml
+      source_sha256: e484b4761add4c8a99a486821aa1f5c97e7009af583e8197602b110ff7f15eea
       sha256: e484b4761add4c8a99a486821aa1f5c97e7009af583e8197602b110ff7f15eea
     - path: modules/progressive-orientation/module.yaml
       owner: progressive-orientation
       mode: replace
       source: module-definition
+      source_path: modules/progressive-orientation/module.yaml
+      source_sha256: 82baabc082a08b478193b5a1c05f7f97355b85bf245f9788f9fb8da581093c89
       sha256: 82baabc082a08b478193b5a1c05f7f97355b85bf245f9788f9fb8da581093c89
     - path: open-questions.yaml
       owner: decisions-open-questions
       mode: merge
-      source: generated
+      source: module-template
+      source_path: modules/decisions-open-questions/templates/open-questions.yaml
+      source_sha256: d1ac79ec5a765928dcb54c5fd3a7441311f8361c4d65ebb04433a789ceb06bab
       sha256: 2b2e9372d448747afd199af2bf53693256b15c2135e1681d076400bd11b4c07c
     - path: state/CONTEXT.md
       owner: progressive-orientation
       mode: merge
       source: generated
-      sha256: f8642162560112a769be6ab4abd5fb10a1311e8485f6cbd7497cbecb3edf23ce
+      sha256: 9f53f7837b08723d89722fcf2bd5f9919408dcf96b5bed6af68ce7e1e98f4c5c
     - path: status.md
       owner: agent-operating-contract
       mode: merge
       source: generated
-      sha256: ee140945d2e9aadec9ac128be3f9a358d32f80b04d621fccccc350716d70dbf4
+      sha256: 16bc417e340a16cd191c257cf641bb6c1f710d28a8fab819fff94027e27f6fd4
     - path: templates/decision.md
       owner: decisions-open-questions
       mode: merge
-      source: generated
+      source: module-template
+      source_path: modules/decisions-open-questions/templates/decision.md
+      source_sha256: 63bd160e26a2475b83843705f2a77bda578b7111490a8dfd4c368f3a58f6daed
       sha256: 63bd160e26a2475b83843705f2a77bda578b7111490a8dfd4c368f3a58f6daed

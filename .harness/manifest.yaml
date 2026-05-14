@@ -53,6 +53,7 @@ harness:
     lock-refresh: npm run lock:refresh
     lock-check: npm run lock:check
     upgrade-plan: node scripts/harness.mjs upgrade --plan
+    upgrade-apply: npm run upgrade:apply
     doctor: npm run doctor
     test: npm test
   upgrade:

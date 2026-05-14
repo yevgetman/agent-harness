@@ -148,6 +148,7 @@ The plan reports:
 - Managed-file state.
 - Command wiring state.
 - Typed operation records.
+- Operation summary counts.
 - Actions, warnings, blockers, and notes.
 
 ## Upgrade version source
@@ -184,6 +185,8 @@ Initial checks:
 - Locked file fingerprints match current files or produce drift warnings.
 - Manifest command records may expose `harness lock refresh` and
   `harness lock check` for installed-file provenance maintenance.
+- Manifest command records may expose `harness upgrade apply`; the initial
+  apply surface only permits safe/noop and safe/refresh-lock operations.
 - Manifest commands are wired when the target repo exposes local package
   scripts or node entrypoints.
 - `index.yaml` document entries point to real files.

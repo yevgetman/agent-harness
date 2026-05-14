@@ -55,10 +55,50 @@ function defaultMode(path, harness) {
 }
 
 function defaultSource(path, sourceByPath = {}) {
-  if (sourceByPath[path]) return sourceByPath[path];
+  const source = sourceByPath[path];
+  if (typeof source === "string") return source;
+  if (source?.source) return source.source;
   if (path === ".harness/manifest.yaml") return "generated-manifest";
   if (moduleIdFromDefinition(path)) return "module-definition";
   return "generated";
+}
+
+function defaultSourcePath(path, sourceByPath = {}) {
+  const source = sourceByPath[path];
+  if (typeof source === "string" && source.startsWith("module-template:")) {
+    return source.replace(/^module-template:/, "");
+  }
+  if (source?.source_path) return source.source_path;
+  if (moduleIdFromDefinition(path)) return path;
+  return null;
+}
+
+function defaultSourceSha(root, sourcePath) {
+  if (!root || !sourcePath) return null;
+  const fullPath = join(root, sourcePath);
+  return existsSync(fullPath) ? hashFile(root, sourcePath) : null;
+}
+
+function sourceShaFor({ root = null, path, content = null, sourceByPath = {} }) {
+  const source = sourceByPath[path];
+  if (source?.source_sha256) return source.source_sha256;
+
+  const sourcePath = defaultSourcePath(path, sourceByPath);
+  const sourceSha = defaultSourceSha(root, sourcePath);
+  if (sourceSha) return sourceSha;
+
+  if (sourcePath === path && content != null) return sha256(content);
+  return null;
+}
+
+function withOptionalSourceFields(entry, { root = null, content = null, sourceByPath = {} } = {}) {
+  const sourcePath = defaultSourcePath(entry.path, sourceByPath);
+  const sourceSha = sourceShaFor({ root, path: entry.path, content, sourceByPath });
+  return {
+    ...entry,
+    ...(sourcePath ? { source_path: sourcePath } : {}),
+    ...(sourceSha ? { source_sha256: sourceSha } : {}),
+  };
 }
 
 function moduleArtifactPaths(root, harness) {
@@ -108,6 +148,8 @@ function normalizeLockFiles(files) {
       owner: file.owner ?? "harness-lifecycle",
       mode: file.mode ?? "replace",
       source: file.source ?? "generated",
+      ...(file.source_path ? { source_path: file.source_path } : {}),
+      ...(file.source_sha256 ? { source_sha256: file.source_sha256 } : {}),
       sha256: file.sha256,
     }));
 }
@@ -121,37 +163,42 @@ export function hashFile(root, path) {
 }
 
 export function lockEntryForContent({ path, content, harness, sourceByPath = {} }) {
-  return {
+  return withOptionalSourceFields({
     path,
     owner: defaultOwner(path, harness),
     mode: defaultMode(path, harness),
     source: defaultSource(path, sourceByPath),
     sha256: sha256(content),
-  };
+  }, { content, sourceByPath });
 }
 
 export function lockEntriesFromPlannedEntries(entries, harness, sourceByPath = {}) {
   return entries
     .filter((entry) => entry.type !== "directory" && entry.path !== LOCK_PATH)
-    .map((entry) => lockEntryForContent({
-      path: entry.path,
-      content: entry.content,
-      harness,
-      sourceByPath,
-    }));
+    .map((entry) => {
+      const entrySourceByPath = entry.lock_source
+        ? { ...sourceByPath, [entry.path]: entry.lock_source }
+        : sourceByPath;
+      return lockEntryForContent({
+        path: entry.path,
+        content: entry.content,
+        harness,
+        sourceByPath: entrySourceByPath,
+      });
+    });
 }
 
 export function lockEntriesFromPaths(root, paths, harness, sourceByPath = {}) {
   return paths
     .filter((path) => path !== LOCK_PATH)
     .filter((path) => existsSync(join(root, path)))
-    .map((path) => ({
+    .map((path) => withOptionalSourceFields({
       path,
       owner: defaultOwner(path, harness),
       mode: defaultMode(path, harness),
       source: defaultSource(path, sourceByPath),
       sha256: hashFile(root, path),
-    }));
+    }, { root, sourceByPath }));
 }
 
 export function createLock({ harness, generatedAt, files = [] }) {
@@ -246,7 +293,7 @@ function loadManifest(root) {
 export function createLockFromManifest({ root, harness, generatedAt }) {
   const paths = expectedLockPaths(harness, { root });
   const missing = paths.filter((path) => !existsSync(join(root, path)));
-  const files = lockEntriesFromPaths(root, paths, harness);
+  const files = lockEntriesFromPaths(root, paths, harness, sourceByPathFromManifest(root, harness));
   return {
     paths,
     missing,
@@ -285,7 +332,7 @@ function fileDrift(currentLock, expectedLock) {
       continue;
     }
 
-    for (const key of ["owner", "mode", "source", "sha256"]) {
+    for (const key of ["owner", "mode", "source", "source_path", "source_sha256", "sha256"]) {
       if (String(current[key] ?? "") !== String(expected[key] ?? "")) {
         drift.push(`${path}: ${key} differs from current file state`);
         break;
@@ -347,6 +394,41 @@ export function checkLockState({ root, generatedAt = todayIso() }) {
     lock: loadedLock.lock,
     expectedLock: expected.lock,
   };
+}
+
+function sourceByPathFromManifest(root, harness) {
+  const sourceByPath = {};
+  for (const moduleRef of harness?.modules ?? []) {
+    if (!moduleRef?.id) continue;
+
+    const modulePath = `modules/${moduleRef.id}/module.yaml`;
+    sourceByPath[modulePath] = {
+      source: "module-definition",
+      source_path: modulePath,
+      source_sha256: existsSync(join(root, modulePath)) ? hashFile(root, modulePath) : null,
+    };
+
+    const fullModulePath = join(root, modulePath);
+    if (!existsSync(fullModulePath)) continue;
+
+    try {
+      const moduleYaml = readYamlFile(fullModulePath);
+      for (const artifact of moduleYaml?.module?.install?.artifacts ?? []) {
+        if (artifact?.type !== "directory" && artifact?.path && artifact?.source) {
+          const sourcePath = artifact.source;
+          sourceByPath[artifact.path] = {
+            source: "module-template",
+            source_path: sourcePath,
+            source_sha256: defaultSourceSha(root, sourcePath),
+          };
+        }
+      }
+    } catch {
+      // Doctor reports parse/shape issues. Lock provenance uses readable
+      // module definitions opportunistically.
+    }
+  }
+  return sourceByPath;
 }
 
 function printItems(label, items) {

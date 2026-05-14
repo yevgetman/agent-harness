@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import { hashFile, lockFileMap, readLock } from "./lock.mjs";
+import { createLockFromManifest, hashFile, lockFileMap, readLock, writeLock } from "./lock.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -25,8 +25,10 @@ function printHelp() {
 Usage:
   harness upgrade --plan
   harness upgrade plan
+  harness upgrade apply
 
-The upgrade command is currently plan-only. It does not write files.
+The apply command is currently limited to safe/noop and safe/refresh-lock
+operations. It refuses blocked and review-required plans.
 `);
 }
 
@@ -224,6 +226,21 @@ function addOperation(operations, { code, subject_type: subjectType, subject, de
     subject,
     detail,
   });
+}
+
+function summarizeOperations(operations) {
+  const byStatus = {};
+  const byCode = {};
+  for (const operation of operations) {
+    byStatus[operation.status] = (byStatus[operation.status] ?? 0) + 1;
+    byCode[operation.code] = (byCode[operation.code] ?? 0) + 1;
+  }
+
+  return {
+    total: operations.length,
+    by_status: Object.fromEntries(Object.entries(byStatus).sort(([a], [b]) => a.localeCompare(b))),
+    by_code: Object.fromEntries(Object.entries(byCode).sort(([a], [b]) => a.localeCompare(b))),
+  };
 }
 
 function buildPlan({ root }) {
@@ -447,13 +464,13 @@ function buildPlan({ root }) {
     }
   }
 
-  notes.push("apply is not implemented; this command only reports a plan");
+  notes.push("apply is limited to safe/noop and safe/refresh-lock operations");
   notes.push("version source is local-checkout; external package discovery is deferred");
   addOperation(operations, {
     code: "deferred/apply-not-implemented",
     subject_type: "upgrade-apply",
     subject: "harness upgrade apply",
-    detail: "upgrade apply is not implemented; this command only reports a plan",
+    detail: "full upgrade apply is not implemented; limited safe apply is available",
   });
 
   return {
@@ -475,12 +492,84 @@ function buildPlan({ root }) {
       modules,
       managed_files: managedFiles,
       commands,
+      operation_summary: summarizeOperations(operations),
       operations,
       actions,
       warnings,
       blockers,
       notes,
     },
+  };
+}
+
+function applyPlan({ root, plan }) {
+  const blockers = plan.operations.filter((operation) => operation.status === "blocked");
+  const reviews = plan.operations.filter((operation) => operation.status === "review");
+  if (blockers.length > 0 || reviews.length > 0) {
+    return {
+      ok: false,
+      target: root,
+      applied: [],
+      skipped: plan.operations.filter((operation) => operation.status === "deferred"),
+      blockers,
+      reviews,
+      errors: [
+        ...blockers.map((operation) => `${operation.code}: ${operation.subject}`),
+        ...reviews.map((operation) => `${operation.code}: ${operation.subject}`),
+      ],
+    };
+  }
+
+  const applied = [];
+  const refreshLock = plan.operations.some((operation) => operation.code === "safe/refresh-lock");
+  if (refreshLock) {
+    const loaded = loadManifest(root);
+    if (loaded.error) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: [],
+        blockers: [],
+        reviews: [],
+        errors: [loaded.error],
+      };
+    }
+
+    const generated = createLockFromManifest({
+      root,
+      harness: loaded.harness,
+      generatedAt: new Date().toISOString().slice(0, 10),
+    });
+    if (generated.missing.length > 0) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: [],
+        blockers: [],
+        reviews: [],
+        errors: generated.missing.map((path) => `${path}: expected lock path is missing`),
+      };
+    }
+
+    writeLock(root, generated.lock);
+    applied.push("safe/refresh-lock: .harness/lock.yaml");
+  }
+
+  const noopCount = plan.operations.filter((operation) => operation.code === "safe/noop").length;
+  if (noopCount > 0) {
+    applied.push(`safe/noop: ${noopCount} operation(s) already satisfied`);
+  }
+
+  return {
+    ok: true,
+    target: root,
+    applied,
+    skipped: plan.operations.filter((operation) => operation.status === "deferred"),
+    blockers,
+    reviews,
+    errors: [],
   };
 }
 
@@ -525,6 +614,10 @@ function printPlan(plan) {
     console.log(`    ${command.detail}`);
   }
   console.log("operations:");
+  console.log(`  total: ${plan.operation_summary.total}`);
+  for (const [status, count] of Object.entries(plan.operation_summary.by_status)) {
+    console.log(`  ${status}: ${count}`);
+  }
   for (const operation of plan.operations) {
     console.log(`  ${operation.code}: ${operation.subject_type} ${operation.subject}`);
     console.log(`    ${operation.detail}`);
@@ -535,17 +628,28 @@ function printPlan(plan) {
   printList("notes", plan.notes);
 }
 
+function printApplyResult(result) {
+  console.log("Harness upgrade apply");
+  console.log(`target: ${result.target}`);
+  printList("applied", result.applied);
+  printList("skipped", result.skipped.map((operation) => `${operation.code}: ${operation.subject}`));
+  printList("blockers", result.blockers.map((operation) => `${operation.code}: ${operation.subject}`));
+  printList("reviews", result.reviews.map((operation) => `${operation.code}: ${operation.subject}`));
+  printList("errors", result.errors);
+}
+
 export function runUpgrade({ cwd = process.cwd(), args = [] } = {}) {
   const root = resolve(cwd);
   const wantsHelp = args.includes("--help") || args.includes("-h") || args[0] === "help";
   const wantsPlan = args.includes("--plan") || args[0] === "plan";
+  const wantsApply = args[0] === "apply";
 
   if (wantsHelp || args.length === 0) {
     printHelp();
     return { ok: true };
   }
 
-  if (!wantsPlan) {
+  if (!wantsPlan && !wantsApply) {
     console.error(`fail unknown upgrade command '${args.join(" ")}'`);
     printHelp();
     return { ok: false };
@@ -557,8 +661,14 @@ export function runUpgrade({ cwd = process.cwd(), args = [] } = {}) {
     return result;
   }
 
-  printPlan(result.plan);
-  return result;
+  if (wantsPlan) {
+    printPlan(result.plan);
+    return result;
+  }
+
+  const applied = applyPlan({ root, plan: result.plan });
+  printApplyResult(applied);
+  return { ok: applied.ok, plan: result.plan, apply: applied };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
