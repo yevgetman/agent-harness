@@ -1,0 +1,31 @@
+module:
+  id: decisions-open-questions
+  version: 0.1.0
+  status: active
+  process_domains:
+    - decisions-and-open-questions
+  provides:
+    - decision-records
+    - open-question-registry
+    - decision-creation-command
+    - decision-shape-validation
+  creates:
+    - decisions/
+    - open-questions.yaml
+    - templates/decision.md
+  managed_files:
+    - path: open-questions.yaml
+      mode: merge
+    - path: templates/decision.md
+      mode: merge
+  validates:
+    - open-questions.yaml parses as YAML
+    - open question IDs are unique
+    - open question statuses are allowed
+    - decision filenames follow NNNN-slug.md
+    - decision frontmatter IDs match filename numbers
+    - decision statuses are allowed
+    - decision files include Context, Decision, and Consequences sections
+  instructions:
+    - Create decisions when future agents would ask why a choice was made.
+    - Capture unresolved blockers in open-questions.yaml instead of status.md.

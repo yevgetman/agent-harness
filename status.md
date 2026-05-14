@@ -7,12 +7,14 @@ Last updated: 2026-05-14
 Design baseline and dogfood bootstrap, with Progressive Orientation now being
 dogfooded.
 
-The repo currently has exploratory specs, three formal v1 design documents, a
+The repo currently has exploratory specs, four formal v1 design documents, a
 root agent operating contract, a current-state status projection, a minimal
-orientation path with `index.yaml`, a dogfood installed manifest, two initial
+orientation path with `index.yaml`, a dogfood installed manifest, three active
 module definitions, a runnable `harness doctor` command, and a minimal
-`harness init --profile minimal` installer. No upgrade command, profile system
-beyond `minimal`, or full CLI exists yet.
+`harness init --profile minimal` installer. Decisions And Open Questions is now
+dogfooded with `decisions/`, `open-questions.yaml`, a decision template, a
+decision creation command, and doctor validation. No upgrade command, profile
+system beyond `minimal`, or full CLI exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -34,15 +36,18 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 - `index.yaml` is currently an orientation manifest, not yet a mechanically
   enforced document registry.
 - Installed harness state is recorded at `.harness/manifest.yaml`.
-- The first two module definitions are `agent-operating-contract` and
-  `progressive-orientation`.
+- Active module definitions are `agent-operating-contract`,
+  `progressive-orientation`, and `decisions-open-questions`.
 - `npm run doctor` is the first Mechanical Validation surface; it validates
-  installed harness health, not the full repo content.
+  installed harness health plus Decisions And Open Questions shape when that
+  module is installed.
 - `npm run init` installs the minimal profile into a target repo: `AGENTS.md`,
   `status.md`, `index.yaml`, `state/CONTEXT.md`, `.harness/manifest.yaml`, and
   the two initial module definitions.
 - `npm test` covers minimal init, doctor success, overwrite refusal,
-  `--force`, and unsupported profile failure.
+  `--force`, unsupported profile failure, and decision creation.
+- `npm run decisions:new -- "<title>"` creates the next decision record under
+  `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
 - Short-term build strategy is **incremental tooling plus process-domain
   integration**: each process-domain integration should force concrete tooling,
@@ -58,10 +63,16 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
 - `design/v1-installed-manifest-design.md` — formal installed-manifest design
   baseline.
 - `design/v1-incremental-build-strategy.md` — formal short-term build strategy.
+- `design/v1-decisions-open-questions-design.md` — formal Decisions And Open
+  Questions domain design.
 - `.harness/manifest.yaml` — dogfood installed harness manifest.
-- `modules/*/module.yaml` — first two module definitions.
-- `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/doctor.mjs` — minimal
-  CLI, installer, and doctor command.
+- `modules/*/module.yaml` — active module definitions.
+- `open-questions.yaml` — structured unresolved questions.
+- `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
+  dogfood decision record, created with the new decisions command.
+- `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
+  `scripts/doctor.mjs` — minimal CLI, installer, decision command, and doctor
+  command.
 - `scripts/test.mjs` — basic executable tests for the init/doctor loop.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
@@ -74,12 +85,11 @@ Remote: `git@github.com:yevgetman/agent-harness.git`
   becomes the first mechanically validated artifact.
 - Decide whether `harness doctor` should stay installation-health-only or
   become a broader repo health surface.
+- Decide whether the next tool should be `harness questions list`,
+  `harness add-module`, or broader doctor validation.
 - Add the next process domain only when it forces one concrete tooling
   improvement.
-- Decide whether the next tool should be `harness add-module`, broader
-  `doctor`, or a decisions/open-questions module.
 
 ## Open Questions
 
-- Which distribution target should be assumed first: Bun, npm, Homebrew, or
-  standalone binary?
+- See `open-questions.yaml`.

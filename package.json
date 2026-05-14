@@ -10,6 +10,7 @@
   "scripts": {
     "doctor": "node scripts/harness.mjs doctor",
     "init": "node scripts/harness.mjs init",
+    "decisions:new": "node scripts/harness.mjs decisions new",
     "harness": "node scripts/harness.mjs",
     "test": "node scripts/test.mjs"
   },

@@ -1,0 +1,11 @@
+# Harness open questions.
+#
+# Keep unresolved questions here when they affect design, implementation,
+# compatibility, upgrade behavior, or future process-domain choices.
+
+- id: distribution-target
+  title: Which distribution target should be assumed first?
+  status: open
+  owner: maintainer
+  trigger: before the CLI needs to be consumed outside this local checkout
+  notes: Candidate targets are Bun, npm, Homebrew, and standalone binary.

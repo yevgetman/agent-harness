@@ -18,6 +18,11 @@ harness:
       status: active
       process_domains:
         - progressive-orientation
+    - id: decisions-open-questions
+      version: 0.1.0
+      status: active
+      process_domains:
+        - decisions-and-open-questions
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -31,8 +36,15 @@ harness:
     - path: state/CONTEXT.md
       owner: progressive-orientation
       mode: merge
+    - path: open-questions.yaml
+      owner: decisions-open-questions
+      mode: merge
+    - path: templates/decision.md
+      owner: decisions-open-questions
+      mode: merge
   commands:
     init: npm run init
+    decisions-new: node scripts/harness.mjs decisions new
     doctor: npm run doctor
     test: npm test
   upgrade:

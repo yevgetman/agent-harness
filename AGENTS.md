@@ -55,6 +55,18 @@ formal reading path.
 Keep `state/CONTEXT.md` concise. It should summarize current design posture and
 where to go next, not duplicate formal designs or exploratory specs.
 
+## Decisions And Open Questions Discipline
+
+Create a decision record when a future agent would reasonably ask why a choice
+was made. Use:
+
+```bash
+npm run decisions:new -- "<title>"
+```
+
+Capture unresolved blockers or compatibility questions in `open-questions.yaml`
+rather than letting them accumulate in `status.md`.
+
 ## Current Design Vocabulary
 
 - **Harness process domain** is the canonical term for a conceptual operating

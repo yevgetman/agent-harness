@@ -20,12 +20,18 @@ reading_order:
   - v1-process-domain-design
   - v1-installed-manifest-design
   - v1-incremental-build-strategy
+  - v1-decisions-open-questions-design
   - installed-manifest
   - module-agent-operating-contract
   - module-progressive-orientation
+  - module-decisions-open-questions
+  - open-questions
+  - decision-0001
+  - decision-template
   - package
   - harness-cli
   - init
+  - decisions-cli
   - doctor
   - test
   - agnostic-harness-shape
@@ -87,6 +93,16 @@ documents:
       - v1-process-domain-design
       - v1-installed-manifest-design
 
+  - doc_id: v1-decisions-open-questions-design
+    file: design/v1-decisions-open-questions-design.md
+    title: "Formal Design: V1 Decisions And Open Questions"
+    kind: formal-design
+    status: active
+    summary: Accepted baseline for decision records, open-question tracking, decision creation, and doctor validation.
+    depends_on:
+      - v1-process-domain-design
+      - v1-incremental-build-strategy
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -116,12 +132,49 @@ documents:
       - v1-process-domain-design
       - v1-installed-manifest-design
 
+  - doc_id: module-decisions-open-questions
+    file: modules/decisions-open-questions/module.yaml
+    title: Decisions And Open Questions Module
+    kind: module-definition
+    status: active
+    summary: Module definition for decision records and open-question tracking.
+    depends_on:
+      - v1-decisions-open-questions-design
+      - v1-installed-manifest-design
+
+  - doc_id: open-questions
+    file: open-questions.yaml
+    title: Open Questions
+    kind: state
+    status: active
+    summary: Structured unresolved questions affecting harness design, implementation, compatibility, or distribution.
+    depends_on:
+      - v1-decisions-open-questions-design
+
+  - doc_id: decision-0001
+    file: decisions/0001-adopt-decisions-and-open-questions-domain.md
+    title: Adopt Decisions And Open Questions Domain
+    kind: decision
+    status: active
+    summary: Decision record adopting the Decisions And Open Questions process domain as the next dogfooded domain.
+    depends_on:
+      - v1-decisions-open-questions-design
+
+  - doc_id: decision-template
+    file: templates/decision.md
+    title: Decision Template
+    kind: template
+    status: active
+    summary: Template for creating decision records.
+    depends_on:
+      - v1-decisions-open-questions-design
+
   - doc_id: package
     file: package.json
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, doctor, and test commands.
+    summary: Node package wiring for the initial harness CLI, init, decisions, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -131,7 +184,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init and doctor.
+    summary: Minimal command dispatcher for init, decisions, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -145,6 +198,15 @@ documents:
       - v1-incremental-build-strategy
       - v1-installed-manifest-design
 
+  - doc_id: decisions-cli
+    file: scripts/decisions.mjs
+    title: Harness Decisions CLI
+    kind: cli
+    status: active
+    summary: Decision-record creation command for Decisions And Open Questions.
+    depends_on:
+      - v1-decisions-open-questions-design
+
   - doc_id: doctor
     file: scripts/doctor.mjs
     title: Harness Doctor
@@ -153,15 +215,17 @@ documents:
     summary: Initial installed-harness health validator.
     depends_on:
       - v1-installed-manifest-design
+      - v1-decisions-open-questions-design
 
   - doc_id: test
     file: scripts/test.mjs
     title: Harness Tests
     kind: cli
     status: active
-    summary: Basic tests for minimal init, overwrite refusal, forced re-init, unsupported profile failure, and doctor success.
+    summary: Basic tests for minimal init, overwrite refusal, forced re-init, unsupported profile failure, doctor success, and decision creation.
     depends_on:
       - init
+      - decisions-cli
       - doctor
 
   - doc_id: agnostic-harness-shape

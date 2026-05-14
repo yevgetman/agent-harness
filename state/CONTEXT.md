@@ -5,6 +5,7 @@ generated_from:
   - design/v1-process-domain-design.md
   - design/v1-installed-manifest-design.md
   - design/v1-incremental-build-strategy.md
+  - design/v1-decisions-open-questions-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 ---
@@ -59,11 +60,14 @@ Current dogfood state:
 - Progressive Orientation exists in minimal form via `index.yaml` and this
   context briefing.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
-  and two module definitions under `modules/`.
+  and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
   `npm test`.
 - The first installer surface exists as `harness init --profile minimal`,
   exposed locally as `npm run init`.
+- Decisions And Open Questions exists in first dogfood form via `decisions/`,
+  `open-questions.yaml`, `templates/decision.md`, and
+  `npm run decisions:new -- "<title>"`.
 
 ## Orientation rule
 
@@ -88,4 +92,6 @@ The next useful step is to harden the initial runnable infrastructure:
   metadata.
 - Add the next process domain only when it forces one concrete tooling
   improvement.
+- Decide whether the next increment should broaden `doctor`, add
+  `harness questions list`, or introduce a module installer.
 - Keep `status.md` current after significant choices.
