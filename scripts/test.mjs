@@ -14,6 +14,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as parseYaml } from "yaml";
 import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
@@ -56,6 +57,10 @@ function quiet(fn) {
 
 function readFixture(file) {
   return readFileSync(join(REPO_ROOT, "fixtures", "doctor", file), "utf8");
+}
+
+function readLock(root) {
+  return parseYaml(readFileSync(join(root, ".harness", "lock.yaml"), "utf8")).lock;
 }
 
 function initGitRepo(path) {
@@ -168,6 +173,7 @@ withTempDir((root) => {
     "index.yaml",
     "state/CONTEXT.md",
     ".harness/manifest.yaml",
+    ".harness/lock.yaml",
     "modules/agent-operating-contract/module.yaml",
     "modules/progressive-orientation/module.yaml",
   ]) {
@@ -176,6 +182,11 @@ withTempDir((root) => {
 
   const agents = readFileSync(join(gitTarget, "AGENTS.md"), "utf8");
   assert.match(agents, /version: 0\.1\.0/, "installed AGENTS.md should include harness version");
+  assert.equal(
+    readLock(gitTarget).files.some((file) => file.path === "AGENTS.md"),
+    true,
+    "init should lock installed managed files",
+  );
 
   const doctor = quiet(() => runDoctor({ cwd: gitTarget }));
   assert.equal(doctor.ok, true, "doctor should pass after init");
@@ -185,7 +196,7 @@ withTempDir((root) => {
     args: ["--target", gitTarget, "--profile", "minimal", "--dry-run"],
   }));
   assert.equal(dryRunCollision.ok, true, "init --dry-run should report collisions without failing");
-  assert.equal(dryRunCollision.collisions.length, 7, "dry-run should report planned file collisions");
+  assert.equal(dryRunCollision.collisions.length, 8, "dry-run should report planned file collisions");
 
   const duplicate = quiet(() => runInit({
     cwd: root,
@@ -203,6 +214,7 @@ withTempDir((root) => {
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after init");
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after init");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after init");
+  assert.equal(upgrade.plan.lock.status, "present", "upgrade --plan should report present lock state");
   assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
   assert.equal(upgrade.plan.commands.length, 5, "upgrade plan should include command states");
@@ -267,6 +279,7 @@ withTempDir((root) => {
     "index.yaml",
     "state/CONTEXT.md",
     ".harness/manifest.yaml",
+    ".harness/lock.yaml",
     "modules/agent-operating-contract/module.yaml",
     "modules/progressive-orientation/module.yaml",
     "modules/decisions-open-questions/module.yaml",
@@ -322,6 +335,17 @@ withTempDir((root) => {
     readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
     /decisions-open-questions/,
     "modules add should update the target manifest",
+  );
+  const lock = readLock(target);
+  assert.equal(
+    lock.files.some((file) => file.path === "open-questions.yaml"),
+    true,
+    "modules add should add installed artifacts to the lock",
+  );
+  assert.equal(
+    lock.files.some((file) => file.path === ".harness/manifest.yaml"),
+    true,
+    "modules add should refresh the manifest lock entry",
   );
 
   const doctor = quiet(() => runDoctor({ cwd: target }));
@@ -510,9 +534,36 @@ withTempDir((root) => {
   const driftPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(driftPlan.ok, true, "upgrade --plan should return a plan with warnings");
   assert.equal(
-    driftPlan.plan.warnings.some((item) => item.includes("managed file 'AGENTS.md' lacks harness management marker")),
+    driftPlan.plan.warnings.some((item) => item.includes("managed file 'AGENTS.md' differs from lock fingerprint")),
     true,
-    "upgrade --plan should report unprovenanced managed file warnings",
+    "upgrade --plan should report lock drift warnings",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before legacy no-lock test");
+
+  unlinkSync(join(target, ".harness", "lock.yaml"));
+  const legacyPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(legacyPlan.ok, true, "upgrade --plan should return a plan without a lock");
+  assert.equal(
+    legacyPlan.plan.warnings.some((item) => item.includes(".harness/lock.yaml is missing")),
+    true,
+    "upgrade --plan should warn when lock provenance is missing",
+  );
+
+  const legacyDoctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(legacyDoctor.ok, true, "doctor should tolerate legacy missing-lock targets");
+  assert.equal(
+    legacyDoctor.diagnostics.warnings.some((item) => item.includes(".harness/lock.yaml: missing")),
+    true,
+    "doctor should warn when lock provenance is missing",
   );
 });
 

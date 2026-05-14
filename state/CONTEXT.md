@@ -8,6 +8,7 @@ generated_from:
   - design/v1-incremental-build-strategy.md
   - design/v1-decisions-open-questions-design.md
   - design/v1-module-profile-installation-design.md
+  - design/v1-lock-provenance-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -86,8 +87,11 @@ Current dogfood state:
   exposed locally as `npm run init`; it now reads `profiles/*.yaml` and has
   dry-run, non-git safety, and installed metadata.
 - The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
-  uses a `local-checkout` version source, and reports no blockers or warnings
-  for this dogfood repo.
+  uses a `local-checkout` version source, reads `.harness/lock.yaml`, and
+  reports no blockers or warnings for this dogfood repo.
+- Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
+  lock generation during `harness init`, lock refresh during `harness modules
+  add`, doctor fingerprint validation, and lock-aware upgrade planning.
 - The first module/profile installation surface exists via
   `modules/registry.yaml`, `profiles/`, `npm run modules:list`, and
   `node scripts/harness.mjs modules add <module-id> --target <path>`.
@@ -118,16 +122,16 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The next useful step is to choose the next narrow breadth unit after the
-profile-backed init/listing depth pass.
+The next useful step is to choose the next Phase 3 depth increment before
+adding more process-domain breadth.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
 - Expand module definitions only when a command needs the additional metadata.
-- Use `build/depth-gate.yaml` to confirm the profile-backed init/listing pass
-  before selecting the next breadth unit.
+- Use `build/depth-gate.yaml` to confirm the lock/provenance pass before
+  selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Add the next process domain only when it forces one concrete tooling
-  improvement and can be dogfooded immediately.
+- Prefer lock depth next: a standalone lock refresh command, richer
+  source/template provenance, or clearer upgrade operation classification.
 - Keep `status.md` current after significant choices.

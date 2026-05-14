@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
+import { hashFile, lockFileMap, readLock } from "./lock.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -141,15 +142,18 @@ function commandStatus(root, command, scripts) {
   return { status: "unknown", detail: "command shape is not mechanically checked" };
 }
 
-function managedFileState(root, file) {
+function managedFileState(root, file, lockByPath, lockStatus) {
   const path = join(root, file.path);
+  const lockEntry = lockByPath.get(file.path);
   if (!existsSync(path)) {
     return {
       path: file.path,
       owner: file.owner ?? "unknown",
       mode: file.mode ?? "unknown",
       status: "missing",
-      detail: "managed file is missing",
+      detail: lockEntry
+        ? "managed file is missing but has a lock fingerprint"
+        : "managed file is missing",
     };
   }
 
@@ -160,10 +164,31 @@ function managedFileState(root, file) {
     "Installed harness package:",
     "\nharness:\n",
   ].some((marker) => text.includes(marker));
-  const status = hasHarnessMarker ? "present-managed" : "present-unmarked";
-  const detail = status === "present-managed"
-    ? "contains harness management marker"
-    : "present but no harness management marker";
+  if (lockEntry?.sha256) {
+    const actual = hashFile(root, file.path);
+    const markerDetail = hasHarnessMarker
+      ? "contains harness management marker"
+      : "no harness management marker";
+    const matches = actual === lockEntry.sha256;
+    return {
+      path: file.path,
+      owner: file.owner ?? "unknown",
+      mode: file.mode ?? "unknown",
+      status: matches ? "present-clean" : "present-modified",
+      detail: matches
+        ? `matches lock fingerprint; ${markerDetail}`
+        : `differs from lock fingerprint; ${markerDetail}`,
+    };
+  }
+
+  const status = lockStatus === "present"
+    ? "present-unlocked"
+    : hasHarnessMarker ? "present-managed" : "present-unmarked";
+  const detail = status === "present-unlocked"
+    ? "present but no lock fingerprint"
+    : status === "present-managed"
+      ? "contains harness management marker"
+      : "present but no harness management marker";
 
   return {
     path: file.path,
@@ -209,6 +234,19 @@ function buildPlan({ root }) {
   const scripts = loadPackageScripts(root);
   const installedIds = uniqueInstalledModuleIds(harness.modules);
   const availableRegistryModules = collectAvailableRegistryModules();
+  const loadedLock = readLock(root);
+  const lockByPath = loadedLock.lock ? lockFileMap(loadedLock.lock) : new Map();
+  const lock = {
+    status: loadedLock.status,
+    files: loadedLock.lock?.files?.length ?? 0,
+    detail: loadedLock.error ?? "lock file is present",
+  };
+
+  if (loadedLock.status === "missing") {
+    warnings.push(".harness/lock.yaml is missing; provenance is unavailable");
+  } else if (loadedLock.status === "invalid") {
+    blockers.push(loadedLock.error);
+  }
 
   if (harness.upgrade?.policy !== "plan-first") {
     blockers.push(`upgrade policy is '${harness.upgrade?.policy ?? "missing"}', expected 'plan-first'`);
@@ -262,10 +300,14 @@ function buildPlan({ root }) {
   }
 
   for (const file of harness.managed_files ?? []) {
-    const state = managedFileState(root, file);
+    const state = managedFileState(root, file, lockByPath, loadedLock.status);
     managedFiles.push(state);
     if (state.status === "missing") {
       blockers.push(`managed file '${state.path}' is missing`);
+    } else if (state.status === "present-modified" && state.mode !== "observe") {
+      warnings.push(`managed file '${state.path}' differs from lock fingerprint`);
+    } else if (state.status === "present-unlocked" && state.mode !== "observe") {
+      warnings.push(`managed file '${state.path}' has no lock fingerprint`);
     } else if (state.status === "present-unmarked" && state.mode !== "observe") {
       warnings.push(`managed file '${state.path}' lacks harness management marker`);
     }
@@ -299,6 +341,7 @@ function buildPlan({ root }) {
         module_registry: "modules/registry.yaml",
         modules: "modules/<id>/module.yaml",
       },
+      lock,
       modules,
       managed_files: managedFiles,
       commands,
@@ -329,6 +372,10 @@ function printPlan(plan) {
   console.log(`version_source: ${plan.version_source.type}`);
   console.log(`installed_harness_version: ${plan.installed_harness_version}`);
   console.log(`available_harness_version: ${plan.available_harness_version}`);
+  console.log("lock:");
+  console.log(`  status: ${plan.lock.status}`);
+  console.log(`  files: ${plan.lock.files}`);
+  console.log(`  ${plan.lock.detail}`);
   console.log("modules:");
   for (const module of plan.modules) {
     console.log(

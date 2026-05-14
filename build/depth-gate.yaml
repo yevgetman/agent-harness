@@ -123,45 +123,83 @@ build_strategy:
             - A targeted temp-repo dogfood run verified minimal init followed by modules add decisions-open-questions, doctor, and upgrade plan.
             - npm run doctor, npm test, and npm run upgrade:plan pass against the dogfood repo.
 
+    - id: profile-backed-init-and-listing
+      breadth_unit: >
+        Make profiles listable and make harness init consume profile module
+        bundles from profiles/*.yaml.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness profiles list reports source profiles and module bundles.
+            - harness init --profile minimal resolves the minimal profile from profiles/minimal.yaml.
+            - harness init --profile dogfood resolves the dogfood profile and installs decisions-open-questions artifacts.
+            - Generated manifests expose profiles-list alongside module and upgrade commands.
+        - id: validation
+          status: satisfied
+          evidence:
+            - doctor validates profile IDs, filenames, status values, duplicate module entries, and registry membership.
+            - Profile-backed init refuses unknown profiles and profiles missing required bootstrap modules.
+            - doctor validates dogfood profile installs in real temp git targets.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers profiles list.
+            - npm test covers profile-backed minimal init.
+            - npm test covers profile-backed dogfood init, including doctor, module list, and upgrade plan.
+            - npm test covers unsupported profile failure.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-module-profile-installation-design.md describes profile listing and profile-backed init.
+            - design/v1-product-spec-and-roadmap.md lists profiles list and profile-backed init in the current product surface.
+            - docs/minimal-profile.md notes that the minimal profile is read from profiles/minimal.yaml.
+            - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe profile listing and profile-backed init.
+            - decisions/0005-adopt-profile-backed-init-and-profile-listing.md records the decision.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - The dogfood manifest exposes profiles-list.
+            - npm run profiles:list has been run against the dogfood repo.
+            - npm run doctor, npm test, and npm run upgrade:plan pass against the dogfood repo.
+
   current_depth_pass:
-    id: profile-backed-init-and-listing
+    id: lock-provenance-baseline
     breadth_unit: >
-      Make profiles listable and make harness init consume profile module
-      bundles from profiles/*.yaml.
+      Add baseline installed-file provenance with .harness/lock.yaml and make
+      doctor and upgrade planning consume it.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness profiles list reports source profiles and module bundles.
-          - harness init --profile minimal resolves the minimal profile from profiles/minimal.yaml.
-          - harness init --profile dogfood resolves the dogfood profile and installs decisions-open-questions artifacts.
-          - Generated manifests expose profiles-list alongside module and upgrade commands.
+          - harness init writes .harness/lock.yaml for planned non-directory install artifacts.
+          - harness modules add updates .harness/lock.yaml for module artifacts and .harness/manifest.yaml.
+          - harness upgrade --plan reports lock status and classifies managed files with lock fingerprints.
       - id: validation
         status: satisfied
         evidence:
-          - doctor validates profile IDs, filenames, status values, duplicate module entries, and registry membership.
-          - Profile-backed init refuses unknown profiles and profiles missing required bootstrap modules.
-          - doctor validates dogfood profile installs in real temp git targets.
+          - harness doctor validates lock version, file entries, SHA-256 shape, locked-file presence, and fingerprint drift.
+          - harness upgrade --plan treats missing managed files as blockers and modified locked managed files as warnings.
+          - Legacy missing-lock targets remain diagnosable through warnings.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers profiles list.
-          - npm test covers profile-backed minimal init.
-          - npm test covers profile-backed dogfood init, including doctor, module list, and upgrade plan.
-          - npm test covers unsupported profile failure.
+          - npm test covers lock creation during init.
+          - npm test covers module add updating lock entries.
+          - npm test covers upgrade-plan lock reporting, missing-file blockers, and modified-file warnings.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-module-profile-installation-design.md describes profile listing and profile-backed init.
-          - design/v1-product-spec-and-roadmap.md lists profiles list and profile-backed init in the current product surface.
-          - docs/minimal-profile.md notes that the minimal profile is read from profiles/minimal.yaml.
-          - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe profile listing and profile-backed init.
-          - decisions/0005-adopt-profile-backed-init-and-profile-listing.md records the decision.
+          - design/v1-lock-provenance-design.md defines the lock shape and Phase 3 behavior.
+          - design/v1-product-spec-and-roadmap.md marks Phase 3 active and records baseline lock behavior.
+          - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe the current lock/provenance surface.
+          - decisions/0006-adopt-installed-lock-provenance.md records the provenance decision.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood manifest exposes profiles-list.
-          - npm run profiles:list has been run against the dogfood repo.
-          - npm run doctor, npm test, and npm run upgrade:plan pass against the dogfood repo.
+          - The dogfood repo carries .harness/lock.yaml.
+          - npm run doctor, npm run upgrade:plan, and npm test pass against the dogfood repo after lock generation.

@@ -19,8 +19,8 @@ The installed harness manifest lives at:
 ```
 
 The `.harness/` namespace is reserved for local harness installation metadata,
-upgrade state, reports, and future lock files. It keeps harness-owned state out
-of the repo root while leaving root-level user-facing files such as `AGENTS.md`,
+upgrade state, reports, and lock files. It keeps harness-owned state out of the
+repo root while leaving root-level user-facing files such as `AGENTS.md`,
 `index.yaml`, and `status.md` visible.
 
 ## Why not root `harness.yaml`
@@ -33,6 +33,7 @@ The boot path still exposes the harness clearly:
 - `AGENTS.md` tells agents the repo is harnessed.
 - `index.yaml` provides orientation.
 - `.harness/manifest.yaml` records installed machinery.
+- `.harness/lock.yaml` records installed-file provenance.
 
 ## Manifest responsibilities
 
@@ -143,6 +144,7 @@ The plan reports:
 - Version source.
 - Installed and available harness versions.
 - Installed module state.
+- Lock state.
 - Managed-file state.
 - Command wiring state.
 - Actions, warnings, blockers, and notes.
@@ -177,6 +179,8 @@ Initial checks:
 - Module-managed files are represented in the manifest.
 - Managed files exist.
 - Managed files have valid management modes.
+- `.harness/lock.yaml` is validated when present.
+- Locked file fingerprints match current files or produce drift warnings.
 - Manifest commands are wired when the target repo exposes local package
   scripts or node entrypoints.
 - `index.yaml` document entries point to real files.
@@ -196,6 +200,7 @@ installation health, not all repo content.
 This repo is the first target repo. It should include:
 
 - `.harness/manifest.yaml`
+- `.harness/lock.yaml`
 - `modules/agent-operating-contract/module.yaml`
 - `modules/progressive-orientation/module.yaml`
 - `scripts/harness.mjs`

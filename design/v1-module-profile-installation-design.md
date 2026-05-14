@@ -126,6 +126,7 @@ Initial artifact types:
    profile module definitions.
 5. Install module artifacts for profile modules that declare install metadata.
 6. Write profile module commands into the target manifest.
+7. Write installed-file provenance into `.harness/lock.yaml`.
 
 ## Module Add Behavior
 
@@ -141,6 +142,8 @@ Initial artifact types:
 8. Add the module to the manifest.
 9. Add module-managed files to manifest `managed_files`.
 10. Add module commands to manifest `commands`.
+11. Refresh `.harness/lock.yaml` for the manifest, module definition, and
+    non-directory module artifacts.
 
 Initial conflict behavior:
 

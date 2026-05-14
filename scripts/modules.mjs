@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
+import { updateLockFromPaths } from "./lock.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -27,6 +28,10 @@ function positionalArgs(args) {
 
 function ensureParent(file) {
   mkdirSync(dirname(file), { recursive: true });
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function readYamlFile(path) {
@@ -241,6 +246,22 @@ function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT }) {
   upsertCommands(target.harness, source.module.commands);
 
   writeFileSync(target.path, stringifyYaml(target.manifest));
+  const changedPaths = [".harness/manifest.yaml"];
+  const sourceByPath = {};
+  for (const artifact of artifacts) {
+    if (artifact.type === "directory") continue;
+    changedPaths.push(artifact.path);
+    sourceByPath[artifact.path] = artifact.path === `modules/${moduleId}/module.yaml`
+      ? "module-definition"
+      : `module-template:${artifact.source}`;
+  }
+  updateLockFromPaths({
+    root,
+    harness: target.harness,
+    paths: changedPaths,
+    generatedAt: todayIso(),
+    sourceByPath,
+  });
   console.log(`installed module '${moduleId}'`);
   return { ok: true, moduleId, installed: true };
 }

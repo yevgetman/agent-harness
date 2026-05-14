@@ -20,6 +20,7 @@ minimal` reads that profile record rather than using a hardcoded module bundle.
 - `index.yaml`
 - `state/CONTEXT.md`
 - `.harness/manifest.yaml`
+- `.harness/lock.yaml`
 - `modules/agent-operating-contract/module.yaml`
 - `modules/progressive-orientation/module.yaml`
 
@@ -53,7 +54,8 @@ The command is read-only. It reports:
 - Version source, currently `local-checkout`.
 - Installed and available harness versions.
 - Installed module state.
-- Managed-file state and harness-management marker warnings.
+- Lock state.
+- Managed-file state, including clean, modified, unlocked, and missing files.
 - Command wiring state.
 - Actions, warnings, blockers, and notes.
 
@@ -78,5 +80,4 @@ The first mechanically installable follow-on module is
   human-authored files.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
-- The generated files include harness package, version, and profile metadata,
-  but they do not yet include content hashes or provenance records.
+- A standalone lock refresh command is not implemented yet.

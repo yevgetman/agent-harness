@@ -1,0 +1,68 @@
+lock:
+  version: 1
+  generated_at: 2026-05-14
+  package: portable-harness
+  harness_version: 0.1.0
+  profile: dogfood
+  source:
+    type: local
+    path: ~/code/harness
+    channel: dev
+  modules:
+    - id: agent-operating-contract
+      version: 0.1.0
+    - id: progressive-orientation
+      version: 0.1.0
+    - id: decisions-open-questions
+      version: 0.1.0
+  files:
+    - path: .harness/manifest.yaml
+      owner: harness-lifecycle
+      mode: replace
+      source: generated-manifest
+      sha256: bc8e8f3e910746baa46c659bd52f007759b67766d97d89e63d8ec421126a97e0
+    - path: AGENTS.md
+      owner: agent-operating-contract
+      mode: merge
+      source: generated
+      sha256: 07b78ae85011428a78a7b4d3cd9986193cf3efe1abefe1f315bb1841cf3d6967
+    - path: index.yaml
+      owner: progressive-orientation
+      mode: merge
+      source: generated
+      sha256: f3d7e4e7f90fd2acbd1ac41bd809474183351f1a90fac755927ee7e7c52bea42
+    - path: modules/agent-operating-contract/module.yaml
+      owner: agent-operating-contract
+      mode: replace
+      source: module-definition
+      sha256: 82c62d9894b67eb79c709b6db928b7e3cfe40965bcb3d559dd51de00bed561dc
+    - path: modules/decisions-open-questions/module.yaml
+      owner: decisions-open-questions
+      mode: replace
+      source: module-definition
+      sha256: e484b4761add4c8a99a486821aa1f5c97e7009af583e8197602b110ff7f15eea
+    - path: modules/progressive-orientation/module.yaml
+      owner: progressive-orientation
+      mode: replace
+      source: module-definition
+      sha256: 82baabc082a08b478193b5a1c05f7f97355b85bf245f9788f9fb8da581093c89
+    - path: open-questions.yaml
+      owner: decisions-open-questions
+      mode: merge
+      source: generated
+      sha256: 2b2e9372d448747afd199af2bf53693256b15c2135e1681d076400bd11b4c07c
+    - path: state/CONTEXT.md
+      owner: progressive-orientation
+      mode: merge
+      source: generated
+      sha256: 8c24d75768173355efb16902d2e8983541d1795bb1fe7b4f562b59739587f55b
+    - path: status.md
+      owner: agent-operating-contract
+      mode: merge
+      source: generated
+      sha256: 3d452870243e09763770a19a4ec30f4423a291855f279bc3b59ed597d5115113
+    - path: templates/decision.md
+      owner: decisions-open-questions
+      mode: merge
+      source: generated
+      sha256: 63bd160e26a2475b83843705f2a77bda578b7111490a8dfd4c368f3a58f6daed

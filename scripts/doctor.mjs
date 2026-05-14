@@ -2,11 +2,13 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
+import { hashFile, lockFileMap, readLock } from "./lock.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
 const VALID_OPEN_QUESTION_STATUSES = new Set(["open", "in_progress", "resolved", "deferred"]);
 const VALID_DEPTH_STATUSES = new Set(["pending", "partial", "satisfied", "deferred"]);
+const VALID_SHA256 = /^[a-f0-9]{64}$/;
 
 function rel(root, file) {
   return join(root, file);
@@ -463,6 +465,81 @@ function checkManagedFiles(root, manifest, installedModules, diagnostics) {
   }
 }
 
+function expectedLockedPaths(manifest) {
+  const paths = new Set([".harness/manifest.yaml"]);
+  for (const file of manifest?.managed_files ?? []) {
+    if (file?.path) paths.add(file.path);
+  }
+  for (const moduleRef of manifest?.modules ?? []) {
+    if (moduleRef?.id) paths.add(`modules/${moduleRef.id}/module.yaml`);
+  }
+  return paths;
+}
+
+function checkLock(root, manifest, diagnostics) {
+  const loaded = readLock(root);
+  if (loaded.status === "missing") {
+    warn(diagnostics, ".harness/lock.yaml: missing; provenance checks are unavailable");
+    hint(diagnostics, "Run harness init or a future lock refresh command to recreate installed-file provenance.");
+    return;
+  }
+
+  if (loaded.status === "invalid") {
+    error(diagnostics, loaded.error);
+    hint(diagnostics, "Fix .harness/lock.yaml syntax or recreate the lock from installed harness state.");
+    return;
+  }
+
+  const lock = loaded.lock;
+  if (lock.version !== 1) {
+    error(diagnostics, ".harness/lock.yaml: version must be 1");
+  } else {
+    ok(diagnostics, ".harness/lock.yaml: version 1");
+  }
+
+  if (!Array.isArray(lock.files)) {
+    error(diagnostics, ".harness/lock.yaml: files must be a list");
+    return;
+  }
+
+  const seenPaths = new Set();
+  for (const file of lock.files) {
+    if (!file?.path) {
+      error(diagnostics, ".harness/lock.yaml: file entry missing path");
+      continue;
+    }
+
+    if (seenPaths.has(file.path)) {
+      error(diagnostics, `.harness/lock.yaml: duplicate file entry '${file.path}'`);
+    }
+    seenPaths.add(file.path);
+
+    if (!VALID_SHA256.test(String(file.sha256 ?? ""))) {
+      error(diagnostics, `.harness/lock.yaml: file '${file.path}' has invalid sha256`);
+      continue;
+    }
+
+    if (!existsSync(rel(root, file.path))) {
+      error(diagnostics, `.harness/lock.yaml: locked file '${file.path}' is missing`);
+      continue;
+    }
+
+    const actual = hashFile(root, file.path);
+    if (actual === file.sha256) {
+      ok(diagnostics, `${file.path}: lock fingerprint matches`);
+    } else {
+      warn(diagnostics, `${file.path}: differs from lock fingerprint`);
+    }
+  }
+
+  const lockedPaths = lockFileMap(lock);
+  for (const path of expectedLockedPaths(manifest)) {
+    if (!lockedPaths.has(path)) {
+      warn(diagnostics, `.harness/lock.yaml: expected lock entry for '${path}'`);
+    }
+  }
+}
+
 function checkIndex(root, diagnostics) {
   const index = readYaml(root, "index.yaml", diagnostics);
   if (!index) return;
@@ -779,6 +856,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   const installedModules = checkModules(root, manifest, diagnostics);
   checkInstalledModulesInRegistry(installedModules, registryEntries, diagnostics);
   checkManagedFiles(root, manifest, installedModules, diagnostics);
+  checkLock(root, manifest, diagnostics);
   checkIndex(root, diagnostics);
   checkStatus(root, diagnostics);
   checkDecisionsOpenQuestions(root, installedModules, diagnostics);

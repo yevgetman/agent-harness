@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDoctor } from "./doctor.mjs";
+import { createLock, lockEntriesFromPlannedEntries } from "./lock.mjs";
 import { loadProfile } from "./profiles.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -259,9 +260,7 @@ function buildFiles({ targetRoot, profile, date }) {
     },
   };
 
-  return {
-    errors: [],
-    entries: [
+  const entries = [
       {
         type: "file",
         path: "AGENTS.md",
@@ -418,7 +417,22 @@ purpose, current state, and next work are known.
       },
       ...moduleDefinitionEntries(modules),
       ...artifactPlan.entries,
-    ],
+    ];
+  const lock = createLock({
+    harness: manifest.harness,
+    generatedAt: date,
+    files: lockEntriesFromPlannedEntries(entries, manifest.harness),
+  });
+
+  entries.push({
+    type: "file",
+    path: ".harness/lock.yaml",
+    content: stringifyYaml({ lock }),
+  });
+
+  return {
+    errors: [],
+    entries,
   };
 }
 

@@ -4,23 +4,25 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Design baseline and dogfood bootstrap. The second Phase 2 increment,
-Profile-Backed Init And Listing, is depth-complete enough to choose the next
-narrow breadth item.
+Phase 3 Lock And Provenance baseline. The initial installed-lock increment is
+implemented and depth-complete enough for the next narrow breadth decision.
 
-The repo currently has exploratory specs, six formal v1 documents, a
-root agent operating contract, a current-state status projection, a minimal
-orientation path with `index.yaml`, a dogfood installed manifest, three active
-module definitions, a runnable `harness doctor` command, a profile-backed
-`harness init --profile <profile>` installer, a repo-local depth gate, and a
-read-only `harness upgrade --plan` command. The first module/profile
-installation surface exists through `modules/registry.yaml`, `profiles/`,
-`harness modules list`, `harness modules add <module-id>`, `harness profiles
-list`, and profile-backed `harness init --profile <profile>`, with broad
-temp-target tests. Decisions And Open Questions is dogfooded with `decisions/`,
-`open-questions.yaml`, a decision template, decision and question list commands,
-a decision creation command, and doctor validation. No upgrade apply command,
-profile switching, or full CLI exists yet.
+The repo currently has exploratory specs, seven formal v1 documents, a root
+agent operating contract, a current-state status projection, a minimal
+orientation path with `index.yaml`, a dogfood installed manifest, an installed
+lock file, three active module definitions, a runnable `harness doctor`
+command, a profile-backed `harness init --profile <profile>` installer, a
+repo-local depth gate, and a read-only `harness upgrade --plan` command. The
+first module/profile installation surface exists through `modules/registry.yaml`,
+`profiles/`, `harness modules list`, `harness modules add <module-id>`,
+`harness profiles list`, and profile-backed
+`harness init --profile <profile>`, with broad temp-target tests. Decisions And
+Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
+decision template, decision and question list commands, a decision creation
+command, and doctor validation. Baseline installed-file provenance exists via
+`.harness/lock.yaml`, lock-aware doctor checks, and lock-aware upgrade planning.
+No upgrade apply command, profile switching, standalone lock refresh command,
+or full external CLI distribution exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -30,6 +32,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 - The top-level v1 workflow model is **15 formal harness process domains**, not
   the full 37-item exploratory shape catalog.
+- Phase 2 Module And Profile Installation is substantially complete for the v1
+  install/list lifecycle; profile switching and profile inspection are deferred
+  follow-ons rather than blockers.
+- Phase 3 Lock And Provenance is active; the first baseline implementation is
+  `.harness/lock.yaml`.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -50,6 +57,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `index.yaml` is currently an orientation manifest, not yet a mechanically
   enforced document registry.
 - Installed harness state is recorded at `.harness/manifest.yaml`.
+- Installed-file provenance is recorded at `.harness/lock.yaml`.
 - Active module definitions are `agent-operating-contract`,
   `progressive-orientation`, and `decisions-open-questions`.
 - `modules/registry.yaml` is the source registry for available modules.
@@ -92,9 +100,17 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   changes.
 - The upgrade planner uses the explicit v1 version source `local-checkout`.
 - The upgrade planner reports modules, registry-available modules, managed
-  files, command wiring, actions, warnings, blockers, and notes.
+  files, lock state, command wiring, actions, warnings, blockers, and notes.
 - The dogfood repo's current upgrade plan reports no blockers or warnings.
 - Dogfood managed files now include harness-management markers.
+- `harness init` writes `.harness/lock.yaml` for installed non-directory
+  artifacts.
+- `harness modules add <module-id>` updates `.harness/lock.yaml` for module
+  artifacts and `.harness/manifest.yaml`.
+- `npm run doctor` validates lock shape, locked-file presence, and fingerprint
+  drift.
+- `npm run upgrade:plan` uses lock fingerprints to distinguish clean, modified,
+  unlocked, and missing managed files.
 - `npm run decisions:list` lists decision records.
 - `npm run questions:list` lists open questions.
 - `npm run modules:list` lists registry modules with installed/installable
@@ -106,9 +122,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   preflight, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` now records `profile-backed-init-and-listing` as the
-  current complete depth pass and moves `module-profile-installation` into
-  completed passes.
+- `build/depth-gate.yaml` now records `lock-provenance-baseline` as the current
+  complete depth pass and moves `profile-backed-init-and-listing` into completed
+  passes.
 
 ## Active Artifacts
 
@@ -126,11 +142,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   Questions domain design.
 - `design/v1-module-profile-installation-design.md` — formal module/profile
   installation design.
+- `design/v1-lock-provenance-design.md` — formal Lock And Provenance design.
 - `build/depth-gate.yaml` — repo-local depth gate for the current build
   methodology.
 - `docs/minimal-profile.md` — reference for the current minimal install
   profile.
 - `.harness/manifest.yaml` — dogfood installed harness manifest.
+- `.harness/lock.yaml` — dogfood installed-file provenance lock.
 - `modules/*/module.yaml` — active module definitions.
 - `open-questions.yaml` — structured unresolved questions.
 - `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
@@ -145,15 +163,17 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   module install commands.
 - `decisions/0005-adopt-profile-backed-init-and-profile-listing.md` —
   decision record for profile listing and profile-backed init.
+- `decisions/0006-adopt-installed-lock-provenance.md` — decision record for the
+  initial lock/provenance artifact.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
   definitions.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
-  `scripts/profiles.mjs` / `scripts/doctor.mjs` — harness CLI, installer,
-  decision/question commands, module/profile commands, upgrade planner, and
-  doctor command.
+  `scripts/profiles.mjs` / `scripts/lock.mjs` / `scripts/doctor.mjs` —
+  harness CLI, installer, decision/question commands, module/profile commands,
+  lock helpers, upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, upgrade planning, depth-gate validation, and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
@@ -164,9 +184,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Choose the next narrow breadth increment. Likely candidates are profile
-  switching, richer manifest lock/provenance, or the next installable
-  process-domain module.
+- Choose the next Phase 3 depth increment before adding new process-domain
+  breadth. Likely candidates are a standalone lock refresh command, richer
+  template/source provenance, or upgrade-plan operation classification.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

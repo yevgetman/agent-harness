@@ -151,6 +151,10 @@ Current repo-local build support:
 
 - `build/depth-gate.yaml`
 
+Current installed provenance:
+
+- `.harness/lock.yaml`
+
 The depth gate is not part of the portable harness by default. It is a
 repo-local strategy layer for building this product.
 
@@ -174,8 +178,9 @@ Exit signal:
 
 ### Phase 2: Module And Profile Installation
 
-Status: profile-backed init and listing increment depth-complete; profile
-switching remains planned.
+Status: substantially complete for v1 install/list lifecycle. Profile
+switching and profile inspection are useful follow-ons, but they are no longer
+blockers for moving to Phase 3.
 
 Purpose:
 
@@ -208,7 +213,7 @@ that can carry process-domain improvements into target repos.
 
 ### Phase 3: Lock And Provenance
 
-Status: planned.
+Status: active; baseline lock/provenance increment implemented and dogfooded.
 
 Purpose:
 
@@ -222,6 +227,15 @@ Candidate artifacts:
 - file fingerprints
 - template source records
 - module/profile version records
+
+Initial behavior:
+
+- `harness init` writes installed-file fingerprints to `.harness/lock.yaml`.
+- `harness modules add <module>` updates the lock for module artifacts and the
+  manifest.
+- `harness doctor` validates lock shape, locked files, and fingerprint drift.
+- `harness upgrade --plan` reports lock status and classifies managed files as
+  clean, modified, unlocked, or missing.
 
 Exit signal:
 
@@ -298,5 +312,7 @@ When choosing the next increment:
   lifecycle behavior.
 - `design/v1-incremental-build-strategy.md` defines the repo-local build
   strategy.
+- `design/v1-lock-provenance-design.md` defines Phase 3 installed-file
+  provenance behavior.
 - `spec/` contains exploratory source material and does not override formal
   product or design documents.

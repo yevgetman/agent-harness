@@ -27,7 +27,9 @@ reading_order:
   - v1-incremental-build-strategy
   - v1-decisions-open-questions-design
   - v1-module-profile-installation-design
+  - v1-lock-provenance-design
   - installed-manifest
+  - installed-lock
   - module-registry
   - profile-minimal
   - profile-dogfood
@@ -41,6 +43,7 @@ reading_order:
   - decision-0003
   - decision-0004
   - decision-0005
+  - decision-0006
   - decision-template
   - package
   - harness-cli
@@ -48,6 +51,7 @@ reading_order:
   - minimal-profile
   - modules-cli
   - profiles-cli
+  - lock-helper
   - decisions-cli
   - questions-cli
   - upgrade-cli
@@ -145,6 +149,16 @@ documents:
       - v1-product-spec-and-roadmap
       - v1-installed-manifest-design
 
+  - doc_id: v1-lock-provenance-design
+    file: design/v1-lock-provenance-design.md
+    title: "Formal Design: V1 Lock And Provenance"
+    kind: formal-design
+    status: active
+    summary: Accepted baseline for installed-file provenance, lock validation, and lock-aware upgrade planning.
+    depends_on:
+      - v1-product-spec-and-roadmap
+      - v1-installed-manifest-design
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -153,6 +167,16 @@ documents:
     summary: Dogfood manifest recording the harness modules installed in this repo.
     depends_on:
       - v1-installed-manifest-design
+
+  - doc_id: installed-lock
+    file: .harness/lock.yaml
+    title: Installed Harness Lock
+    kind: dogfood-state
+    status: active
+    summary: Dogfood lock recording installed-file fingerprints for harness-managed artifacts.
+    depends_on:
+      - v1-lock-provenance-design
+      - installed-manifest
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -225,7 +249,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current profile-backed init/listing depth pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current lock/provenance baseline pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -278,6 +302,16 @@ documents:
       - v1-module-profile-installation-design
       - decision-0004
 
+  - doc_id: decision-0006
+    file: decisions/0006-adopt-installed-lock-provenance.md
+    title: Adopt Installed Lock Provenance
+    kind: decision
+    status: active
+    summary: Decision record adopting .harness/lock.yaml as the initial installed-file provenance artifact.
+    depends_on:
+      - v1-lock-provenance-design
+      - v1-installed-manifest-design
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -311,11 +345,12 @@ documents:
     title: Harness Init
     kind: cli
     status: active
-    summary: Profile-backed installer with dry-run, non-git guard, overwrite refusal, and installed metadata.
+    summary: Profile-backed installer with dry-run, non-git guard, overwrite refusal, installed metadata, and lock generation.
     depends_on:
       - v1-incremental-build-strategy
       - v1-installed-manifest-design
       - v1-module-profile-installation-design
+      - v1-lock-provenance-design
 
   - doc_id: minimal-profile
     file: docs/minimal-profile.md
@@ -326,16 +361,18 @@ documents:
     depends_on:
       - init
       - v1-installed-manifest-design
+      - v1-lock-provenance-design
 
   - doc_id: modules-cli
     file: scripts/modules.mjs
     title: Harness Modules CLI
     kind: cli
     status: active
-    summary: Registry-backed module listing and module installation command implementation.
+    summary: Registry-backed module listing and module installation command implementation with lock updates.
     depends_on:
       - v1-module-profile-installation-design
       - module-registry
+      - v1-lock-provenance-design
 
   - doc_id: profiles-cli
     file: scripts/profiles.mjs
@@ -347,6 +384,15 @@ documents:
       - v1-module-profile-installation-design
       - profile-minimal
       - profile-dogfood
+
+  - doc_id: lock-helper
+    file: scripts/lock.mjs
+    title: Harness Lock Helper
+    kind: cli-helper
+    status: active
+    summary: Shared lock/provenance helpers for hashing files, creating lock entries, reading locks, and updating locks.
+    depends_on:
+      - v1-lock-provenance-design
 
   - doc_id: decisions-cli
     file: scripts/decisions.mjs
@@ -371,29 +417,32 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Read-only upgrade planning command for installed harness state.
+    summary: Read-only upgrade planning command for installed harness state, including lock-aware managed-file classification.
     depends_on:
       - v1-installed-manifest-design
+      - v1-lock-provenance-design
 
   - doc_id: doctor
     file: scripts/doctor.mjs
     title: Harness Doctor
     kind: cli
     status: active
-    summary: Installed-harness health validator with grouped diagnostics, hints, index checks, command checks, registry/profile checks, depth-gate checks, and active module checks.
+    summary: Installed-harness health validator with grouped diagnostics, hints, index checks, command checks, registry/profile checks, lock checks, depth-gate checks, and active module checks.
     depends_on:
       - v1-installed-manifest-design
       - v1-decisions-open-questions-design
+      - v1-lock-provenance-design
 
   - doc_id: test
     file: scripts/test.mjs
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, upgrade planning, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, lock/provenance behavior, upgrade planning, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
+      - lock-helper
       - decisions-cli
       - questions-cli
       - upgrade-cli
