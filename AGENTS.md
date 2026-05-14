@@ -152,6 +152,8 @@ modules, CLI entrypoints, or other artifacts future agents should be able to
 list and validate.
 
 Use `npm run metadata:check` to validate the artifact registry.
+Use `npm run metadata:report` or filtered `node scripts/harness.mjs metadata
+list --tag <tag>` when orienting through structured artifact metadata.
 
 ## Current Design Vocabulary
 

@@ -82,7 +82,8 @@ Current dogfood state:
   context briefing.
 - Structured Metadata exists in first dogfood form via
   `metadata/artifacts.yaml`, `npm run metadata:list`,
-  `npm run metadata:check`, and doctor validation.
+  `npm run metadata:check`, `npm run metadata:report`, filtered list/JSON
+  output, dependency-reference validation, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -134,8 +135,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to deepen the new Structured Metadata module before
-adding more Phase 4 breadth.
+The current useful step is to decide whether Structured Metadata is deep enough
+for the next Phase 4 breadth unit.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -146,6 +147,8 @@ adding more Phase 4 breadth.
   reference when making that choice.
 - Phase 4 has started with Structured Metadata as the first additional
   process-domain module.
-- Candidate next depth for Structured Metadata: JSON output, tag filtering,
-  dependency validation, or generated metadata reports.
+- Structured Metadata now has JSON output, tag/kind/status filtering,
+  dependency-reference validation, and report summaries.
+- Candidate next depth, if needed: cycle detection, generated reports on disk,
+  or metadata discovery/scanning.
 - Keep `status.md` current after significant choices.

@@ -51,6 +51,7 @@ reading_order:
   - decision-0007
   - decision-0008
   - decision-0009
+  - decision-0010
   - decision-template
   - package
   - harness-cli
@@ -182,7 +183,7 @@ documents:
     title: "Formal Design: V1 Structured Metadata"
     kind: formal-design
     status: active
-    summary: "Accepted baseline for the first Phase 4 process-domain module: artifact metadata registry, metadata commands, and doctor validation."
+    summary: "Accepted baseline for the first Phase 4 process-domain module: artifact metadata registry, query/report commands, dependency validation, and doctor validation."
     depends_on:
       - v1-process-domain-design
       - v1-module-profile-installation-design
@@ -211,7 +212,7 @@ documents:
     title: Structured Artifact Metadata
     kind: metadata-registry
     status: active
-    summary: Machine-readable registry of durable repo artifacts for listing, validation, future retrieval, and gardening.
+    summary: Machine-readable registry of durable repo artifacts for listing, validation, dependency references, future retrieval, and gardening.
     depends_on:
       - v1-structured-metadata-design
 
@@ -277,7 +278,7 @@ documents:
     title: Structured Metadata Module
     kind: module-definition
     status: active
-    summary: Module definition for artifact metadata registry, metadata list/check commands, and validation.
+    summary: Module definition for artifact metadata registry, metadata list/check/report commands, filtering, and dependency validation.
     depends_on:
       - v1-structured-metadata-design
       - v1-installed-manifest-design
@@ -389,6 +390,16 @@ documents:
       - v1-structured-metadata-design
       - v1-product-spec-and-roadmap
 
+  - doc_id: decision-0010
+    file: decisions/0010-deepen-structured-metadata-query-and-validation.md
+    title: Deepen Structured Metadata Query And Validation
+    kind: decision
+    status: active
+    summary: Decision record adding metadata filters, JSON output, report summaries, and dependency-reference validation.
+    depends_on:
+      - v1-structured-metadata-design
+      - decision-0009
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -467,7 +478,7 @@ documents:
     title: Harness Metadata CLI
     kind: cli
     status: active
-    summary: Structured Metadata command implementation for listing and validating metadata/artifacts.yaml.
+    summary: Structured Metadata command implementation for filtered listing, JSON output, validation, and artifact summary reports.
     depends_on:
       - v1-structured-metadata-design
       - metadata-artifacts

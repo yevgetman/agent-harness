@@ -66,5 +66,6 @@ harness:
     test: npm test
     metadata-list: npm run metadata:list
     metadata-check: npm run metadata:check
+    metadata-report: npm run metadata:report
   upgrade:
     policy: plan-first

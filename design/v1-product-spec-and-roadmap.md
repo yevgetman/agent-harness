@@ -141,6 +141,7 @@ Current commands:
 - `harness profiles list`
 - `harness metadata list`
 - `harness metadata check`
+- `harness metadata report`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
@@ -287,8 +288,10 @@ Initial implemented module:
 Initial behavior:
 
 - `metadata/artifacts.yaml` records durable artifact metadata.
-- `harness metadata list` lists artifact IDs, statuses, kinds, and paths.
+- `harness metadata list` lists artifact IDs, statuses, kinds, and paths, with
+  tag/kind/status filters and JSON output.
 - `harness metadata check` validates metadata shape.
+- `harness metadata report` summarizes metadata by status, kind, and tag.
 - `harness doctor` validates metadata when the module is installed.
 - The dogfood profile installs the Structured Metadata module.
 

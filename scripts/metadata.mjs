@@ -94,6 +94,17 @@ export function validateMetadata(root) {
     }
   }
 
+  for (const artifact of artifacts) {
+    if (!artifact?.id || !Array.isArray(artifact.depends_on)) continue;
+    for (const dependency of artifact.depends_on) {
+      if (dependency === artifact.id) {
+        errors.push(`${METADATA_PATH}: artifact '${artifact.id}' cannot depend on itself`);
+      } else if (!ids.has(dependency)) {
+        errors.push(`${METADATA_PATH}: artifact '${artifact.id}' depends on unknown artifact '${dependency}'`);
+      }
+    }
+  }
+
   return {
     ok: errors.length === 0,
     root,
@@ -118,12 +129,14 @@ function printHelp() {
   console.log(`harness metadata
 
 Usage:
-  harness metadata list [--target <path>]
-  harness metadata check [--target <path>]
+  harness metadata list [--target <path>] [--tag <tag>] [--kind <kind>] [--status <status>] [--json]
+  harness metadata check [--target <path>] [--json]
+  harness metadata report [--target <path>] [--json]
 
 Commands:
-  list    List structured metadata artifacts.
-  check   Validate metadata/artifacts.yaml.
+  list     List structured metadata artifacts.
+  check    Validate metadata/artifacts.yaml.
+  report   Summarize metadata artifact counts by status, kind, and tag.
 `);
 }
 
@@ -132,29 +145,115 @@ function argValue(args, flag, fallback = null) {
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback;
 }
 
-function runList(root) {
+function filtersFromArgs(args) {
+  return {
+    tag: argValue(args, "--tag"),
+    kind: argValue(args, "--kind"),
+    status: argValue(args, "--status"),
+  };
+}
+
+function filterArtifacts(artifacts, filters) {
+  return artifacts.filter((artifact) => {
+    if (filters.tag && !(artifact.tags ?? []).includes(filters.tag)) return false;
+    if (filters.kind && artifact.kind !== filters.kind) return false;
+    if (filters.status && artifact.status !== filters.status) return false;
+    return true;
+  });
+}
+
+function summarizeArtifacts(artifacts) {
+  const byStatus = {};
+  const byKind = {};
+  const byTag = {};
+
+  for (const artifact of artifacts) {
+    byStatus[artifact.status] = (byStatus[artifact.status] ?? 0) + 1;
+    byKind[artifact.kind] = (byKind[artifact.kind] ?? 0) + 1;
+    for (const tag of artifact.tags ?? []) {
+      byTag[tag] = (byTag[tag] ?? 0) + 1;
+    }
+  }
+
+  const sortObject = (value) => Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)));
+  return {
+    total: artifacts.length,
+    by_status: sortObject(byStatus),
+    by_kind: sortObject(byKind),
+    by_tag: sortObject(byTag),
+  };
+}
+
+function printSummary(summary) {
+  console.log(`total: ${summary.total}`);
+  console.log("by_status:");
+  for (const [status, count] of Object.entries(summary.by_status)) {
+    console.log(`  ${status}: ${count}`);
+  }
+  console.log("by_kind:");
+  for (const [kind, count] of Object.entries(summary.by_kind)) {
+    console.log(`  ${kind}: ${count}`);
+  }
+  console.log("by_tag:");
+  for (const [tag, count] of Object.entries(summary.by_tag)) {
+    console.log(`  ${tag}: ${count}`);
+  }
+}
+
+function runList(root, args) {
   const result = validateMetadata(root);
+  const filters = filtersFromArgs(args);
+  const artifacts = filterArtifacts(result.artifacts, filters);
+  const output = { ...result, filters, artifacts };
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(output, null, 2));
+    return output;
+  }
+
   if (result.errors.length > 0) {
     printItems("errors", result.errors);
   }
 
   console.log("Harness metadata artifacts");
   console.log(`target: ${root}`);
-  for (const artifact of result.artifacts) {
+  for (const artifact of artifacts) {
     console.log(`${artifact.id} ${artifact.status} ${artifact.kind} ${artifact.path}`);
   }
 
-  return result;
+  return output;
 }
 
-function runCheck(root) {
+function runCheck(root, args) {
   const result = validateMetadata(root);
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(result, null, 2));
+    return result;
+  }
+
   console.log("Harness metadata check");
   console.log(`target: ${root}`);
   console.log(`status: ${result.ok ? "ok" : "error"}`);
   printItems("errors", result.errors);
   printItems("warnings", result.warnings);
   return result;
+}
+
+function runReport(root, args) {
+  const result = validateMetadata(root);
+  const summary = summarizeArtifacts(result.artifacts);
+  const output = { ...result, summary };
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(output, null, 2));
+    return output;
+  }
+
+  console.log("Harness metadata report");
+  console.log(`target: ${root}`);
+  console.log(`status: ${result.ok ? "ok" : "error"}`);
+  printSummary(summary);
+  printItems("errors", result.errors);
+  printItems("warnings", result.warnings);
+  return output;
 }
 
 export function runMetadata({ cwd = process.cwd(), args = [] } = {}) {
@@ -168,8 +267,9 @@ export function runMetadata({ cwd = process.cwd(), args = [] } = {}) {
   const targetArg = argValue(rest, "--target", cwd);
   const root = resolve(cwd, targetArg);
 
-  if (subcommand === "list") return runList(root);
-  if (subcommand === "check") return runCheck(root);
+  if (subcommand === "list") return runList(root, rest);
+  if (subcommand === "check") return runCheck(root, rest);
+  if (subcommand === "report") return runReport(root, rest);
 
   console.error(`fail unknown metadata command '${subcommand}'`);
   printHelp();

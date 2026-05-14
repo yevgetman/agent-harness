@@ -107,8 +107,8 @@ harness modules add <module-id>
 
 The first mechanically installable follow-on module is
 `decisions-open-questions`. `structured-metadata` is also installable and adds
-`metadata/artifacts.yaml`, `harness metadata list`, and
-`harness metadata check`.
+`metadata/artifacts.yaml`, `harness metadata list`, `harness metadata check`,
+and `harness metadata report`.
 
 ## Current Limits
 

@@ -14,8 +14,8 @@ Structured Metadata makes durable repo artifacts machine-legible without
 requiring agents to infer every important file from prose or directory shape.
 
 The first v1 implementation is intentionally narrow: a small artifact registry,
-two CLI commands, doctor validation, and module/profile installation. It does
-not replace `index.yaml`; it complements it.
+metadata list/check/report commands, doctor validation, and module/profile
+installation. It does not replace `index.yaml`; it complements it.
 
 `index.yaml` remains the progressive orientation graph. `metadata/artifacts.yaml`
 is a broader machine-readable inventory that future retrieval, reports,
@@ -95,9 +95,14 @@ harness metadata check
 ```
 
 `harness metadata list` prints artifact IDs, statuses, kinds, and paths.
+It supports `--tag <tag>`, `--kind <kind>`, and `--status <status>` filters.
 
 `harness metadata check` validates `metadata/artifacts.yaml` and reports errors
 without mutating files.
+
+`harness metadata report` summarizes artifact counts by status, kind, and tag.
+
+All three commands support `--json` for machine-readable output.
 
 ## Doctor Behavior
 
@@ -113,6 +118,8 @@ When the `structured-metadata` module is installed, `harness doctor` validates:
 - artifact statuses are allowed.
 - active artifact paths exist.
 - `tags` and `depends_on` are lists when present.
+- `depends_on` references point to known artifact IDs.
+- artifacts do not depend on themselves.
 
 ## Relationship To Other Domains
 
@@ -129,10 +136,11 @@ Structured Metadata supports:
 ## Current Limits
 
 - Metadata is manually curated; no automatic scanner populates it yet.
-- There is no dependency graph validation beyond field shape.
+- Dependency validation checks references, but not cycles or deeper graph
+  semantics yet.
 - The metadata registry does not supersede `index.yaml`.
-- The first command surface lists and checks metadata only; it does not query by
-  tag, emit JSON, or generate reports yet.
+- The first command surface does not generate metadata automatically or write
+  reports to disk.
 - Module installation does not merge existing human-authored metadata files.
 
 These limits are acceptable for the first Phase 4 breadth unit. The purpose is

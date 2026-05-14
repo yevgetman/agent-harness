@@ -18,6 +18,7 @@
     "profiles:list": "node scripts/harness.mjs profiles list",
     "metadata:list": "node scripts/harness.mjs metadata list",
     "metadata:check": "node scripts/harness.mjs metadata check",
+    "metadata:report": "node scripts/harness.mjs metadata report",
     "lock:refresh": "node scripts/harness.mjs lock refresh",
     "lock:check": "node scripts/harness.mjs lock check",
     "upgrade:plan": "node scripts/harness.mjs upgrade --plan",

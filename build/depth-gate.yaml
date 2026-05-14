@@ -356,43 +356,82 @@ build_strategy:
             - The dogfood repo emits a clean JSON upgrade plan.
             - npm run lock:check, npm run doctor, npm run upgrade:plan, npm run upgrade:apply, and npm test pass against the dogfood repo.
 
+    - id: structured-metadata-module
+      breadth_unit: >
+        Add Structured Metadata as the first Phase 4 process-domain module with
+        an artifact registry, metadata list/check commands, doctor validation,
+        profile wiring, and dogfood installation.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness metadata list lists metadata/artifacts.yaml entries.
+            - harness metadata check validates metadata/artifacts.yaml.
+            - structured-metadata is installable through modules add.
+            - The dogfood profile includes structured-metadata.
+        - id: validation
+          status: satisfied
+          evidence:
+            - harness doctor validates metadata/artifacts.yaml when structured-metadata is installed.
+            - Metadata validation checks version, required fields, unique IDs, allowed statuses, list fields, and active artifact paths.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers structured-metadata module installation.
+            - npm test covers metadata list/check success.
+            - npm test covers metadata check failure for missing active artifact paths.
+            - npm test covers dogfood profile installation with structured-metadata.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-structured-metadata-design.md defines the Structured Metadata domain baseline.
+            - decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md records the decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - structured-metadata is installed in .harness/manifest.yaml.
+            - metadata/artifacts.yaml describes current dogfood artifacts.
+            - npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: structured-metadata-module
+    id: structured-metadata-query-validation
     breadth_unit: >
-      Add Structured Metadata as the first Phase 4 process-domain module with
-      an artifact registry, metadata list/check commands, doctor validation,
-      profile wiring, and dogfood installation.
+      Deepen Structured Metadata with filtered and JSON query output, report
+      summaries, and dependency-reference validation before adding more Phase 4
+      breadth.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness metadata list lists metadata/artifacts.yaml entries.
-          - harness metadata check validates metadata/artifacts.yaml.
-          - structured-metadata is installable through modules add.
-          - The dogfood profile includes structured-metadata.
+          - harness metadata list supports --tag, --kind, --status, and --json.
+          - harness metadata check supports --json.
+          - harness metadata report emits status, kind, and tag summaries.
       - id: validation
         status: satisfied
         evidence:
-          - harness doctor validates metadata/artifacts.yaml when structured-metadata is installed.
-          - Metadata validation checks version, required fields, unique IDs, allowed statuses, list fields, and active artifact paths.
+          - Metadata validation rejects unknown artifact dependencies.
+          - Metadata validation rejects self-dependencies.
+          - harness doctor consumes the deeper validation through validateMetadata.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers structured-metadata module installation.
-          - npm test covers metadata list/check success.
-          - npm test covers metadata check failure for missing active artifact paths.
-          - npm test covers dogfood profile installation with structured-metadata.
+          - npm test covers metadata tag and kind filters.
+          - npm test covers metadata list/report JSON output.
+          - npm test covers metadata report summaries.
+          - npm test covers unknown dependency validation failure.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-structured-metadata-design.md defines the Structured Metadata domain baseline.
-          - decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md records the decision.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
+          - design/v1-structured-metadata-design.md describes filters, JSON, reports, and dependency validation.
+          - decisions/0010-deepen-structured-metadata-query-and-validation.md records the depth decision.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the deeper behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - structured-metadata is installed in .harness/manifest.yaml.
-          - metadata/artifacts.yaml describes current dogfood artifacts.
-          - npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+          - metadata/artifacts.yaml now records artifact dependencies.
+          - npm run metadata:check, npm run metadata:report, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.

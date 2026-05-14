@@ -21,6 +21,8 @@ metadata:
       tags:
         - status
         - current-state
+      depends_on:
+        - agents
 
     - id: index
       path: index.yaml
@@ -30,6 +32,8 @@ metadata:
       tags:
         - orientation
         - graph
+      depends_on:
+        - agents
 
     - id: context
       path: state/CONTEXT.md
@@ -39,3 +43,7 @@ metadata:
       tags:
         - orientation
         - briefing
+      depends_on:
+        - agents
+        - status
+        - index

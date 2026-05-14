@@ -8,7 +8,10 @@ module:
     - artifact-metadata-registry
     - metadata-list-command
     - metadata-check-command
+    - metadata-report-command
+    - metadata-filtering
     - metadata-shape-validation
+    - metadata-dependency-validation
   creates:
     - metadata/
     - metadata/artifacts.yaml
@@ -18,6 +21,7 @@ module:
   commands:
     metadata-list: harness metadata list
     metadata-check: harness metadata check
+    metadata-report: harness metadata report
   install:
     artifacts:
       - path: metadata/
@@ -31,7 +35,9 @@ module:
     - artifact IDs are unique
     - active artifact paths exist
     - artifact statuses are allowed
+    - artifact dependency references resolve to known artifact IDs
   instructions:
     - Keep artifact metadata concise and machine-readable.
     - Record durable repo artifacts that agents should be able to list or validate.
     - Use tags for retrieval hints, not prose summaries.
+    - Use depends_on only for durable artifact dependencies that should be mechanically checked.

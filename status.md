@@ -6,7 +6,8 @@ Last updated: 2026-05-14
 
 Phase 4 Additional Process Domains breadth pass. Structured Metadata is the
 first Phase 4 module and is installed in the dogfood repo with metadata
-commands, doctor validation, and `metadata/artifacts.yaml`.
+commands, filtered and JSON metadata queries, report summaries, dependency
+validation, doctor validation, and `metadata/artifacts.yaml`.
 
 The repo currently has exploratory specs, nine formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -28,8 +29,9 @@ operation records, JSON plans, operation summaries, and a limited safe
 profile switching, or full external CLI distribution exists yet.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
-`harness metadata list`, `harness metadata check`, package scripts for local
-dogfood use, and doctor validation when `structured-metadata` is installed.
+`harness metadata list`, `harness metadata check`, `harness metadata report`,
+package scripts for local dogfood use, and doctor validation when
+`structured-metadata` is installed.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -141,6 +143,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run questions:list` lists open questions.
 - `npm run metadata:list` lists structured artifact metadata.
 - `npm run metadata:check` validates `metadata/artifacts.yaml`.
+- `npm run metadata:report` summarizes metadata by status, kind, and tag.
+- `harness metadata list` supports tag, kind, status, and JSON output filters.
 - `npm run modules:list` lists registry modules with installed/installable
   state.
 - `node scripts/harness.mjs modules add <module-id> --target <path>` installs
@@ -151,8 +155,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `structured-metadata-module` as the current
-  complete depth pass for the first Phase 4 breadth unit.
+- `build/depth-gate.yaml` records `structured-metadata-query-validation` as the
+  current complete depth pass for the first Phase 4 breadth unit.
 
 ## Active Artifacts
 
@@ -205,6 +209,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   and safe command repair.
 - `decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md` —
   decision record for adopting Structured Metadata as the first Phase 4 module.
+- `decisions/0010-deepen-structured-metadata-query-and-validation.md` —
+  decision record for filtered metadata queries, JSON output, report summaries,
+  and dependency validation.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -226,9 +233,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Deepen Structured Metadata before adding the next Phase 4 breadth unit.
-  Likely depth candidates are JSON output, tag filtering, dependency
-  validation, or generated metadata reports.
+- Decide whether Structured Metadata is deep enough for the next Phase 4
+  breadth unit. Remaining depth candidates include cycle detection, generated
+  reports on disk, and metadata discovery/scanning.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

@@ -21,6 +21,8 @@ metadata:
       tags:
         - status
         - current-state
+      depends_on:
+        - agents
 
     - id: index
       path: index.yaml
@@ -30,6 +32,8 @@ metadata:
       tags:
         - orientation
         - graph
+      depends_on:
+        - agents
 
     - id: context
       path: state/CONTEXT.md
@@ -39,6 +43,10 @@ metadata:
       tags:
         - orientation
         - briefing
+      depends_on:
+        - agents
+        - status
+        - index
 
     - id: product-spec
       path: design/v1-product-spec-and-roadmap.md
@@ -57,6 +65,8 @@ metadata:
       tags:
         - process-domains
         - architecture
+      depends_on:
+        - product-spec
 
     - id: structured-metadata-design
       path: design/v1-structured-metadata-design.md
@@ -66,6 +76,8 @@ metadata:
       tags:
         - structured-metadata
         - phase-4
+      depends_on:
+        - process-domain-design
 
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
@@ -75,6 +87,8 @@ metadata:
       tags:
         - metadata
         - registry
+      depends_on:
+        - structured-metadata-design
 
     - id: installed-manifest
       path: .harness/manifest.yaml
@@ -84,6 +98,8 @@ metadata:
       tags:
         - manifest
         - lifecycle
+      depends_on:
+        - product-spec
 
     - id: installed-lock
       path: .harness/lock.yaml
@@ -93,6 +109,8 @@ metadata:
       tags:
         - lock
         - provenance
+      depends_on:
+        - installed-manifest
 
     - id: module-registry
       path: modules/registry.yaml
@@ -102,6 +120,8 @@ metadata:
       tags:
         - modules
         - registry
+      depends_on:
+        - installed-manifest
 
     - id: structured-metadata-module
       path: modules/structured-metadata/module.yaml
@@ -111,6 +131,9 @@ metadata:
       tags:
         - module
         - structured-metadata
+      depends_on:
+        - structured-metadata-design
+        - module-registry
 
     - id: metadata-cli
       path: scripts/metadata.mjs
@@ -120,3 +143,28 @@ metadata:
       tags:
         - cli
         - validation
+      depends_on:
+        - structured-metadata-module
+        - metadata-artifacts
+
+    - id: structured-metadata-decision
+      path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
+      kind: decision
+      status: active
+      owner_domain: structured-metadata
+      tags:
+        - decision
+        - structured-metadata
+      depends_on:
+        - structured-metadata-design
+
+    - id: structured-metadata-depth-decision
+      path: decisions/0010-deepen-structured-metadata-query-and-validation.md
+      kind: decision
+      status: active
+      owner_domain: structured-metadata
+      tags:
+        - decision
+        - structured-metadata
+      depends_on:
+        - structured-metadata-decision

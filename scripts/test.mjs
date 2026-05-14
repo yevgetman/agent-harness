@@ -335,6 +335,32 @@ withTempDir((root) => {
   const list = quiet(() => runMetadata({ cwd: target, args: ["list"] }));
   assert.equal(list.ok, true, "metadata list should pass after install");
 
+  const tagged = quiet(() => runMetadata({ cwd: target, args: ["list", "--tag", "orientation"] }));
+  assert.equal(tagged.artifacts.length, 3, "metadata list should filter artifacts by tag");
+
+  const kind = quiet(() => runMetadata({ cwd: target, args: ["list", "--kind", "operating-contract"] }));
+  assert.equal(kind.artifacts.length, 1, "metadata list should filter artifacts by kind");
+
+  const report = quiet(() => runMetadata({ cwd: target, args: ["report"] }));
+  assert.equal(report.ok, true, "metadata report should pass after install");
+  assert.equal(report.summary.total, 4, "metadata report should summarize artifact count");
+  assert.equal(report.summary.by_status.active, 4, "metadata report should summarize status counts");
+  assert.equal(report.summary.by_tag.orientation, 3, "metadata report should summarize tag counts");
+
+  const jsonList = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "metadata", "list", "--tag", "orientation", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonList.artifacts.length, 3, "metadata list --json should emit filtered JSON");
+
+  const jsonReport = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "metadata", "report", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonReport.summary.total, 4, "metadata report --json should emit summary JSON");
+
   const doctor = quiet(() => runDoctor({ cwd: target }));
   assert.equal(doctor.ok, true, "doctor should validate structured metadata after install");
   assert.equal(
@@ -346,7 +372,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after structured metadata install");
   assert.equal(upgrade.plan.managed_files.length, 5, "structured metadata should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 10, "structured metadata should add two command records");
+  assert.equal(upgrade.plan.commands.length, 11, "structured metadata should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "structured-metadata")?.status,
     "unchanged",
@@ -367,6 +393,24 @@ withTempDir((root) => {
     bad.errors.some((item) => item.includes("missing.md")),
     true,
     "metadata check should report missing active artifact paths",
+  );
+
+  writeFileSync(join(target, "metadata", "artifacts.yaml"), `metadata:
+  version: 1
+  artifacts:
+    - id: agents
+      path: AGENTS.md
+      kind: operating-contract
+      status: active
+      depends_on:
+        - missing
+`);
+  const badDependency = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
+  assert.equal(badDependency.ok, false, "metadata check should fail unknown dependencies");
+  assert.equal(
+    badDependency.errors.some((item) => item.includes("depends on unknown artifact 'missing'")),
+    true,
+    "metadata check should report unknown artifact dependencies",
   );
 });
 
@@ -426,6 +470,8 @@ withTempDir((root) => {
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "dogfood profile init should install valid metadata");
+  const metadataReport = quiet(() => runMetadata({ cwd: target, args: ["report"] }));
+  assert.equal(metadataReport.summary.total, 4, "dogfood profile init should support metadata report");
 
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");
