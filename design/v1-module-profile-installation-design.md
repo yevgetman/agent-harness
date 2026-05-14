@@ -2,7 +2,8 @@
 
 **Status:** accepted baseline  
 **Date:** 2026-05-14  
-**Scope:** module registry, profile records, and first module install commands  
+**Scope:** module registry, profile records, module install commands, and
+profile-backed init
 **Depends on:** `design/v1-product-spec-and-roadmap.md`,
 `design/v1-installed-manifest-design.md`
 
@@ -20,6 +21,7 @@ Initial commands:
 ```text
 harness modules list
 harness modules add <module-id>
+harness profiles list
 ```
 
 This is intentionally narrower than a complete package manager. The goal is to
@@ -75,6 +77,12 @@ profile:
 A profile is a named bundle of module IDs. A target repo records its active
 profile in `.harness/manifest.yaml`.
 
+`harness init --profile <profile>` reads these profile records. The first
+profile-backed init implementation still requires the
+`agent-operating-contract` and `progressive-orientation` bootstrap modules so
+newly initialized repos always receive an operating contract and progressive
+orientation path.
+
 ## Module Install Metadata
 
 Module definitions may include install metadata:
@@ -102,6 +110,24 @@ Initial artifact types:
 - `template` — copy a source file into the target path.
 
 ## Install Behavior
+
+`harness profiles list` should:
+
+1. Read profile records from `profiles/`.
+2. Report profile ID, status, and module bundle.
+3. Fail when profile records cannot be parsed.
+
+`harness init --profile <profile>` should:
+
+1. Read the requested profile from `profiles/`.
+2. Resolve the profile module bundle through `modules/registry.yaml`.
+3. Refuse profiles missing the required init bootstrap modules.
+4. Install the target operating contract, orientation files, manifest, and
+   profile module definitions.
+5. Install module artifacts for profile modules that declare install metadata.
+6. Write profile module commands into the target manifest.
+
+## Module Add Behavior
 
 `harness modules add <module-id>` should:
 
@@ -152,6 +178,7 @@ making any changes.
 - `modules add` does not update `index.yaml` yet.
 - `modules add` does not merge human-authored files.
 - Profile switching is not implemented.
+- Profile removal is not implemented.
 - Module removal is not implemented.
 - Module dependency solving is not implemented.
 - External registry discovery is deferred.

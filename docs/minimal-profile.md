@@ -5,6 +5,9 @@ The `minimal` profile is the first portable install target for the harness.
 It installs only enough structure to align agents around a repo-local operating
 contract and progressive orientation path.
 
+The profile is defined in `profiles/minimal.yaml`; `harness init --profile
+minimal` reads that profile record rather than using a hardcoded module bundle.
+
 ## Installed Process Domains
 
 - Agent Operating Contract
@@ -25,6 +28,9 @@ contract and progressive orientation path.
 ```bash
 harness init --profile minimal --target <repo>
 ```
+
+Use `harness profiles list` to inspect available source profiles before
+choosing the init profile.
 
 By default, `harness init` expects the target to be a git repository. Use
 `--allow-non-git` only for tests, fixtures, or intentional non-repo targets.

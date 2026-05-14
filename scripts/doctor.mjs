@@ -352,14 +352,31 @@ function checkProfiles(root, registryEntries, diagnostics) {
       continue;
     }
 
+    const expectedId = file.replace(/\.(ya?ml)$/, "");
+    if (profile.id !== expectedId) {
+      error(diagnostics, `${path}: profile.id '${profile.id}' does not match filename '${expectedId}'`);
+    }
+
     if (ids.has(profile.id)) {
       error(diagnostics, `profiles/: duplicate profile id '${profile.id}'`);
     }
     ids.add(profile.id);
 
+    if (!profile.status) {
+      error(diagnostics, `${path}: missing profile.status`);
+    }
+
     if (!Array.isArray(profile.modules) || profile.modules.length === 0) {
       error(diagnostics, `${path}: profile.modules must be a non-empty list`);
       continue;
+    }
+
+    const profileModuleIds = new Set();
+    for (const moduleId of profile.modules) {
+      if (profileModuleIds.has(moduleId)) {
+        error(diagnostics, `${path}: duplicate module '${moduleId}'`);
+      }
+      profileModuleIds.add(moduleId);
     }
 
     if (registryEntries) {

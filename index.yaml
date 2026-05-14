@@ -40,12 +40,14 @@ reading_order:
   - decision-0002
   - decision-0003
   - decision-0004
+  - decision-0005
   - decision-template
   - package
   - harness-cli
   - init
   - minimal-profile
   - modules-cli
+  - profiles-cli
   - decisions-cli
   - questions-cli
   - upgrade-cli
@@ -138,7 +140,7 @@ documents:
     title: "Formal Design: V1 Module And Profile Installation"
     kind: formal-design
     status: active
-    summary: Accepted baseline for registry-backed module listing and first installable-module commands.
+    summary: Accepted baseline for registry-backed module listing, first installable-module commands, profile listing, and profile-backed init.
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-installed-manifest-design
@@ -223,7 +225,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current module/profile installation depth pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current profile-backed init/listing depth pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -266,6 +268,16 @@ documents:
       - v1-module-profile-installation-design
       - v1-product-spec-and-roadmap
 
+  - doc_id: decision-0005
+    file: decisions/0005-adopt-profile-backed-init-and-profile-listing.md
+    title: Adopt Profile Backed Init And Profile Listing
+    kind: decision
+    status: active
+    summary: Decision record adopting profile listing and profile-backed init from profiles/*.yaml.
+    depends_on:
+      - v1-module-profile-installation-design
+      - decision-0004
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -280,7 +292,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, upgrade planning, doctor, and test commands.
+    summary: Node package wiring for the initial harness CLI, init, decisions, questions, modules, profiles, upgrade planning, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -290,7 +302,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, upgrade planning, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, upgrade planning, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -299,10 +311,11 @@ documents:
     title: Harness Init
     kind: cli
     status: active
-    summary: Minimal-profile installer with dry-run, non-git guard, overwrite refusal, and installed metadata.
+    summary: Profile-backed installer with dry-run, non-git guard, overwrite refusal, and installed metadata.
     depends_on:
       - v1-incremental-build-strategy
       - v1-installed-manifest-design
+      - v1-module-profile-installation-design
 
   - doc_id: minimal-profile
     file: docs/minimal-profile.md
@@ -323,6 +336,17 @@ documents:
     depends_on:
       - v1-module-profile-installation-design
       - module-registry
+
+  - doc_id: profiles-cli
+    file: scripts/profiles.mjs
+    title: Harness Profiles CLI
+    kind: cli
+    status: active
+    summary: Profile listing and profile-loading helpers used by profile-backed init.
+    depends_on:
+      - v1-module-profile-installation-design
+      - profile-minimal
+      - profile-dogfood
 
   - doc_id: decisions-cli
     file: scripts/decisions.mjs
@@ -366,9 +390,10 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, doctor validation, decisions, questions, modules, upgrade planning, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, upgrade planning, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
+      - profiles-cli
       - decisions-cli
       - questions-cli
       - upgrade-cli

@@ -82,15 +82,18 @@ Current dogfood state:
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
   `npm test`; doctor now validates command wiring and the depth gate when
   present.
-- The first installer surface exists as `harness init --profile minimal`,
-  exposed locally as `npm run init`; it now has dry-run, non-git safety, and
-  installed metadata.
+- The first installer surface exists as `harness init --profile <profile>`,
+  exposed locally as `npm run init`; it now reads `profiles/*.yaml` and has
+  dry-run, non-git safety, and installed metadata.
 - The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
   uses a `local-checkout` version source, and reports no blockers or warnings
   for this dogfood repo.
 - The first module/profile installation surface exists via
   `modules/registry.yaml`, `profiles/`, `npm run modules:list`, and
   `node scripts/harness.mjs modules add <module-id> --target <path>`.
+- Profiles are now executable install inputs: `npm run profiles:list` lists
+  source profiles, and `harness init --profile <profile>` reads
+  `profiles/*.yaml` instead of a hardcoded minimal bundle.
 - `decisions-open-questions` is mechanically installable from the registry into
   a minimal target, and the broad temp-git test matrix now covers clean install,
   collisions, force install, missing source artifacts, doctor, and upgrade
@@ -116,12 +119,12 @@ Then open the relevant formal design or exploratory spec for the task.
 ## Near-term work
 
 The next useful step is to choose the next narrow breadth unit after the
-module/profile installation depth pass.
+profile-backed init/listing depth pass.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
 - Expand module definitions only when a command needs the additional metadata.
-- Use `build/depth-gate.yaml` to confirm the module/profile installation pass
+- Use `build/depth-gate.yaml` to confirm the profile-backed init/listing pass
   before selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.

@@ -1,7 +1,9 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDoctor } from "./doctor.mjs";
+import { loadProfile } from "./profiles.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -30,14 +32,18 @@ function readSource(file) {
   return readFileSync(join(SOURCE_ROOT, file), "utf8");
 }
 
+function readSourceYaml(file) {
+  return parseYaml(readSource(file));
+}
+
 function printInitHelp() {
   console.log(`harness init
 
 Usage:
-  harness init [--profile minimal] [--target <path>] [--force] [--dry-run]
+  harness init [--profile <profile>] [--target <path>] [--force] [--dry-run]
 
 Options:
-  --profile minimal     Install the minimal process-domain profile.
+  --profile <profile>   Install a profile from profiles/. Defaults to minimal.
   --target <path>       Target repository root. Defaults to the current dir.
   --force               Overwrite existing managed files.
   --dry-run             Print the install plan without writing files.
@@ -49,26 +55,36 @@ Options:
 function collectCollisions(targetRoot, planned, force) {
   if (force) return [];
   return planned
-    .map((file) => file.path)
-    .filter((file) => existsSync(join(targetRoot, file)));
+    .filter((entry) => {
+      const path = join(targetRoot, entry.path);
+      if (!existsSync(path)) return false;
+      if (entry.type === "directory") return !statSync(path).isDirectory();
+      return true;
+    })
+    .map((entry) => entry.path);
 }
 
-function writePlannedFiles(targetRoot, planned) {
-  for (const file of planned) {
-    const outPath = join(targetRoot, file.path);
+function writePlannedEntries(targetRoot, planned) {
+  for (const entry of planned) {
+    const outPath = join(targetRoot, entry.path);
+    if (entry.type === "directory") {
+      mkdirSync(outPath, { recursive: true });
+      continue;
+    }
+
     ensureParent(outPath);
-    writeFileSync(outPath, file.content);
+    writeFileSync(outPath, entry.content);
   }
 }
 
-function printPlan({ targetRoot, profile, files, dryRun, collisions = [] }) {
+function printPlan({ targetRoot, profile, entries, dryRun, collisions = [] }) {
   const label = dryRun ? "dry-run plan" : "install plan";
   console.log(`Harness init: ${label}`);
   console.log(`target: ${targetRoot}`);
   console.log(`profile: ${profile}`);
   console.log(`files:`);
-  for (const file of files) {
-    console.log(`  ${file.path}`);
+  for (const entry of entries) {
+    console.log(`  ${entry.path}`);
   }
   if (collisions.length > 0) {
     console.log(`collisions:`);
@@ -86,20 +102,168 @@ function printFailure(errors) {
   console.error(`Harness init: failed (${errors.length} error(s))`);
 }
 
+function loadSourceModule(moduleId) {
+  const registryYaml = readSourceYaml("modules/registry.yaml");
+  const entry = registryYaml?.modules?.find((item) => item.id === moduleId);
+  if (!entry?.path) {
+    return { error: `module '${moduleId}' is not in modules/registry.yaml` };
+  }
+
+  const moduleYaml = readSourceYaml(entry.path);
+  const module = moduleYaml?.module;
+  if (!module) {
+    return { error: `${entry.path}: missing top-level module key` };
+  }
+
+  if (module.id !== moduleId) {
+    return { error: `${entry.path}: module id '${module.id}' does not match '${moduleId}'` };
+  }
+
+  return { entry, module };
+}
+
+function profileModules(profile) {
+  const modules = [];
+  const errors = [];
+  const ids = new Set();
+
+  for (const moduleId of profile.modules) {
+    if (ids.has(moduleId)) {
+      errors.push(`profile '${profile.id}' includes duplicate module '${moduleId}'`);
+      continue;
+    }
+    ids.add(moduleId);
+
+    const loaded = loadSourceModule(moduleId);
+    if (loaded.error) {
+      errors.push(loaded.error);
+    } else {
+      modules.push(loaded);
+    }
+  }
+
+  for (const moduleId of ["agent-operating-contract", "progressive-orientation"]) {
+    if (!ids.has(moduleId)) {
+      errors.push(`profile '${profile.id}' is missing required init module '${moduleId}'`);
+    }
+  }
+
+  return { modules, errors };
+}
+
+function managedFilesFor(modules) {
+  return modules.flatMap(({ module }) => (module.managed_files ?? []).map((file) => ({
+    path: file.path,
+    owner: module.id,
+    mode: file.mode ?? "merge",
+  })));
+}
+
+function moduleRefsFor(modules) {
+  return modules.map(({ module }) => ({
+    id: module.id,
+    version: module.version,
+    status: module.status ?? "active",
+    process_domains: module.process_domains ?? [],
+  }));
+}
+
+function commandsFor(modules) {
+  const commands = {
+    doctor: "harness doctor",
+    "modules-list": "harness modules list",
+    "modules-add": "harness modules add",
+    "profiles-list": "harness profiles list",
+    "upgrade-plan": "harness upgrade --plan",
+  };
+
+  for (const { module } of modules) {
+    for (const [name, command] of Object.entries(module.commands ?? {})) {
+      commands[name] = command;
+    }
+  }
+
+  return commands;
+}
+
+function moduleDefinitionEntries(modules) {
+  return modules.map(({ module }) => ({
+    type: "file",
+    path: `modules/${module.id}/module.yaml`,
+    content: readSource(`modules/${module.id}/module.yaml`),
+  }));
+}
+
+function moduleArtifactPlan(modules) {
+  const entries = [];
+  const errors = [];
+  for (const { module } of modules) {
+    for (const artifact of module.install?.artifacts ?? []) {
+      if (artifact.type === "directory") {
+        entries.push({ type: "directory", path: artifact.path });
+        continue;
+      }
+
+      if (artifact.type === "template") {
+        if (!existsSync(join(SOURCE_ROOT, artifact.source))) {
+          errors.push(`${artifact.source}: source template missing`);
+          continue;
+        }
+
+        entries.push({
+          type: "file",
+          path: artifact.path,
+          content: readSource(artifact.source),
+        });
+      }
+
+      if (artifact.type !== "directory" && artifact.type !== "template") {
+        errors.push(`${module.id}: unsupported artifact type '${artifact.type}'`);
+      }
+
+    }
+  }
+  return { entries, errors };
+}
+
 function buildFiles({ targetRoot, profile, date }) {
   const name = repoName(targetRoot);
+  const loadedProfile = loadProfile(profile, SOURCE_ROOT);
 
-  if (profile !== "minimal") {
-    return {
-      errors: [`unsupported profile '${profile}' (supported: minimal)`],
-      files: [],
-    };
-  }
+  if (loadedProfile.error) return { errors: [loadedProfile.error], entries: [] };
+
+  const loadedModules = profileModules(loadedProfile.profile);
+  if (loadedModules.errors.length > 0) return { errors: loadedModules.errors, entries: [] };
+
+  const modules = loadedModules.modules;
+  const artifactPlan = moduleArtifactPlan(modules);
+  if (artifactPlan.errors.length > 0) return { errors: artifactPlan.errors, entries: [] };
+
+  const manifest = {
+    harness: {
+      manifest_version: 1,
+      installed_at: date,
+      harness_version: HARNESS_VERSION,
+      profile,
+      source: {
+        type: "package",
+        package: PACKAGE_NAME,
+        channel: "dev",
+      },
+      modules: moduleRefsFor(modules),
+      managed_files: managedFilesFor(modules),
+      commands: commandsFor(modules),
+      upgrade: {
+        policy: "plan-first",
+      },
+    },
+  };
 
   return {
     errors: [],
-    files: [
+    entries: [
       {
+        type: "file",
         path: "AGENTS.md",
         content: `# Agent Instructions
 
@@ -108,7 +272,7 @@ Harness metadata:
 - version: ${HARNESS_VERSION}
 - profile: ${profile}
 
-This repo has the portable harness installed with the \`minimal\` profile.
+This repo has the portable harness installed with the \`${profile}\` profile.
 
 ## Boot Sequence
 
@@ -129,6 +293,7 @@ After significant choices, build steps, or repo-structure changes, update
 `,
       },
       {
+        type: "file",
         path: "status.md",
         content: `# ${name} Status
 
@@ -136,11 +301,12 @@ Last updated: ${date}
 
 ## Current Phase
 
-Harness installed with the \`minimal\` profile.
+Harness installed with the \`${profile}\` profile.
 
 ## Current Decisions
 
-- The repo uses the portable harness minimal profile.
+- The repo uses the portable harness \`${profile}\` profile.
+- Active harness profile: \`${profile}\`.
 - Installed harness package: \`${PACKAGE_NAME}\` ${HARNESS_VERSION}.
 - Agents should boot through \`AGENTS.md\`, \`status.md\`, \`index.yaml\`, and
   \`state/CONTEXT.md\`.
@@ -153,6 +319,7 @@ Harness installed with the \`minimal\` profile.
 `,
       },
       {
+        type: "file",
         path: "index.yaml",
         content: `repo: ${name}
 description: Harnessed target repo.
@@ -208,6 +375,7 @@ documents:
 `,
       },
       {
+        type: "file",
         path: "state/CONTEXT.md",
         content: `---
 title: ${name} Context Briefing
@@ -224,7 +392,7 @@ harness:
 
 # ${name} Context Briefing
 
-This repo has the portable harness installed with the \`minimal\` profile.
+This repo has the portable harness installed with the \`${profile}\` profile.
 
 ## Orientation rule
 
@@ -244,57 +412,12 @@ purpose, current state, and next work are known.
 `,
       },
       {
+        type: "file",
         path: ".harness/manifest.yaml",
-        content: `harness:
-  manifest_version: 1
-  installed_at: ${date}
-  harness_version: ${HARNESS_VERSION}
-  profile: ${profile}
-  source:
-    type: package
-    package: ${PACKAGE_NAME}
-    channel: dev
-  modules:
-    - id: agent-operating-contract
-      version: 0.1.0
-      status: active
-      process_domains:
-        - agent-operating-contract
-    - id: progressive-orientation
-      version: 0.1.0
-      status: active
-      process_domains:
-        - progressive-orientation
-  managed_files:
-    - path: AGENTS.md
-      owner: agent-operating-contract
-      mode: merge
-    - path: status.md
-      owner: agent-operating-contract
-      mode: merge
-    - path: index.yaml
-      owner: progressive-orientation
-      mode: merge
-    - path: state/CONTEXT.md
-      owner: progressive-orientation
-      mode: merge
-  commands:
-    doctor: harness doctor
-    modules-list: harness modules list
-    modules-add: harness modules add
-    upgrade-plan: harness upgrade --plan
-  upgrade:
-    policy: plan-first
-`,
+        content: stringifyYaml(manifest),
       },
-      {
-        path: "modules/agent-operating-contract/module.yaml",
-        content: readSource("modules/agent-operating-contract/module.yaml"),
-      },
-      {
-        path: "modules/progressive-orientation/module.yaml",
-        content: readSource("modules/progressive-orientation/module.yaml"),
-      },
+      ...moduleDefinitionEntries(modules),
+      ...artifactPlan.entries,
     ],
   };
 }
@@ -321,16 +444,16 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
     errors.push(`${targetRoot}: target is not a git repo (pass --allow-non-git to override)`);
   }
 
-  const collisions = errors.length === 0 ? collectCollisions(targetRoot, plan.files, force) : [];
+  const collisions = errors.length === 0 ? collectCollisions(targetRoot, plan.entries, force) : [];
 
   if (dryRun && errors.length === 0) {
-    printPlan({ targetRoot, profile, files: plan.files, dryRun, collisions });
+    printPlan({ targetRoot, profile, entries: plan.entries, dryRun, collisions });
     console.log("");
     console.log("Harness init: dry run complete; no files written");
     return {
       ok: true,
       targetRoot,
-      planned: plan.files.map((file) => file.path),
+      planned: plan.entries.map((entry) => entry.path),
       collisions,
     };
   }
@@ -346,13 +469,13 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
     return { ok: false, targetRoot, errors };
   }
 
-  printPlan({ targetRoot, profile, files: plan.files, dryRun });
+  printPlan({ targetRoot, profile, entries: plan.entries, dryRun });
 
   mkdirSync(targetRoot, { recursive: true });
-  writePlannedFiles(targetRoot, plan.files);
+  writePlannedEntries(targetRoot, plan.entries);
 
   console.log("");
-  console.log(`Harness init: installed ${plan.files.length} file(s)`);
+  console.log(`Harness init: installed ${plan.entries.length} artifact(s)`);
   const doctor = runDoctor({ cwd: targetRoot });
   return { ok: doctor.ok, targetRoot, errors: doctor.diagnostics.errors };
 }

@@ -4,23 +4,23 @@ Last updated: 2026-05-14
 
 ## Current Phase
 
-Design baseline and dogfood bootstrap. The first Phase 2 increment, Module And
-Profile Installation, is depth-complete enough to choose the next narrow
-breadth item.
+Design baseline and dogfood bootstrap. The second Phase 2 increment,
+Profile-Backed Init And Listing, is depth-complete enough to choose the next
+narrow breadth item.
 
 The repo currently has exploratory specs, six formal v1 documents, a
 root agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, three active
-module definitions, a runnable `harness doctor` command, a minimal
-`harness init --profile minimal` installer, a repo-local depth gate, and a
+module definitions, a runnable `harness doctor` command, a profile-backed
+`harness init --profile <profile>` installer, a repo-local depth gate, and a
 read-only `harness upgrade --plan` command. The first module/profile
 installation surface exists through `modules/registry.yaml`, `profiles/`,
-`harness modules list`, and `harness modules add <module-id>`, with broad
-temp-target tests and a completed depth-gate pass. Decisions And Open Questions
-is dogfooded with `decisions/`, `open-questions.yaml`, a decision template,
-decision and question list commands, a decision creation command, and doctor
-validation. No upgrade apply command, profile switching, or full CLI exists
-yet.
+`harness modules list`, `harness modules add <module-id>`, `harness profiles
+list`, and profile-backed `harness init --profile <profile>`, with broad
+temp-target tests. Decisions And Open Questions is dogfooded with `decisions/`,
+`open-questions.yaml`, a decision template, decision and question list commands,
+a decision creation command, and doctor validation. No upgrade apply command,
+profile switching, or full CLI exists yet.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -58,10 +58,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   `decisions-open-questions` is the first standalone `modules add`
   installable module.
 - Profiles now exist under `profiles/` for `minimal` and `dogfood`.
+- `npm run profiles:list` lists available source profiles and their module
+  bundles.
 - `npm run doctor` is the first Mechanical Validation surface; it validates
   installed harness health plus Decisions And Open Questions shape when that
   module is installed.
-- `npm run init` installs the minimal profile into a target repo: `AGENTS.md`,
+- `npm run init` reads `profiles/*.yaml` and installs the selected profile into
+  a target repo. The default `minimal` profile installs `AGENTS.md`,
   `status.md`, `index.yaml`, `state/CONTEXT.md`, `.harness/manifest.yaml`, and
   the two initial module definitions.
 - `npm test` covers minimal init, doctor success, overwrite refusal,
@@ -101,9 +104,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Module install tests cover clean install, collision refusal, force install,
   unknown module failure, bootstrap module no-op, missing source template
   preflight, doctor after install, and upgrade plan after install.
-- `build/depth-gate.yaml` now records `module-profile-installation` as the
-  current complete depth pass and moves `upgrade-plan-lifecycle` into completed
-  passes.
+- Profile-backed init tests cover profile listing, minimal profile init, and
+  dogfood profile init into real temp git targets.
+- `build/depth-gate.yaml` now records `profile-backed-init-and-listing` as the
+  current complete depth pass and moves `module-profile-installation` into
+  completed passes.
 
 ## Active Artifacts
 
@@ -138,14 +143,17 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0004-adopt-registry-backed-module-installation-surface.md` —
   decision record for adding the source registry, profile records, and first
   module install commands.
+- `decisions/0005-adopt-profile-backed-init-and-profile-listing.md` —
+  decision record for profile listing and profile-backed init.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
   definitions.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
-  `scripts/doctor.mjs` — minimal CLI, installer, decision/question commands,
-  module commands, upgrade planner, and doctor command.
+  `scripts/profiles.mjs` / `scripts/doctor.mjs` — harness CLI, installer,
+  decision/question commands, module/profile commands, upgrade planner, and
+  doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, upgrade planning, depth-gate validation, and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
@@ -156,10 +164,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Choose the next narrow breadth increment now that module/profile
-  installation has enough depth.
-- Likely candidates are profile listing/switching, richer manifest
-  lock/provenance, or the next installable process-domain module.
+- Choose the next narrow breadth increment. Likely candidates are profile
+  switching, richer manifest lock/provenance, or the next installable
+  process-domain module.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

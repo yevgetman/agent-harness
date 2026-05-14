@@ -63,7 +63,7 @@ practical confidence. Only then add another unit of breadth.
 ## Current loop
 
 The initial installed surfaces, the read-only upgrade planning surface, and the
-first module/profile installation increment are complete enough to choose the
+first profile-backed installation increments are complete enough to choose the
 next narrow breadth item.
 
 Completed breadth includes:
@@ -76,6 +76,8 @@ Completed breadth includes:
 - Harness lifecycle planning: `harness upgrade --plan`.
 - Module/profile installation: `harness modules list`, source registry,
   profile records, and `harness modules add decisions-open-questions`.
+- Profile-backed init/listing: `harness profiles list` and
+  `harness init --profile <profile>` reading `profiles/*.yaml`.
 
 The repo-local gate at `build/depth-gate.yaml` records completed and current
 depth passes and is validated by `harness doctor` when present. Use that file,

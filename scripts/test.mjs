@@ -18,6 +18,7 @@ import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
 import { runModules } from "./modules.mjs";
+import { runProfiles } from "./profiles.mjs";
 import { runQuestions } from "./questions.mjs";
 import { runUpgrade } from "./upgrade.mjs";
 
@@ -204,7 +205,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after init");
   assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 4, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 5, "upgrade plan should include command states");
   const availableDecisionModule = upgrade.plan.modules.find((module) => module.id === "decisions-open-questions");
   assert.equal(
     availableDecisionModule?.status,
@@ -234,11 +235,67 @@ withTempDir((root) => {
     true,
     "modules list should report decisions-open-questions as installable",
   );
+
+  const profiles = quiet(() => runProfiles({ args: ["list"] }));
+  assert.equal(profiles.ok, true, "profiles list should pass");
+  assert.equal(profiles.profiles.length, 2, "profiles list should return source profiles");
+  assert.deepEqual(
+    profiles.profiles.find((profile) => profile.id === "minimal")?.modules,
+    ["agent-operating-contract", "progressive-orientation"],
+    "profiles list should expose minimal profile modules",
+  );
 });
 
 withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
+});
+
+withTempDir((root) => {
+  const target = join(root, "dogfood-target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "dogfood"],
+  }));
+  assert.equal(init.ok, true, "dogfood profile init should pass in a git repo");
+
+  for (const file of [
+    "AGENTS.md",
+    "status.md",
+    "index.yaml",
+    "state/CONTEXT.md",
+    ".harness/manifest.yaml",
+    "modules/agent-operating-contract/module.yaml",
+    "modules/progressive-orientation/module.yaml",
+    "modules/decisions-open-questions/module.yaml",
+    "open-questions.yaml",
+    "templates/decision.md",
+  ]) {
+    assertExists(target, file);
+  }
+
+  assert.match(
+    readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
+    /profile: dogfood/,
+    "dogfood profile init should record the installed profile",
+  );
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should pass after dogfood profile init");
+
+  const moduleList = quiet(() => runModules({ cwd: root, args: ["list", "--target", target] }));
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "decisions-open-questions")?.installed,
+    true,
+    "dogfood profile init should install decisions-open-questions",
+  );
+
+  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");
+  assert.equal(upgrade.plan.blockers.length, 0, "dogfood profile upgrade plan should have no blockers");
+  assert.equal(upgrade.plan.warnings.length, 0, "dogfood profile upgrade plan should have no warnings");
 });
 
 withTempDir((root) => {
@@ -282,7 +339,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
   assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
-  assert.equal(upgrade.plan.commands.length, 7, "module add should extend command state");
+  assert.equal(upgrade.plan.commands.length, 8, "module add should extend command state");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
     "unchanged",

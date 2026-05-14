@@ -79,47 +79,89 @@ build_strategy:
             - npm run upgrade:plan has been run against the dogfood repo and reports no blockers or warnings.
             - Real initialized git target upgrade scenarios are covered by tests.
 
+    - id: module-profile-installation
+      breadth_unit: >
+        Add registry-backed module listing and module installation for the
+        first standalone process-domain module.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness modules list reports registry modules with installed and installable state.
+            - harness modules add installs decisions-open-questions into a minimal target.
+            - Module install preflights target collisions and source template availability before writing.
+            - Module install updates the target manifest with module, managed-file, and command records.
+        - id: validation
+          status: satisfied
+          evidence:
+            - doctor validates source registry shape when modules/registry.yaml is present.
+            - doctor validates profile records when profiles/ exists.
+            - doctor warns when installed modules are absent from the source registry.
+            - upgrade plan reports registry-available modules that are not installed in the target.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers module list visibility against a real initialized git target.
+            - npm test covers clean decisions-open-questions module installation.
+            - npm test covers collision refusal, --force install, unknown module failure, bootstrap module no-op, and missing source template preflight.
+            - npm test covers doctor and upgrade plan after module installation.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-module-profile-installation-design.md defines registry, profile, module install metadata, doctor behavior, and upgrade plan behavior.
+            - design/v1-product-spec-and-roadmap.md marks the first Phase 2 module-add increment depth-complete and lists the initial module commands.
+            - docs/minimal-profile.md describes follow-on module installation from the minimal profile.
+            - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe the current module/profile surface.
+            - decisions/0004-adopt-registry-backed-module-installation-surface.md records the module installation decision.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - The dogfood manifest exposes modules-list and modules-add.
+            - npm run modules:list has been run against the dogfood repo.
+            - A targeted temp-repo dogfood run verified minimal init followed by modules add decisions-open-questions, doctor, and upgrade plan.
+            - npm run doctor, npm test, and npm run upgrade:plan pass against the dogfood repo.
+
   current_depth_pass:
-    id: module-profile-installation
+    id: profile-backed-init-and-listing
     breadth_unit: >
-      Add registry-backed module listing and module installation for the first
-      standalone process-domain module.
+      Make profiles listable and make harness init consume profile module
+      bundles from profiles/*.yaml.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness modules list reports registry modules with installed and installable state.
-          - harness modules add installs decisions-open-questions into a minimal target.
-          - Module install preflights target collisions and source template availability before writing.
-          - Module install updates the target manifest with module, managed-file, and command records.
+          - harness profiles list reports source profiles and module bundles.
+          - harness init --profile minimal resolves the minimal profile from profiles/minimal.yaml.
+          - harness init --profile dogfood resolves the dogfood profile and installs decisions-open-questions artifacts.
+          - Generated manifests expose profiles-list alongside module and upgrade commands.
       - id: validation
         status: satisfied
         evidence:
-          - doctor validates source registry shape when modules/registry.yaml is present.
-          - doctor validates profile records when profiles/ exists.
-          - doctor warns when installed modules are absent from the source registry.
-          - upgrade plan reports registry-available modules that are not installed in the target.
+          - doctor validates profile IDs, filenames, status values, duplicate module entries, and registry membership.
+          - Profile-backed init refuses unknown profiles and profiles missing required bootstrap modules.
+          - doctor validates dogfood profile installs in real temp git targets.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers module list visibility against a real initialized git target.
-          - npm test covers clean decisions-open-questions module installation.
-          - npm test covers collision refusal, --force install, unknown module failure, bootstrap module no-op, and missing source template preflight.
-          - npm test covers doctor and upgrade plan after module installation.
+          - npm test covers profiles list.
+          - npm test covers profile-backed minimal init.
+          - npm test covers profile-backed dogfood init, including doctor, module list, and upgrade plan.
+          - npm test covers unsupported profile failure.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-module-profile-installation-design.md defines registry, profile, module install metadata, doctor behavior, and upgrade plan behavior.
-          - design/v1-product-spec-and-roadmap.md marks the first Phase 2 module-add increment depth-complete and lists the initial module commands.
-          - docs/minimal-profile.md describes follow-on module installation from the minimal profile.
-          - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe the current module/profile surface.
-          - decisions/0004-adopt-registry-backed-module-installation-surface.md records the module installation decision.
+          - design/v1-module-profile-installation-design.md describes profile listing and profile-backed init.
+          - design/v1-product-spec-and-roadmap.md lists profiles list and profile-backed init in the current product surface.
+          - docs/minimal-profile.md notes that the minimal profile is read from profiles/minimal.yaml.
+          - status.md, state/CONTEXT.md, index.yaml, and AGENTS.md describe profile listing and profile-backed init.
+          - decisions/0005-adopt-profile-backed-init-and-profile-listing.md records the decision.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood manifest exposes modules-list and modules-add.
-          - npm run modules:list has been run against the dogfood repo.
-          - A targeted temp-repo dogfood run verified minimal init followed by modules add decisions-open-questions, doctor, and upgrade plan.
+          - The dogfood manifest exposes profiles-list.
+          - npm run profiles:list has been run against the dogfood repo.
           - npm run doctor, npm test, and npm run upgrade:plan pass against the dogfood repo.

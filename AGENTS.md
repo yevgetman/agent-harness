@@ -121,6 +121,9 @@ Use `node scripts/harness.mjs modules add <module-id> --target <path>` to
 install an available module into another harness target. The first module add
 surface is collision-averse and does not merge human-authored files.
 
+Use `npm run profiles:list` to inspect available install profiles before
+changing profile-backed init behavior.
+
 ## Current Design Vocabulary
 
 - **Harness process domain** is the canonical term for a conceptual operating

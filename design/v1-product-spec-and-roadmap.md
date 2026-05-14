@@ -131,13 +131,14 @@ portable installation, validation, module, and upgrade loop.
 
 Current commands:
 
-- `harness init --profile minimal`
+- `harness init --profile <profile>`
 - `harness doctor`
 - `harness decisions new`
 - `harness decisions list`
 - `harness questions list`
 - `harness modules list`
 - `harness modules add <module>`
+- `harness profiles list`
 - `harness upgrade --plan`
 
 Current dogfood modules:
@@ -173,8 +174,8 @@ Exit signal:
 
 ### Phase 2: Module And Profile Installation
 
-Status: first module-add increment depth-complete; profile listing and profile
-switching remain planned.
+Status: profile-backed init and listing increment depth-complete; profile
+switching remains planned.
 
 Purpose:
 
@@ -187,11 +188,13 @@ Initial commands:
 
 - `harness modules list`
 - `harness modules add <module>`
+- `harness profiles list`
+- `harness init --profile <profile>`
 
 Candidate follow-on commands:
 
-- `harness profiles list`
-- `harness init --profile <profile>`
+- `harness profiles switch <profile>`
+- `harness profiles inspect <profile>`
 
 Exit signal:
 
