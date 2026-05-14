@@ -1,0 +1,37 @@
+harness:
+  manifest_version: 1
+  installed_at: 2026-05-14
+  harness_version: 0.1.0
+  profile: dogfood
+  source:
+    type: local
+    path: ~/code/harness
+    channel: dev
+  modules:
+    - id: agent-operating-contract
+      version: 0.1.0
+      status: active
+      process_domains:
+        - agent-operating-contract
+    - id: progressive-orientation
+      version: 0.1.0
+      status: active
+      process_domains:
+        - progressive-orientation
+  managed_files:
+    - path: AGENTS.md
+      owner: agent-operating-contract
+      mode: merge
+    - path: status.md
+      owner: agent-operating-contract
+      mode: merge
+    - path: index.yaml
+      owner: progressive-orientation
+      mode: merge
+    - path: state/CONTEXT.md
+      owner: progressive-orientation
+      mode: merge
+  commands:
+    doctor: npm run doctor
+  upgrade:
+    policy: plan-first

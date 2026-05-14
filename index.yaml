@@ -1,0 +1,148 @@
+repo: harness
+description: Portable harness source repo and first dogfood target.
+updated: 2026-05-14
+
+orientation:
+  purpose: >
+    Give agents a small boot path and a reading order before they inspect the
+    full repo.
+  boot_order:
+    - AGENTS.md
+    - status.md
+    - index.yaml
+    - state/CONTEXT.md
+  rule: Start with the boot_order, then read only the relevant deeper docs.
+
+reading_order:
+  - agents
+  - status
+  - context
+  - v1-process-domain-design
+  - v1-installed-manifest-design
+  - installed-manifest
+  - module-agent-operating-contract
+  - module-progressive-orientation
+  - package
+  - harness-cli
+  - doctor
+  - agnostic-harness-shape
+  - portability-model
+
+documents:
+  - doc_id: agents
+    file: AGENTS.md
+    title: Harness Agent Instructions
+    kind: operating-contract
+    status: active
+    summary: Agent boot sequence, status discipline, and design vocabulary for this repo.
+    depends_on: []
+
+  - doc_id: status
+    file: status.md
+    title: Harness Status
+    kind: state
+    status: active
+    summary: Current-state projection for the harness repo. Not a changelog.
+    depends_on:
+      - agents
+
+  - doc_id: context
+    file: state/CONTEXT.md
+    title: Harness Context Briefing
+    kind: orientation
+    status: active
+    summary: Condensed briefing for fresh agents; points to formal design and specs.
+    depends_on:
+      - v1-process-domain-design
+
+  - doc_id: v1-process-domain-design
+    file: design/v1-process-domain-design.md
+    title: "Formal Design: V1 Harness Process Domains"
+    kind: formal-design
+    status: active
+    summary: Accepted baseline for the 15 formal v1 harness process domains and portable harness architecture.
+    depends_on:
+      - agnostic-harness-shape
+      - portability-model
+
+  - doc_id: v1-installed-manifest-design
+    file: design/v1-installed-manifest-design.md
+    title: "Formal Design: V1 Installed Harness Manifest"
+    kind: formal-design
+    status: active
+    summary: Accepted baseline for target-repo installed harness state, managed files, module records, doctor behavior, and upgrade safety.
+    depends_on:
+      - v1-process-domain-design
+
+  - doc_id: installed-manifest
+    file: .harness/manifest.yaml
+    title: Installed Harness Manifest
+    kind: dogfood-state
+    status: active
+    summary: Dogfood manifest recording the harness modules installed in this repo.
+    depends_on:
+      - v1-installed-manifest-design
+
+  - doc_id: module-agent-operating-contract
+    file: modules/agent-operating-contract/module.yaml
+    title: Agent Operating Contract Module
+    kind: module-definition
+    status: active
+    summary: Module definition for the Agent Operating Contract process domain.
+    depends_on:
+      - v1-process-domain-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-progressive-orientation
+    file: modules/progressive-orientation/module.yaml
+    title: Progressive Orientation Module
+    kind: module-definition
+    status: active
+    summary: Module definition for the Progressive Orientation process domain.
+    depends_on:
+      - v1-process-domain-design
+      - v1-installed-manifest-design
+
+  - doc_id: package
+    file: package.json
+    title: Package Manifest
+    kind: cli
+    status: active
+    summary: Node package wiring for the initial harness CLI and doctor command.
+    depends_on:
+      - v1-installed-manifest-design
+
+  - doc_id: harness-cli
+    file: scripts/harness.mjs
+    title: Harness CLI Entrypoint
+    kind: cli
+    status: active
+    summary: Minimal command dispatcher for the local harness CLI.
+    depends_on:
+      - v1-installed-manifest-design
+
+  - doc_id: doctor
+    file: scripts/doctor.mjs
+    title: Harness Doctor
+    kind: cli
+    status: active
+    summary: Initial installed-harness health validator.
+    depends_on:
+      - v1-installed-manifest-design
+
+  - doc_id: agnostic-harness-shape
+    file: spec/agnostic-harness-shape.md
+    title: Agnostic Harness Shape
+    kind: exploratory-spec
+    status: active
+    summary: Exploratory catalog of harness process domains and supporting capabilities.
+    depends_on: []
+
+  - doc_id: portability-model
+    file: spec/portability-model.md
+    title: Harness Portability Model
+    kind: exploratory-spec
+    status: active
+    summary: Exploratory model for applying the portable harness to target repos.
+    depends_on:
+      - agnostic-harness-shape

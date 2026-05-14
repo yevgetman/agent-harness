@@ -1,0 +1,17 @@
+{
+  "name": "portable-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Portable agent harness infrastructure",
+  "bin": {
+    "harness": "./scripts/harness.mjs"
+  },
+  "scripts": {
+    "doctor": "node scripts/harness.mjs doctor",
+    "harness": "node scripts/harness.mjs"
+  },
+  "dependencies": {
+    "yaml": "^2.6.0"
+  }
+}

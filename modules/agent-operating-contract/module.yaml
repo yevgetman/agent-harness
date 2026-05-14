@@ -1,0 +1,26 @@
+module:
+  id: agent-operating-contract
+  version: 0.1.0
+  status: active
+  process_domains:
+    - agent-operating-contract
+  provides:
+    - boot-sequence
+    - agent-authority-boundaries
+    - status-discipline
+    - design-vocabulary
+  creates:
+    - AGENTS.md
+    - status.md
+  managed_files:
+    - path: AGENTS.md
+      mode: merge
+    - path: status.md
+      mode: merge
+  validates:
+    - AGENTS.md exists
+    - status.md exists
+    - status.md has a Last updated line
+  instructions:
+    - Keep AGENTS.md short and route agents to deeper docs.
+    - Keep status.md current and concise.

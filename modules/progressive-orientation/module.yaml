@@ -1,0 +1,28 @@
+module:
+  id: progressive-orientation
+  version: 0.1.0
+  status: active
+  process_domains:
+    - progressive-orientation
+  provides:
+    - orientation-manifest
+    - reading-order
+    - context-briefing
+    - boot-path
+  creates:
+    - index.yaml
+    - state/CONTEXT.md
+  managed_files:
+    - path: index.yaml
+      mode: merge
+    - path: state/CONTEXT.md
+      mode: merge
+  validates:
+    - index.yaml parses as YAML
+    - index.yaml document files exist
+    - index.yaml reading_order references known doc_ids
+    - state/CONTEXT.md exists
+  instructions:
+    - Start with the boot path before opening deeper docs.
+    - Keep state/CONTEXT.md concise.
+    - Keep index.yaml current when orientation-relevant files change.
