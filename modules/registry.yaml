@@ -18,3 +18,8 @@ modules:
     path: modules/structured-metadata/module.yaml
     status: active
     installable: true
+
+  - id: canonical-state
+    path: modules/canonical-state/module.yaml
+    status: active
+    installable: true

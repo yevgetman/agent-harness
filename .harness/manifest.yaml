@@ -28,6 +28,11 @@ harness:
       status: active
       process_domains:
         - structured-metadata
+    - id: canonical-state
+      version: 0.1.0
+      status: active
+      process_domains:
+        - canonical-state
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -50,6 +55,9 @@ harness:
     - path: metadata/artifacts.yaml
       owner: structured-metadata
       mode: merge
+    - path: state/canonical-state.yaml
+      owner: canonical-state
+      mode: merge
   commands:
     init: npm run init
     decisions-new: node scripts/harness.mjs decisions new
@@ -67,5 +75,6 @@ harness:
     metadata-list: npm run metadata:list
     metadata-check: npm run metadata:check
     metadata-report: npm run metadata:report
+    state-check: npm run state:check
   upgrade:
     policy: plan-first

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { expectedLockPaths, hashFile, lockFileMap, readLock } from "./lock.mjs";
 import { validateMetadata } from "./metadata.mjs";
+import { validateCanonicalState } from "./state.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
@@ -753,6 +754,21 @@ function checkStructuredMetadata(root, installedModules, diagnostics) {
   }
 }
 
+function checkCanonicalState(root, installedModules, diagnostics) {
+  if (!installedModules.has("canonical-state")) return;
+
+  const result = validateCanonicalState(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `state/canonical-state.yaml: ${result.entries.length} canonical state entry(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -893,6 +909,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkStatus(root, diagnostics);
   checkDecisionsOpenQuestions(root, installedModules, diagnostics);
   checkStructuredMetadata(root, installedModules, diagnostics);
+  checkCanonicalState(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

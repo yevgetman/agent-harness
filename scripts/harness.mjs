@@ -9,6 +9,7 @@ import { runModules } from "./modules.mjs";
 import { runProfiles } from "./profiles.mjs";
 import { runLock } from "./lock.mjs";
 import { runMetadata } from "./metadata.mjs";
+import { runState } from "./state.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -26,6 +27,7 @@ Usage:
   harness metadata list
   harness metadata check
   harness metadata report
+  harness state check
   harness lock refresh
   harness lock check
   harness upgrade --plan
@@ -78,6 +80,11 @@ if (command === "profiles") {
 
 if (command === "metadata") {
   const result = runMetadata({ cwd: process.cwd(), args });
+  process.exit(result.ok ? 0 : 2);
+}
+
+if (command === "state") {
+  const result = runState({ cwd: process.cwd(), args });
   process.exit(result.ok ? 0 : 2);
 }
 

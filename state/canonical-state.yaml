@@ -1,0 +1,156 @@
+# Harness managed file: canonical-state
+canonical_state:
+  version: 1
+  updated: 2026-05-15
+  scope: harness-source-repo
+  entries:
+    - id: agents
+      path: AGENTS.md
+      metadata_id: agents
+      state_role: source
+      status: active
+      owner_domain: agent-operating-contract
+      refresh: manual
+
+    - id: status
+      path: status.md
+      metadata_id: status
+      state_role: projection
+      status: active
+      owner_domain: agent-operating-contract
+      refresh: manual
+      depends_on:
+        - agents
+
+    - id: index
+      path: index.yaml
+      metadata_id: index
+      state_role: registry
+      status: active
+      owner_domain: progressive-orientation
+      refresh: manual
+      depends_on:
+        - agents
+
+    - id: context
+      path: state/CONTEXT.md
+      metadata_id: context
+      state_role: projection
+      status: active
+      owner_domain: progressive-orientation
+      refresh: manual
+      depends_on:
+        - agents
+        - status
+        - index
+
+    - id: product-spec
+      path: design/v1-product-spec-and-roadmap.md
+      metadata_id: product-spec
+      state_role: source
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+
+    - id: process-domain-design
+      path: design/v1-process-domain-design.md
+      metadata_id: process-domain-design
+      state_role: source
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - product-spec
+
+    - id: structured-metadata-design
+      path: design/v1-structured-metadata-design.md
+      metadata_id: structured-metadata-design
+      state_role: source
+      status: active
+      owner_domain: structured-metadata
+      refresh: manual
+      depends_on:
+        - process-domain-design
+
+    - id: canonical-state-design
+      path: design/v1-canonical-state-design.md
+      metadata_id: canonical-state-design
+      state_role: source
+      status: active
+      owner_domain: canonical-state
+      refresh: manual
+      depends_on:
+        - process-domain-design
+
+    - id: metadata-artifacts
+      path: metadata/artifacts.yaml
+      metadata_id: metadata-artifacts
+      state_role: registry
+      status: active
+      owner_domain: structured-metadata
+      refresh: manual
+      depends_on:
+        - structured-metadata-design
+
+    - id: canonical-state-registry
+      path: state/canonical-state.yaml
+      metadata_id: canonical-state-registry
+      state_role: registry
+      status: active
+      owner_domain: canonical-state
+      refresh: manual
+      depends_on:
+        - canonical-state-design
+        - metadata-artifacts
+
+    - id: installed-manifest
+      path: .harness/manifest.yaml
+      metadata_id: installed-manifest
+      state_role: lifecycle
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: command
+      depends_on:
+        - product-spec
+
+    - id: installed-lock
+      path: .harness/lock.yaml
+      metadata_id: installed-lock
+      state_role: lifecycle
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: command
+      depends_on:
+        - installed-manifest
+
+    - id: module-registry
+      path: modules/registry.yaml
+      metadata_id: module-registry
+      state_role: registry
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - installed-manifest
+
+    - id: canonical-state-module
+      path: modules/canonical-state/module.yaml
+      metadata_id: canonical-state-module
+      state_role: source
+      status: active
+      owner_domain: canonical-state
+      refresh: manual
+      depends_on:
+        - canonical-state-design
+        - module-registry
+
+    - id: state-cli
+      path: scripts/state.mjs
+      metadata_id: state-cli
+      state_role: source
+      status: active
+      owner_domain: canonical-state
+      refresh: manual
+      depends_on:
+        - canonical-state-module
+        - canonical-state-registry

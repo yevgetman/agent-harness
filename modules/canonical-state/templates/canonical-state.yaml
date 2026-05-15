@@ -1,0 +1,45 @@
+# Harness managed file: canonical-state
+canonical_state:
+  version: 1
+  updated: 2026-05-15
+  scope: target-repo
+  entries:
+    - id: agents
+      path: AGENTS.md
+      metadata_id: agents
+      state_role: source
+      status: active
+      owner_domain: agent-operating-contract
+      refresh: manual
+
+    - id: status
+      path: status.md
+      metadata_id: status
+      state_role: projection
+      status: active
+      owner_domain: agent-operating-contract
+      refresh: manual
+      depends_on:
+        - agents
+
+    - id: index
+      path: index.yaml
+      metadata_id: index
+      state_role: registry
+      status: active
+      owner_domain: progressive-orientation
+      refresh: manual
+      depends_on:
+        - agents
+
+    - id: context
+      path: state/CONTEXT.md
+      metadata_id: context
+      state_role: projection
+      status: active
+      owner_domain: progressive-orientation
+      refresh: manual
+      depends_on:
+        - agents
+        - status
+        - index

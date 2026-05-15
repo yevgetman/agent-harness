@@ -79,6 +79,17 @@ metadata:
       depends_on:
         - process-domain-design
 
+    - id: canonical-state-design
+      path: design/v1-canonical-state-design.md
+      kind: formal-design
+      status: active
+      owner_domain: canonical-state
+      tags:
+        - canonical-state
+        - phase-4
+      depends_on:
+        - process-domain-design
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       kind: metadata-registry
@@ -135,6 +146,18 @@ metadata:
         - structured-metadata-design
         - module-registry
 
+    - id: canonical-state-module
+      path: modules/canonical-state/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: canonical-state
+      tags:
+        - module
+        - canonical-state
+      depends_on:
+        - canonical-state-design
+        - module-registry
+
     - id: metadata-cli
       path: scripts/metadata.mjs
       kind: cli
@@ -146,6 +169,32 @@ metadata:
       depends_on:
         - structured-metadata-module
         - metadata-artifacts
+
+    - id: canonical-state-registry
+      path: state/canonical-state.yaml
+      kind: state-registry
+      status: active
+      owner_domain: canonical-state
+      tags:
+        - canonical-state
+        - registry
+        - state
+      depends_on:
+        - canonical-state-design
+        - metadata-artifacts
+
+    - id: state-cli
+      path: scripts/state.mjs
+      kind: cli
+      status: active
+      owner_domain: canonical-state
+      tags:
+        - canonical-state
+        - cli
+        - validation
+      depends_on:
+        - canonical-state-module
+        - canonical-state-registry
 
     - id: structured-metadata-decision
       path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
@@ -168,3 +217,14 @@ metadata:
         - structured-metadata
       depends_on:
         - structured-metadata-decision
+
+    - id: canonical-state-decision
+      path: decisions/0011-adopt-canonical-state-as-second-phase-4-module.md
+      kind: decision
+      status: active
+      owner_domain: canonical-state
+      tags:
+        - canonical-state
+        - decision
+      depends_on:
+        - canonical-state-design

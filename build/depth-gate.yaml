@@ -396,42 +396,84 @@ build_strategy:
             - metadata/artifacts.yaml describes current dogfood artifacts.
             - npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: structured-metadata-query-validation
+      breadth_unit: >
+        Deepen Structured Metadata with filtered and JSON query output, report
+        summaries, and dependency-reference validation before adding more Phase
+        4 breadth.
+      completed_on: 2026-05-14
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness metadata list supports --tag, --kind, --status, and --json.
+            - harness metadata check supports --json.
+            - harness metadata report emits status, kind, and tag summaries.
+        - id: validation
+          status: satisfied
+          evidence:
+            - Metadata validation rejects unknown artifact dependencies.
+            - Metadata validation rejects self-dependencies.
+            - harness doctor consumes the deeper validation through validateMetadata.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers metadata tag and kind filters.
+            - npm test covers metadata list/report JSON output.
+            - npm test covers metadata report summaries.
+            - npm test covers unknown dependency validation failure.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-structured-metadata-design.md describes filters, JSON, reports, and dependency validation.
+            - decisions/0010-deepen-structured-metadata-query-and-validation.md records the depth decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the deeper behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - metadata/artifacts.yaml now records artifact dependencies.
+            - npm run metadata:check, npm run metadata:report, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: structured-metadata-query-validation
+    id: canonical-state-module
     breadth_unit: >
-      Deepen Structured Metadata with filtered and JSON query output, report
-      summaries, and dependency-reference validation before adding more Phase 4
-      breadth.
+      Add Canonical State as the second Phase 4 process-domain module with an
+      authority-role registry, state check command, metadata-reference
+      validation, doctor validation, profile wiring, and dogfood installation.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness metadata list supports --tag, --kind, --status, and --json.
-          - harness metadata check supports --json.
-          - harness metadata report emits status, kind, and tag summaries.
+          - harness state check validates state/canonical-state.yaml.
+          - harness state check --json emits parseable machine-readable output.
+          - canonical-state is installable through modules add.
+          - The dogfood profile includes canonical-state.
       - id: validation
         status: satisfied
         evidence:
-          - Metadata validation rejects unknown artifact dependencies.
-          - Metadata validation rejects self-dependencies.
-          - harness doctor consumes the deeper validation through validateMetadata.
+          - Canonical State validation checks version, required fields, unique IDs, allowed statuses, allowed state roles, active paths, and dependency references.
+          - Canonical State validation checks metadata_id references against metadata/artifacts.yaml when metadata is available.
+          - harness doctor consumes Canonical State validation through validateCanonicalState.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers metadata tag and kind filters.
-          - npm test covers metadata list/report JSON output.
-          - npm test covers metadata report summaries.
-          - npm test covers unknown dependency validation failure.
+          - npm test covers canonical-state module installation.
+          - npm test covers state check success and JSON output.
+          - npm test covers unknown metadata_id validation failure.
+          - npm test covers invalid state_role validation failure.
+          - npm test covers dogfood profile installation with canonical-state.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-structured-metadata-design.md describes filters, JSON, reports, and dependency validation.
-          - decisions/0010-deepen-structured-metadata-query-and-validation.md records the depth decision.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the deeper behavior.
+          - design/v1-canonical-state-design.md defines the Canonical State domain baseline.
+          - decisions/0011-adopt-canonical-state-as-second-phase-4-module.md records the decision.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - metadata/artifacts.yaml now records artifact dependencies.
-          - npm run metadata:check, npm run metadata:report, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+          - canonical-state is installed in .harness/manifest.yaml.
+          - state/canonical-state.yaml classifies current dogfood state authority.
+          - npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.

@@ -1,0 +1,37 @@
+module:
+  id: canonical-state
+  version: 0.1.0
+  status: active
+  process_domains:
+    - canonical-state
+  provides:
+    - canonical-state-registry
+    - state-check-command
+    - state-role-validation
+    - state-metadata-reference-validation
+  creates:
+    - state/canonical-state.yaml
+  managed_files:
+    - path: state/canonical-state.yaml
+      mode: merge
+  commands:
+    state-check: harness state check
+  install:
+    artifacts:
+      - path: state/canonical-state.yaml
+        type: template
+        source: modules/canonical-state/templates/canonical-state.yaml
+  validates:
+    - state/canonical-state.yaml parses as YAML
+    - canonical state version is supported
+    - canonical state entry IDs are unique
+    - active canonical state paths exist
+    - canonical state statuses are allowed
+    - canonical state roles are allowed
+    - canonical state dependencies resolve to known entry IDs
+    - metadata_id references resolve when metadata/artifacts.yaml is available
+  instructions:
+    - Classify durable state by authority role, not by file extension.
+    - Mark summaries and context briefings as projections when they derive from deeper sources.
+    - Use metadata_id when an entry also appears in metadata/artifacts.yaml.
+    - Keep the registry small enough for boot-time authority orientation.

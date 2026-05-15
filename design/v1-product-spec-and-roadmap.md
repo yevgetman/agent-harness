@@ -142,6 +142,7 @@ Current commands:
 - `harness metadata list`
 - `harness metadata check`
 - `harness metadata report`
+- `harness state check`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
@@ -154,6 +155,7 @@ Current dogfood modules:
 - `progressive-orientation`
 - `decisions-open-questions`
 - `structured-metadata`
+- `canonical-state`
 
 Current repo-local build support:
 
@@ -267,8 +269,8 @@ Exit signal:
 
 ### Phase 4: Additional Process Domains
 
-Status: active; first Structured Metadata breadth increment implemented and
-dogfooded.
+Status: active; Structured Metadata and Canonical State breadth increments are
+implemented and dogfooded.
 
 Purpose:
 
@@ -281,9 +283,10 @@ Likely candidates:
 - Plans And Status
 - Invariants And Golden Principles
 
-Initial implemented module:
+Initial implemented modules:
 
 - `structured-metadata`
+- `canonical-state`
 
 Initial behavior:
 
@@ -293,7 +296,13 @@ Initial behavior:
 - `harness metadata check` validates metadata shape.
 - `harness metadata report` summarizes metadata by status, kind, and tag.
 - `harness doctor` validates metadata when the module is installed.
-- The dogfood profile installs the Structured Metadata module.
+- `state/canonical-state.yaml` records source, projection, registry,
+  lifecycle, generated, scratch, and archive roles for durable state.
+- `harness state check` validates canonical state shape, active paths,
+  dependency references, and metadata references.
+- `harness doctor` validates canonical state when the module is installed.
+- The dogfood profile installs the Structured Metadata and Canonical State
+  modules.
 
 Exit signal:
 

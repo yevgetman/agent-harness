@@ -23,6 +23,7 @@ import { runMetadata } from "./metadata.mjs";
 import { runModules } from "./modules.mjs";
 import { runProfiles } from "./profiles.mjs";
 import { runQuestions } from "./questions.mjs";
+import { runState } from "./state.mjs";
 import { runUpgrade } from "./upgrade.mjs";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -415,6 +416,94 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before canonical-state module add");
+
+  const metadataInstall = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "structured-metadata", "--target", target],
+  }));
+  assert.equal(metadataInstall.ok, true, "modules add should install structured-metadata before canonical-state");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "canonical-state", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install canonical-state");
+  assertExists(target, "modules/canonical-state/module.yaml");
+  assertExists(target, "state/canonical-state.yaml");
+
+  const check = quiet(() => runState({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "state check should pass after install");
+  assert.equal(check.entries.length, 4, "state check should return installed template entries");
+
+  const jsonCheck = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "state", "check", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonCheck.entries.length, 4, "state check --json should emit canonical state entries");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate canonical state after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("state/canonical-state.yaml")),
+    true,
+    "doctor should report canonical state validation",
+  );
+
+  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after canonical-state install");
+  assert.equal(upgrade.plan.managed_files.length, 6, "canonical-state should add one managed file");
+  assert.equal(upgrade.plan.commands.length, 12, "canonical-state should add one command record");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "canonical-state")?.status,
+    "unchanged",
+    "upgrade --plan should report canonical-state as installed",
+  );
+
+  writeFileSync(join(target, "state", "canonical-state.yaml"), `canonical_state:
+  version: 1
+  entries:
+    - id: agents
+      path: AGENTS.md
+      metadata_id: missing
+      state_role: source
+      status: active
+`);
+  const badMetadataReference = quiet(() => runState({ cwd: target, args: ["check"] }));
+  assert.equal(badMetadataReference.ok, false, "state check should fail unknown metadata references");
+  assert.equal(
+    badMetadataReference.errors.some((item) => item.includes("metadata_id 'missing' is unknown")),
+    true,
+    "state check should report unknown metadata references",
+  );
+
+  writeFileSync(join(target, "state", "canonical-state.yaml"), `canonical_state:
+  version: 1
+  entries:
+    - id: agents
+      path: AGENTS.md
+      metadata_id: agents
+      state_role: invalid
+      status: active
+`);
+  const badRole = quiet(() => runState({ cwd: target, args: ["check"] }));
+  assert.equal(badRole.ok, false, "state check should fail invalid state roles");
+  assert.equal(
+    badRole.errors.some((item) => item.includes("invalid state_role")),
+    true,
+    "state check should report invalid state roles",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -440,8 +529,10 @@ withTempDir((root) => {
     "modules/progressive-orientation/module.yaml",
     "modules/decisions-open-questions/module.yaml",
     "modules/structured-metadata/module.yaml",
+    "modules/canonical-state/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
+    "state/canonical-state.yaml",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -467,11 +558,18 @@ withTempDir((root) => {
     true,
     "dogfood profile init should install structured-metadata",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "canonical-state")?.installed,
+    true,
+    "dogfood profile init should install canonical-state",
+  );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "dogfood profile init should install valid metadata");
   const metadataReport = quiet(() => runMetadata({ cwd: target, args: ["report"] }));
   assert.equal(metadataReport.summary.total, 4, "dogfood profile init should support metadata report");
+  const state = quiet(() => runState({ cwd: target, args: ["check"] }));
+  assert.equal(state.ok, true, "dogfood profile init should install valid canonical state");
 
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");

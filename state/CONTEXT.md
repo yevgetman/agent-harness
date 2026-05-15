@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-14
+generated_on: 2026-05-15
 generated_from:
   - design/v1-product-spec-and-roadmap.md
   - design/v1-process-domain-design.md
@@ -11,6 +11,7 @@ generated_from:
   - design/v1-lock-provenance-design.md
   - design/v1-upgrade-operation-contract.md
   - design/v1-structured-metadata-design.md
+  - design/v1-canonical-state-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -84,6 +85,9 @@ Current dogfood state:
   `metadata/artifacts.yaml`, `npm run metadata:list`,
   `npm run metadata:check`, `npm run metadata:report`, filtered list/JSON
   output, dependency-reference validation, and doctor validation.
+- Canonical State exists in first dogfood form via
+  `state/canonical-state.yaml`, `npm run state:check`, metadata-reference
+  validation, dependency-reference validation, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -135,8 +139,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to decide whether Structured Metadata is deep enough
-for the next Phase 4 breadth unit.
+The current useful step is to decide whether Canonical State should be deepened
+before the next Phase 4 breadth unit.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -145,10 +149,10 @@ for the next Phase 4 breadth unit.
   selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Phase 4 has started with Structured Metadata as the first additional
-  process-domain module.
+- Phase 4 has Structured Metadata and Canonical State installed as additional
+  process-domain modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
-- Candidate next depth, if needed: cycle detection, generated reports on disk,
-  or metadata discovery/scanning.
+- Candidate next Canonical State depth, if needed: state listing/reporting,
+  projection freshness checks, or source/projection reconciliation.
 - Keep `status.md` current after significant choices.

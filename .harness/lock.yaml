@@ -1,6 +1,6 @@
 lock:
   version: 1
-  generated_at: 2026-05-14
+  generated_at: 2026-05-15
   package: portable-harness
   harness_version: 0.1.0
   profile: dogfood
@@ -17,6 +17,8 @@ lock:
       version: 0.1.0
     - id: structured-metadata
       version: 0.1.0
+    - id: canonical-state
+      version: 0.1.0
   files:
     - path: .harness/manifest.yaml
       owner: harness-lifecycle
@@ -26,7 +28,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: c925d89d01bd4293c639ca4c024fa97b4c917fc4623fe82967ebed27072622c9
+      sha256: 3bdc472180be94f3de73bb9fc8423fd825d95398c06b57ac6d850efd00771432
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -46,7 +48,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 734926594c422064806f91ddb0a835146676eacf9907f82e99c12056613c8688
+      sha256: bc8336b7b2fd0ce4c8acc926a2a557f2f29dc673a16f78a8a8c92a955d064afa
     - path: metadata/artifacts.yaml
       owner: structured-metadata
       owner_type: module
@@ -58,7 +60,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 63f4bdd5c970ed2468057ff93003c1bca5f0959e0087b6accc67dbbdbbfa3cc9
+      sha256: 7363ebdb1c229eb42d3ec5f788d5bd10b90c1a1a7606fddff7764f17586e2f07
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -71,6 +73,18 @@ lock:
       source_path: modules/agent-operating-contract/module.yaml
       source_sha256: 82c62d9894b67eb79c709b6db928b7e3cfe40965bcb3d559dd51de00bed561dc
       sha256: 82c62d9894b67eb79c709b6db928b7e3cfe40965bcb3d559dd51de00bed561dc
+    - path: modules/canonical-state/module.yaml
+      owner: canonical-state
+      owner_type: module
+      module_id: canonical-state
+      mode: replace
+      merge_strategy: replace
+      artifact_role: module-definition
+      source: module-definition
+      source_kind: module-definition
+      source_path: modules/canonical-state/module.yaml
+      source_sha256: 57630f552600d4201838d0e43e1e1b06c302e84d1618c6f174bb54ffa91a6b24
+      sha256: 57630f552600d4201838d0e43e1e1b06c302e84d1618c6f174bb54ffa91a6b24
     - path: modules/decisions-open-questions/module.yaml
       owner: decisions-open-questions
       owner_type: module
@@ -119,6 +133,18 @@ lock:
       source_path: modules/decisions-open-questions/templates/open-questions.yaml
       source_sha256: d1ac79ec5a765928dcb54c5fd3a7441311f8361c4d65ebb04433a789ceb06bab
       sha256: 2b2e9372d448747afd199af2bf53693256b15c2135e1681d076400bd11b4c07c
+    - path: state/canonical-state.yaml
+      owner: canonical-state
+      owner_type: module
+      module_id: canonical-state
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/canonical-state/templates/canonical-state.yaml
+      source_sha256: cf3ca0adef922711b744cbed03adbd19e8824cf5c6908eebc3edbef68a20f1c5
+      sha256: c29571562c87dfafb75b16e2c924c0852800e976d366a080e1d431161c6f5bdd
     - path: state/CONTEXT.md
       owner: progressive-orientation
       owner_type: module
@@ -128,7 +154,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: fa6ebcadddb4ddb9a928ddd4ddfa9e0d7f8f90c3faf9647371a8cdf8e6ce6e73
+      sha256: 14a13e6fff932448adc2460c9d81c38eef7e05a1a241ae22ba01d95bacfa70f3
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -138,7 +164,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 1b7c04b971cfac5024efbe3844bfce5f908d351b7c934aae0b006f693a05fa93
+      sha256: 4d807a9b70ead48156c16bda036359c5ca9586acc0b6b6db566edee41013f895
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-14
+updated: 2026-05-15
 harness:
   package: portable-harness
   version: 0.1.0
@@ -30,9 +30,11 @@ reading_order:
   - v1-lock-provenance-design
   - v1-upgrade-operation-contract
   - v1-structured-metadata-design
+  - v1-canonical-state-design
   - installed-manifest
   - installed-lock
   - metadata-artifacts
+  - canonical-state-registry
   - module-registry
   - profile-minimal
   - profile-dogfood
@@ -40,6 +42,7 @@ reading_order:
   - module-progressive-orientation
   - module-decisions-open-questions
   - module-structured-metadata
+  - module-canonical-state
   - depth-gate
   - open-questions
   - decision-0001
@@ -52,6 +55,7 @@ reading_order:
   - decision-0008
   - decision-0009
   - decision-0010
+  - decision-0011
   - decision-template
   - package
   - harness-cli
@@ -60,6 +64,7 @@ reading_order:
   - modules-cli
   - profiles-cli
   - metadata-cli
+  - state-cli
   - lock-cli
   - decisions-cli
   - questions-cli
@@ -188,6 +193,16 @@ documents:
       - v1-process-domain-design
       - v1-module-profile-installation-design
 
+  - doc_id: v1-canonical-state-design
+    file: design/v1-canonical-state-design.md
+    title: "Formal Design: V1 Canonical State"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the second Phase 4 process-domain module: canonical state registry, authority-role validation, metadata-reference validation, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-structured-metadata-design
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -215,6 +230,16 @@ documents:
     summary: Machine-readable registry of durable repo artifacts for listing, validation, dependency references, future retrieval, and gardening.
     depends_on:
       - v1-structured-metadata-design
+
+  - doc_id: canonical-state-registry
+    file: state/canonical-state.yaml
+    title: Canonical State Registry
+    kind: state-registry
+    status: active
+    summary: Machine-readable registry classifying durable state as source, projection, registry, lifecycle, generated, scratch, or archive.
+    depends_on:
+      - v1-canonical-state-design
+      - metadata-artifacts
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -283,6 +308,16 @@ documents:
       - v1-structured-metadata-design
       - v1-installed-manifest-design
 
+  - doc_id: module-canonical-state
+    file: modules/canonical-state/module.yaml
+    title: Canonical State Module
+    kind: module-definition
+    status: active
+    summary: Module definition for canonical state registry and state check validation.
+    depends_on:
+      - v1-canonical-state-design
+      - v1-installed-manifest-design
+
   - doc_id: open-questions
     file: open-questions.yaml
     title: Open Questions
@@ -297,7 +332,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current lock/provenance baseline pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current Canonical State pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -400,6 +435,16 @@ documents:
       - v1-structured-metadata-design
       - decision-0009
 
+  - doc_id: decision-0011
+    file: decisions/0011-adopt-canonical-state-as-second-phase-4-module.md
+    title: Adopt Canonical State As Second Phase 4 Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Canonical State as the second Phase 4 process-domain module.
+    depends_on:
+      - v1-canonical-state-design
+      - v1-product-spec-and-roadmap
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -414,7 +459,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
+    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -424,7 +469,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, lock maintenance, upgrade planning/apply scaffolding, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, lock maintenance, upgrade planning/apply scaffolding, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -483,6 +528,16 @@ documents:
       - v1-structured-metadata-design
       - metadata-artifacts
 
+  - doc_id: state-cli
+    file: scripts/state.mjs
+    title: Harness State CLI
+    kind: cli
+    status: active
+    summary: Canonical State command implementation for validating authority-role shape, active paths, dependency references, and metadata references.
+    depends_on:
+      - v1-canonical-state-design
+      - canonical-state-registry
+
   - doc_id: lock-cli
     file: scripts/lock.mjs
     title: Harness Lock CLI
@@ -531,17 +586,19 @@ documents:
       - v1-installed-manifest-design
       - v1-decisions-open-questions-design
       - v1-lock-provenance-design
+      - v1-canonical-state-design
 
   - doc_id: test
     file: scripts/test.mjs
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
       - metadata-cli
+      - state-cli
       - lock-cli
       - decisions-cli
       - questions-cli

@@ -6,3 +6,4 @@ profile:
     - progressive-orientation
     - decisions-open-questions
     - structured-metadata
+    - canonical-state
