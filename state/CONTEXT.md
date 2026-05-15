@@ -13,6 +13,7 @@ generated_from:
   - design/v1-structured-metadata-design.md
   - design/v1-canonical-state-design.md
   - design/v1-invariants-golden-principles-design.md
+  - design/v1-plans-status-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -79,7 +80,10 @@ designed and built.
 Current dogfood state:
 
 - Agent Operating Contract exists via `AGENTS.md`.
-- Plans And Status exists in minimal form via `status.md`.
+- Plans And Status exists in first dogfood form via `status.md`,
+  `plans/current.yaml`, `npm run plans:list`, `npm run plans:check`,
+  `npm run plans:report`, status-projection validation, plan-reference
+  validation, and doctor validation.
 - Progressive Orientation exists in minimal form via `index.yaml` and this
   context briefing.
 - Structured Metadata exists in first dogfood form via
@@ -146,8 +150,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to decide whether Invariants And Golden Principles
-should be deepened before the next Phase 4 breadth unit.
+The current useful step is to decide whether Plans And Status needs a depth pass
+before Phase 5 Distribution Readiness.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -156,12 +160,17 @@ should be deepened before the next Phase 4 breadth unit.
   selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Phase 4 has Structured Metadata, Canonical State, and Invariants And Golden
-  Principles installed as additional process-domain modules.
+- Phase 4 has Structured Metadata, Canonical State, Invariants And Golden
+  Principles, and Plans And Status installed as additional process-domain
+  modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
 - Canonical State now has list/report queries, role/status/owner-domain
   filtering, JSON output, and report summaries.
-- Candidate next Invariants depth, if needed: invariant listing/reporting,
-  richer check types, or generated invariant reports.
+- Plans And Status now has list/report queries, status/owner/priority
+  filtering, JSON output, status-projection validation, plan-reference
+  validation, and report summaries.
+- Candidate next Plans depth, if needed: `harness plans new`, status freshness
+  checks, or generated current-work reports.
+- Candidate next roadmap phase: Phase 5 Distribution Readiness.
 - Keep `status.md` current after significant choices.

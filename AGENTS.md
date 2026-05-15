@@ -163,6 +163,14 @@ important enough that future agents should preserve or copy it.
 Use `npm run invariants:check` to validate checked invariants after changing
 operating-contract, status, build-strategy, or lifecycle-discipline artifacts.
 
+## Plans And Status Discipline
+
+Keep `plans/current.yaml` current when active, blocked, planned, or deferred
+work changes.
+
+Use `npm run plans:check` after changing `status.md`, current plans, or
+plan-referenced artifacts.
+
 ## Current Design Vocabulary
 
 - **Harness process domain** is the canonical term for a conceptual operating

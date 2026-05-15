@@ -38,6 +38,11 @@ harness:
       status: active
       process_domains:
         - invariants-and-golden-principles
+    - id: plans-and-status
+      version: 0.1.0
+      status: active
+      process_domains:
+        - plans-and-status
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -66,6 +71,9 @@ harness:
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       mode: merge
+    - path: plans/current.yaml
+      owner: plans-and-status
+      mode: merge
   commands:
     init: npm run init
     decisions-new: node scripts/harness.mjs decisions new
@@ -87,5 +95,8 @@ harness:
     state-check: npm run state:check
     state-report: npm run state:report
     invariants-check: npm run invariants:check
+    plans-list: npm run plans:list
+    plans-check: npm run plans:check
+    plans-report: npm run plans:report
   upgrade:
     policy: plan-first

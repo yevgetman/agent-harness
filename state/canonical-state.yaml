@@ -93,6 +93,17 @@ canonical_state:
         - process-domain-design
         - canonical-state-design
 
+    - id: plans-status-design
+      path: design/v1-plans-status-design.md
+      metadata_id: plans-status-design
+      state_role: source
+      status: active
+      owner_domain: plans-and-status
+      refresh: manual
+      depends_on:
+        - process-domain-design
+        - canonical-state-design
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       metadata_id: metadata-artifacts
@@ -123,6 +134,18 @@ canonical_state:
       refresh: manual
       depends_on:
         - invariants-design
+        - canonical-state-registry
+
+    - id: plans-current
+      path: plans/current.yaml
+      metadata_id: plans-current
+      state_role: registry
+      status: active
+      owner_domain: plans-and-status
+      refresh: manual
+      depends_on:
+        - plans-status-design
+        - status
         - canonical-state-registry
 
     - id: installed-manifest
@@ -187,6 +210,17 @@ canonical_state:
         - invariants-design
         - module-registry
 
+    - id: plans-status-module
+      path: modules/plans-and-status/module.yaml
+      metadata_id: plans-status-module
+      state_role: source
+      status: active
+      owner_domain: plans-and-status
+      refresh: manual
+      depends_on:
+        - plans-status-design
+        - module-registry
+
     - id: state-cli
       path: scripts/state.mjs
       metadata_id: state-cli
@@ -208,3 +242,14 @@ canonical_state:
       depends_on:
         - invariants-module
         - invariants-golden-principles
+
+    - id: plans-cli
+      path: scripts/plans.mjs
+      metadata_id: plans-cli
+      state_role: source
+      status: active
+      owner_domain: plans-and-status
+      refresh: manual
+      depends_on:
+        - plans-status-module
+        - plans-current

@@ -21,6 +21,8 @@ lock:
       version: 0.1.0
     - id: invariants-golden-principles
       version: 0.1.0
+    - id: plans-and-status
+      version: 0.1.0
   files:
     - path: .harness/manifest.yaml
       owner: harness-lifecycle
@@ -30,7 +32,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: 02de4c820a9af499e9f77deb96164c3571a65adb653aee5e4cbcab597c4b72d7
+      sha256: 2092f0a131b1ce746fa4bd9d77f6cc023c55c1d2d07dfa8d287d0e0b8fca8f3c
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -40,7 +42,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 6dc825a0cb6f250e59345ce0eed53e77529ce88ec24e7b86ffea9ceef0ee824c
+      sha256: e1ee98dfa824164e82c3d88aecd6a369144f9c1f83c0af847e2cc2df74eff08f
     - path: index.yaml
       owner: progressive-orientation
       owner_type: module
@@ -50,7 +52,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 726c84c31d5ed2c2624bc44bcb02422780b62430bbea291539a6e0d5a3da8165
+      sha256: 2a3bfa076b82a3a91542cb7465f6b0030dc3defd0f7450affdb5da11e7723627
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -74,7 +76,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 7e4980f152004dcf4b6c1a7b43cd31065ed6f237e7d6a7c7e14597f7ec9e56a5
+      sha256: e7745f2f90dc52b44200d981fad060d800b2cd3977b534c31ba131848bf330a9
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -123,6 +125,18 @@ lock:
       source_path: modules/invariants-golden-principles/module.yaml
       source_sha256: 9eb9a82ea2faa8c9a268d89d320bf0b84dafbd955597d1ea38069cb6461dffc3
       sha256: 9eb9a82ea2faa8c9a268d89d320bf0b84dafbd955597d1ea38069cb6461dffc3
+    - path: modules/plans-and-status/module.yaml
+      owner: plans-and-status
+      owner_type: module
+      module_id: plans-and-status
+      mode: replace
+      merge_strategy: replace
+      artifact_role: module-definition
+      source: module-definition
+      source_kind: module-definition
+      source_path: modules/plans-and-status/module.yaml
+      source_sha256: e5fd791a98495d1e30a4885b6d6aed28e1fcd48e7f4717e53876315f920ff549
+      sha256: e5fd791a98495d1e30a4885b6d6aed28e1fcd48e7f4717e53876315f920ff549
     - path: modules/progressive-orientation/module.yaml
       owner: progressive-orientation
       owner_type: module
@@ -159,6 +173,18 @@ lock:
       source_path: modules/decisions-open-questions/templates/open-questions.yaml
       source_sha256: d1ac79ec5a765928dcb54c5fd3a7441311f8361c4d65ebb04433a789ceb06bab
       sha256: 2b2e9372d448747afd199af2bf53693256b15c2135e1681d076400bd11b4c07c
+    - path: plans/current.yaml
+      owner: plans-and-status
+      owner_type: module
+      module_id: plans-and-status
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/plans-and-status/templates/current.yaml
+      source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
+      sha256: cacea382451ad064b61ce7f0e06a380cfa3def449d1d53f7d19606f7a103cf19
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -170,7 +196,7 @@ lock:
       source_kind: module-template
       source_path: modules/canonical-state/templates/canonical-state.yaml
       source_sha256: cf3ca0adef922711b744cbed03adbd19e8824cf5c6908eebc3edbef68a20f1c5
-      sha256: 9b7c865963c7fec1bad3b8a765e504b8970689f3aaca5b776a0a88a8d414aabd
+      sha256: 418eb2b96b4fff7babe36aec5ffd5df3fcdf4050b1be661251dfa09537d09c9e
     - path: state/CONTEXT.md
       owner: progressive-orientation
       owner_type: module
@@ -180,7 +206,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 3d25e7beed0d49a0d8f41ef551975bbbad8c5082544e759b13763725b0dad945
+      sha256: 0332c3ad659af86b643ebad37c5ece600f676ce98583924e6b51270e97e7068f
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -190,7 +216,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 08b86ddc72bfb607835c93c15e6554a1a3f1f66abe2df1cbc747c6c6aba87646
+      sha256: 30c2702202e8dfd9a5ab08bd588010c45c6ffc48457d85a6b9abdf04cc9bffa6
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

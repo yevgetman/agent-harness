@@ -102,6 +102,19 @@ metadata:
         - process-domain-design
         - canonical-state-design
 
+    - id: plans-status-design
+      path: design/v1-plans-status-design.md
+      kind: formal-design
+      status: active
+      owner_domain: plans-and-status
+      tags:
+        - plans
+        - status
+        - phase-4
+      depends_on:
+        - process-domain-design
+        - canonical-state-design
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       kind: metadata-registry
@@ -193,6 +206,19 @@ metadata:
         - invariants-design
         - module-registry
 
+    - id: plans-status-module
+      path: modules/plans-and-status/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: plans-and-status
+      tags:
+        - module
+        - plans
+        - status
+      depends_on:
+        - plans-status-design
+        - module-registry
+
     - id: metadata-cli
       path: scripts/metadata.mjs
       kind: cli
@@ -231,6 +257,20 @@ metadata:
         - invariants-design
         - canonical-state-registry
 
+    - id: plans-current
+      path: plans/current.yaml
+      kind: plans-status-registry
+      status: active
+      owner_domain: plans-and-status
+      tags:
+        - plans
+        - status
+        - registry
+      depends_on:
+        - plans-status-design
+        - status
+        - canonical-state-registry
+
     - id: state-cli
       path: scripts/state.mjs
       kind: cli
@@ -256,6 +296,20 @@ metadata:
       depends_on:
         - invariants-module
         - invariants-golden-principles
+
+    - id: plans-cli
+      path: scripts/plans.mjs
+      kind: cli
+      status: active
+      owner_domain: plans-and-status
+      tags:
+        - plans
+        - status
+        - cli
+        - validation
+      depends_on:
+        - plans-status-module
+        - plans-current
 
     - id: structured-metadata-decision
       path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
@@ -311,3 +365,15 @@ metadata:
         - decision
       depends_on:
         - invariants-design
+
+    - id: plans-status-decision
+      path: decisions/0014-adopt-plans-and-status-module.md
+      kind: decision
+      status: active
+      owner_domain: plans-and-status
+      tags:
+        - plans
+        - status
+        - decision
+      depends_on:
+        - plans-status-design

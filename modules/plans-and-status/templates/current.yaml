@@ -1,0 +1,19 @@
+# Harness managed file: plans-and-status
+plans_status:
+  version: 1
+  updated: 2026-05-15
+  scope: target-repo
+  status_projection: status.md
+  plans:
+    - id: current-work
+      title: Current work
+      status: active
+      priority: high
+      owner_domain: plans-and-status
+      summary: Fill in the current work state for this repo.
+      next_action: Replace this template plan with the repo's active work.
+      canonical_state_id: status
+      tags:
+        - current
+      references:
+        - status.md

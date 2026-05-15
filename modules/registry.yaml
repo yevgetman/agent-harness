@@ -28,3 +28,8 @@ modules:
     path: modules/invariants-golden-principles/module.yaml
     status: active
     installable: true
+
+  - id: plans-and-status
+    path: modules/plans-and-status/module.yaml
+    status: active
+    installable: true

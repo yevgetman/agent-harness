@@ -516,47 +516,92 @@ build_strategy:
             - npm run state:report has been run against the dogfood repo.
             - npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: invariants-golden-principles-module
+      breadth_unit: >
+        Add Invariants And Golden Principles as the third Phase 4 process-domain
+        module with a checked invariant registry, simple file checks,
+        canonical-state reference validation, doctor validation, profile wiring,
+        and dogfood installation.
+      completed_on: 2026-05-15
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness invariants check validates invariants/golden-principles.yaml.
+            - harness invariants check --json emits parseable machine-readable output.
+            - invariants-golden-principles is installable through modules add.
+            - The dogfood profile includes invariants-golden-principles.
+        - id: validation
+          status: satisfied
+          evidence:
+            - Invariants validation checks version, required fields, unique IDs, allowed statuses, allowed severities, tags, and checks.
+            - Invariants validation runs active file_exists and file_contains checks.
+            - Invariants validation checks canonical_state_id references when Canonical State is available.
+            - harness doctor consumes Invariants validation through validateInvariants.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers invariants-golden-principles module installation.
+            - npm test covers invariants check success and JSON output.
+            - npm test covers unknown canonical_state_id validation failure.
+            - npm test covers missing required text validation failure.
+            - npm test covers dogfood profile installation with invariants-golden-principles.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-invariants-golden-principles-design.md defines the Invariants And Golden Principles domain baseline.
+            - decisions/0013-adopt-invariants-and-golden-principles-module.md records the decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - invariants-golden-principles is installed in .harness/manifest.yaml.
+            - invariants/golden-principles.yaml captures current dogfood rules.
+            - npm run invariants:check, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: invariants-golden-principles-module
+    id: plans-and-status-module
     breadth_unit: >
-      Add Invariants And Golden Principles as the third Phase 4 process-domain
-      module with a checked invariant registry, simple file checks,
-      canonical-state reference validation, doctor validation, profile wiring,
-      and dogfood installation.
+      Add Plans And Status as the fourth Phase 4 process-domain module with a
+      structured plans/status registry, list/check/report commands,
+      status-projection validation, plan-reference validation, doctor
+      validation, profile wiring, and dogfood installation.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness invariants check validates invariants/golden-principles.yaml.
-          - harness invariants check --json emits parseable machine-readable output.
-          - invariants-golden-principles is installable through modules add.
-          - The dogfood profile includes invariants-golden-principles.
+          - harness plans check validates plans/current.yaml.
+          - harness plans list supports status, owner-domain, priority, and JSON filters.
+          - harness plans report emits status, priority, and owner-domain summaries.
+          - plans-and-status is installable through modules add.
+          - The dogfood profile includes plans-and-status.
       - id: validation
         status: satisfied
         evidence:
-          - Invariants validation checks version, required fields, unique IDs, allowed statuses, allowed severities, tags, and checks.
-          - Invariants validation runs active file_exists and file_contains checks.
-          - Invariants validation checks canonical_state_id references when Canonical State is available.
-          - harness doctor consumes Invariants validation through validateInvariants.
+          - Plans validation checks version, status projection, required fields, unique IDs, allowed statuses, allowed priorities, tags, and references.
+          - Plans validation requires next_action for active and blocked plans.
+          - Plans validation checks canonical_state_id references when Canonical State is available.
+          - harness doctor consumes Plans validation through validatePlansStatus.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers invariants-golden-principles module installation.
-          - npm test covers invariants check success and JSON output.
-          - npm test covers unknown canonical_state_id validation failure.
-          - npm test covers missing required text validation failure.
-          - npm test covers dogfood profile installation with invariants-golden-principles.
+          - npm test covers plans-and-status module installation.
+          - npm test covers plans check, list filters, report summaries, and JSON output.
+          - npm test covers invalid plan status validation failure.
+          - npm test covers missing plan reference validation failure.
+          - npm test covers dogfood profile installation with plans-and-status.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-invariants-golden-principles-design.md defines the Invariants And Golden Principles domain baseline.
-          - decisions/0013-adopt-invariants-and-golden-principles-module.md records the decision.
+          - design/v1-plans-status-design.md defines the Plans And Status domain baseline.
+          - decisions/0014-adopt-plans-and-status-module.md records the decision.
           - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - invariants-golden-principles is installed in .harness/manifest.yaml.
-          - invariants/golden-principles.yaml captures current dogfood rules.
-          - npm run invariants:check, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+          - plans-and-status is installed in .harness/manifest.yaml.
+          - plans/current.yaml captures current dogfood work state.
+          - npm run plans:check, npm run plans:report, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.

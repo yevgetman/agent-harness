@@ -6,6 +6,7 @@ import { expectedLockPaths, hashFile, lockFileMap, readLock } from "./lock.mjs";
 import { validateMetadata } from "./metadata.mjs";
 import { validateCanonicalState } from "./state.mjs";
 import { validateInvariants } from "./invariants.mjs";
+import { validatePlansStatus } from "./plans.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
@@ -788,6 +789,21 @@ function checkInvariants(root, installedModules, diagnostics) {
   }
 }
 
+function checkPlansStatus(root, installedModules, diagnostics) {
+  if (!installedModules.has("plans-and-status")) return;
+
+  const result = validatePlansStatus(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `plans/current.yaml: ${result.plans.length} plan(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -930,6 +946,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkStructuredMetadata(root, installedModules, diagnostics);
   checkCanonicalState(root, installedModules, diagnostics);
   checkInvariants(root, installedModules, diagnostics);
+  checkPlansStatus(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

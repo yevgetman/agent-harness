@@ -1,0 +1,46 @@
+module:
+  id: plans-and-status
+  version: 0.1.0
+  status: active
+  process_domains:
+    - plans-and-status
+  provides:
+    - plans-status-registry
+    - plans-list-command
+    - plans-check-command
+    - plans-report-command
+    - plans-shape-validation
+    - plans-reference-validation
+    - plans-canonical-state-reference-validation
+  creates:
+    - plans/
+    - plans/current.yaml
+  managed_files:
+    - path: plans/current.yaml
+      mode: merge
+  commands:
+    plans-list: harness plans list
+    plans-check: harness plans check
+    plans-report: harness plans report
+  install:
+    artifacts:
+      - path: plans/
+        type: directory
+      - path: plans/current.yaml
+        type: template
+        source: modules/plans-and-status/templates/current.yaml
+  validates:
+    - plans/current.yaml parses as YAML
+    - plans/status registry version is supported
+    - status projection exists and has a Last updated line
+    - plan IDs are unique
+    - plan statuses are allowed
+    - plan priorities are allowed
+    - active and blocked plans include next_action
+    - plan references resolve to existing paths
+    - canonical_state_id references resolve when Canonical State is available
+  instructions:
+    - Keep plans/current.yaml compact and current.
+    - Use status.md for human orientation and plans/current.yaml for structured work state.
+    - Keep active and blocked plans actionable.
+    - Archive or complete stale plans instead of preserving task history inline.

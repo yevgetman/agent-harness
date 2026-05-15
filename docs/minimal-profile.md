@@ -112,6 +112,8 @@ and `harness metadata report`. `canonical-state` adds
 `state/canonical-state.yaml`, `harness state list`, `harness state check`, and
 `harness state report`. `invariants-golden-principles` adds
 `invariants/golden-principles.yaml` and `harness invariants check`.
+`plans-and-status` adds `plans/current.yaml`, `harness plans list`,
+`harness plans check`, and `harness plans report`.
 
 ## Current Limits
 

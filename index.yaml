@@ -32,11 +32,13 @@ reading_order:
   - v1-structured-metadata-design
   - v1-canonical-state-design
   - v1-invariants-golden-principles-design
+  - v1-plans-status-design
   - installed-manifest
   - installed-lock
   - metadata-artifacts
   - canonical-state-registry
   - invariants-golden-principles
+  - plans-current
   - module-registry
   - profile-minimal
   - profile-dogfood
@@ -46,6 +48,7 @@ reading_order:
   - module-structured-metadata
   - module-canonical-state
   - module-invariants-golden-principles
+  - module-plans-and-status
   - depth-gate
   - open-questions
   - decision-0001
@@ -61,6 +64,7 @@ reading_order:
   - decision-0011
   - decision-0012
   - decision-0013
+  - decision-0014
   - decision-template
   - package
   - harness-cli
@@ -71,6 +75,7 @@ reading_order:
   - metadata-cli
   - state-cli
   - invariants-cli
+  - plans-cli
   - lock-cli
   - decisions-cli
   - questions-cli
@@ -219,6 +224,16 @@ documents:
       - v1-process-domain-design
       - v1-canonical-state-design
 
+  - doc_id: v1-plans-status-design
+    file: design/v1-plans-status-design.md
+    title: "Formal Design: V1 Plans And Status"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the fourth Phase 4 process-domain module: structured plans/status registry, list/check/report commands, status projection references, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-canonical-state-design
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -265,6 +280,17 @@ documents:
     summary: Machine-readable registry of checked repo invariants and golden principles.
     depends_on:
       - v1-invariants-golden-principles-design
+      - canonical-state-registry
+
+  - doc_id: plans-current
+    file: plans/current.yaml
+    title: Plans And Status Registry
+    kind: plans-status-registry
+    status: active
+    summary: Machine-readable registry of active, planned, blocked, complete, deferred, and archived work.
+    depends_on:
+      - v1-plans-status-design
+      - status
       - canonical-state-registry
 
   - doc_id: module-registry
@@ -354,6 +380,16 @@ documents:
       - v1-invariants-golden-principles-design
       - v1-installed-manifest-design
 
+  - doc_id: module-plans-and-status
+    file: modules/plans-and-status/module.yaml
+    title: Plans And Status Module
+    kind: module-definition
+    status: active
+    summary: Module definition for structured plans/status registry and plans list/check/report commands.
+    depends_on:
+      - v1-plans-status-design
+      - v1-installed-manifest-design
+
   - doc_id: open-questions
     file: open-questions.yaml
     title: Open Questions
@@ -368,7 +404,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current Invariants And Golden Principles pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current Plans And Status pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -501,6 +537,16 @@ documents:
       - v1-invariants-golden-principles-design
       - v1-product-spec-and-roadmap
 
+  - doc_id: decision-0014
+    file: decisions/0014-adopt-plans-and-status-module.md
+    title: Adopt Plans And Status Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Plans And Status as a Phase 4 process-domain module.
+    depends_on:
+      - v1-plans-status-design
+      - v1-product-spec-and-roadmap
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -515,7 +561,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
+    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -525,7 +571,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, invariants, lock maintenance, upgrade planning/apply scaffolding, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, lock maintenance, upgrade planning/apply scaffolding, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -604,6 +650,16 @@ documents:
       - v1-invariants-golden-principles-design
       - invariants-golden-principles
 
+  - doc_id: plans-cli
+    file: scripts/plans.mjs
+    title: Harness Plans CLI
+    kind: cli
+    status: active
+    summary: Plans And Status command implementation for structured plan validation, filters, JSON output, status projection checks, reference checks, and summary reports.
+    depends_on:
+      - v1-plans-status-design
+      - plans-current
+
   - doc_id: lock-cli
     file: scripts/lock.mjs
     title: Harness Lock CLI
@@ -654,19 +710,21 @@ documents:
       - v1-lock-provenance-design
       - v1-canonical-state-design
       - v1-invariants-golden-principles-design
+      - v1-plans-status-design
 
   - doc_id: test
     file: scripts/test.mjs
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, plans/status, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
       - metadata-cli
       - state-cli
       - invariants-cli
+      - plans-cli
       - lock-cli
       - decisions-cli
       - questions-cli

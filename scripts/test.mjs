@@ -22,6 +22,7 @@ import { runInit } from "./init.mjs";
 import { runLock } from "./lock.mjs";
 import { runMetadata } from "./metadata.mjs";
 import { runModules } from "./modules.mjs";
+import { runPlans } from "./plans.mjs";
 import { runProfiles } from "./profiles.mjs";
 import { runQuestions } from "./questions.mjs";
 import { runState } from "./state.mjs";
@@ -635,6 +636,106 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before plans-and-status module add");
+
+  const stateInstall = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "canonical-state", "--target", target],
+  }));
+  assert.equal(stateInstall.ok, true, "modules add should install canonical-state before plans");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "plans-and-status", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install plans-and-status");
+  assertExists(target, "modules/plans-and-status/module.yaml");
+  assertExists(target, "plans/current.yaml");
+
+  const check = quiet(() => runPlans({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "plans check should pass after install");
+  assert.equal(check.plans.length, 1, "plans check should return installed template plans");
+
+  const activePlans = quiet(() => runPlans({ cwd: target, args: ["list", "--status", "active"] }));
+  assert.equal(activePlans.plans.length, 1, "plans list should filter by status");
+
+  const report = quiet(() => runPlans({ cwd: target, args: ["report"] }));
+  assert.equal(report.ok, true, "plans report should pass after install");
+  assert.equal(report.summary.total, 1, "plans report should summarize plan count");
+  assert.equal(report.summary.by_status.active, 1, "plans report should summarize active plans");
+
+  const jsonReport = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "plans", "report", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonReport.summary.total, 1, "plans report --json should emit summary JSON");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate plans after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("plans/current.yaml")),
+    true,
+    "doctor should report plans validation",
+  );
+
+  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after plans install");
+  assert.equal(upgrade.plan.managed_files.length, 6, "plans should add one managed file");
+  assert.equal(upgrade.plan.commands.length, 14, "plans should add three command records");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "plans-and-status")?.status,
+    "unchanged",
+    "upgrade --plan should report plans-and-status as installed",
+  );
+
+  writeFileSync(join(target, "plans", "current.yaml"), `plans_status:
+  version: 1
+  status_projection: status.md
+  plans:
+    - id: bad-status
+      title: Bad status
+      status: invalid
+      summary: Fixture.
+`);
+  const badStatus = quiet(() => runPlans({ cwd: target, args: ["check"] }));
+  assert.equal(badStatus.ok, false, "plans check should fail invalid statuses");
+  assert.equal(
+    badStatus.errors.some((item) => item.includes("invalid status")),
+    true,
+    "plans check should report invalid statuses",
+  );
+
+  writeFileSync(join(target, "plans", "current.yaml"), `plans_status:
+  version: 1
+  status_projection: status.md
+  plans:
+    - id: missing-reference
+      title: Missing reference
+      status: active
+      priority: high
+      summary: Fixture.
+      next_action: Fix the missing reference.
+      references:
+        - missing.md
+`);
+  const badReference = quiet(() => runPlans({ cwd: target, args: ["check"] }));
+  assert.equal(badReference.ok, false, "plans check should fail missing references");
+  assert.equal(
+    badReference.errors.some((item) => item.includes("reference 'missing.md' is missing")),
+    true,
+    "plans check should report missing references",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -662,10 +763,12 @@ withTempDir((root) => {
     "modules/structured-metadata/module.yaml",
     "modules/canonical-state/module.yaml",
     "modules/invariants-golden-principles/module.yaml",
+    "modules/plans-and-status/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
     "invariants/golden-principles.yaml",
+    "plans/current.yaml",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -701,6 +804,11 @@ withTempDir((root) => {
     true,
     "dogfood profile init should install invariants-golden-principles",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "plans-and-status")?.installed,
+    true,
+    "dogfood profile init should install plans-and-status",
+  );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "dogfood profile init should install valid metadata");
@@ -712,6 +820,10 @@ withTempDir((root) => {
   assert.equal(stateReport.summary.total, 4, "dogfood profile init should support state report");
   const invariants = quiet(() => runInvariants({ cwd: target, args: ["check"] }));
   assert.equal(invariants.ok, true, "dogfood profile init should install valid invariants");
+  const plans = quiet(() => runPlans({ cwd: target, args: ["check"] }));
+  assert.equal(plans.ok, true, "dogfood profile init should install valid plans");
+  const plansReport = quiet(() => runPlans({ cwd: target, args: ["report"] }));
+  assert.equal(plansReport.summary.total, 1, "dogfood profile init should support plans report");
 
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");

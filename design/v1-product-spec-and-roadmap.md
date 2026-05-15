@@ -146,6 +146,9 @@ Current commands:
 - `harness state check`
 - `harness state report`
 - `harness invariants check`
+- `harness plans list`
+- `harness plans check`
+- `harness plans report`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
@@ -160,6 +163,7 @@ Current dogfood modules:
 - `structured-metadata`
 - `canonical-state`
 - `invariants-golden-principles`
+- `plans-and-status`
 
 Current repo-local build support:
 
@@ -273,8 +277,9 @@ Exit signal:
 
 ### Phase 4: Additional Process Domains
 
-Status: active; Structured Metadata, Canonical State, and Invariants And
-Golden Principles breadth increments are implemented and dogfooded.
+Status: active; Structured Metadata, Canonical State, Invariants And Golden
+Principles, and Plans And Status breadth increments are implemented and
+dogfooded.
 
 Purpose:
 
@@ -283,13 +288,15 @@ Purpose:
 
 Remaining likely candidates:
 
-- Plans And Status
+- None currently identified for Phase 4; the next likely roadmap move is Phase
+  5 Distribution Readiness unless Plans And Status needs another depth pass.
 
 Initial implemented modules:
 
 - `structured-metadata`
 - `canonical-state`
 - `invariants-golden-principles`
+- `plans-and-status`
 
 Initial behavior:
 
@@ -313,8 +320,14 @@ Initial behavior:
 - `harness invariants check` validates the invariant registry and runs active
   `file_exists` and `file_contains` checks.
 - `harness doctor` validates invariants when the module is installed.
-- The dogfood profile installs the Structured Metadata, Canonical State, and
-  Invariants And Golden Principles modules.
+- `plans/current.yaml` records active, planned, blocked, complete, deferred,
+  and archived work while `status.md` remains the human-readable current-state
+  projection.
+- `harness plans list`, `harness plans check`, and `harness plans report`
+  expose and validate structured plan/status state.
+- `harness doctor` validates plans/status state when the module is installed.
+- The dogfood profile installs the Structured Metadata, Canonical State,
+  Invariants And Golden Principles, and Plans And Status modules.
 
 Exit signal:
 
