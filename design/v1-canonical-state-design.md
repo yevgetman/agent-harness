@@ -16,8 +16,9 @@ scratch material, and archives so agents do not have to infer authority only
 from prose or directory shape.
 
 The first v1 implementation is intentionally narrow: a checked registry at
-`state/canonical-state.yaml`, a `harness state check` command, doctor
-validation when the module is installed, and module/profile installation.
+`state/canonical-state.yaml`, `harness state` query/check/report commands,
+doctor validation when the module is installed, and module/profile
+installation.
 
 This domain does not replace Structured Metadata. Structured Metadata says what
 durable artifacts exist. Canonical State says what role those artifacts play in
@@ -90,7 +91,10 @@ canonical-state
 It provides:
 
 - canonical state registry
+- state list command
 - state check command
+- state report command
+- state filtering
 - state-role validation
 - metadata reference validation
 - doctor validation for installed canonical state
@@ -102,16 +106,27 @@ It installs:
 ## Command
 
 ```bash
+harness state list
 harness state check
+harness state report
 ```
 
 `harness state check` validates `state/canonical-state.yaml` and reports errors
 without mutating files.
 
-It supports:
+`harness state list` prints entry IDs, statuses, state roles, and paths. It
+supports `--role <role>`, `--status <status>`, and
+`--owner-domain <domain>` filters.
+
+`harness state report` summarizes entry counts by state role, status, owner
+domain, and refresh mode. It supports the same filters as list.
+
+The commands support:
 
 ```bash
+harness state list --json
 harness state check --json
+harness state report --json
 harness state check --target <path>
 ```
 
@@ -153,8 +168,8 @@ Canonical State supports:
 ## Current Limits
 
 - Canonical State is manually curated; no scanner infers state roles yet.
-- The first command validates references and paths, but it does not yet compare
-  projections against their sources.
+- The first command surface validates references and paths, but it does not yet
+  compare projections against their sources.
 - The registry does not define freshness windows or regenerate projections.
 - Module installation does not merge an existing human-authored
   `state/canonical-state.yaml`.

@@ -182,16 +182,105 @@ function printHelp() {
   console.log(`harness state
 
 Usage:
+  harness state list [--target <path>] [--role <role>] [--status <status>] [--owner-domain <domain>] [--json]
   harness state check [--target <path>] [--json]
+  harness state report [--target <path>] [--role <role>] [--status <status>] [--owner-domain <domain>] [--json]
 
 Commands:
+  list     List canonical state entries.
   check    Validate state/canonical-state.yaml.
+  report   Summarize canonical state entries by role, status, owner domain, and refresh mode.
 `);
 }
 
 function argValue(args, flag, fallback = null) {
   const i = args.indexOf(flag);
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback;
+}
+
+function filtersFromArgs(args) {
+  return {
+    role: argValue(args, "--role"),
+    status: argValue(args, "--status"),
+    owner_domain: argValue(args, "--owner-domain"),
+  };
+}
+
+function filterEntries(entries, filters) {
+  return entries.filter((entry) => {
+    if (filters.role && entry.state_role !== filters.role) return false;
+    if (filters.status && entry.status !== filters.status) return false;
+    if (filters.owner_domain && entry.owner_domain !== filters.owner_domain) return false;
+    return true;
+  });
+}
+
+function summarizeEntries(entries) {
+  const byRole = {};
+  const byStatus = {};
+  const byOwnerDomain = {};
+  const byRefresh = {};
+
+  for (const entry of entries) {
+    byRole[entry.state_role] = (byRole[entry.state_role] ?? 0) + 1;
+    byStatus[entry.status] = (byStatus[entry.status] ?? 0) + 1;
+    const ownerDomain = entry.owner_domain ?? "unknown";
+    byOwnerDomain[ownerDomain] = (byOwnerDomain[ownerDomain] ?? 0) + 1;
+    const refresh = entry.refresh ?? "unknown";
+    byRefresh[refresh] = (byRefresh[refresh] ?? 0) + 1;
+  }
+
+  const sortObject = (value) => Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)));
+  return {
+    total: entries.length,
+    by_role: sortObject(byRole),
+    by_status: sortObject(byStatus),
+    by_owner_domain: sortObject(byOwnerDomain),
+    by_refresh: sortObject(byRefresh),
+  };
+}
+
+function printSummary(summary) {
+  console.log(`total: ${summary.total}`);
+  console.log("by_role:");
+  for (const [role, count] of Object.entries(summary.by_role)) {
+    console.log(`  ${role}: ${count}`);
+  }
+  console.log("by_status:");
+  for (const [status, count] of Object.entries(summary.by_status)) {
+    console.log(`  ${status}: ${count}`);
+  }
+  console.log("by_owner_domain:");
+  for (const [ownerDomain, count] of Object.entries(summary.by_owner_domain)) {
+    console.log(`  ${ownerDomain}: ${count}`);
+  }
+  console.log("by_refresh:");
+  for (const [refresh, count] of Object.entries(summary.by_refresh)) {
+    console.log(`  ${refresh}: ${count}`);
+  }
+}
+
+function runList(root, args) {
+  const result = validateCanonicalState(root);
+  const filters = filtersFromArgs(args);
+  const entries = filterEntries(result.entries, filters);
+  const output = { ...result, filters, entries };
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(output, null, 2));
+    return output;
+  }
+
+  if (result.errors.length > 0) {
+    printItems("errors", result.errors);
+  }
+
+  console.log("Harness canonical state entries");
+  console.log(`target: ${root}`);
+  for (const entry of entries) {
+    console.log(`${entry.id} ${entry.status} ${entry.state_role} ${entry.path}`);
+  }
+
+  return output;
 }
 
 function runCheck(root, args) {
@@ -210,6 +299,26 @@ function runCheck(root, args) {
   return result;
 }
 
+function runReport(root, args) {
+  const result = validateCanonicalState(root);
+  const filters = filtersFromArgs(args);
+  const entries = filterEntries(result.entries, filters);
+  const summary = summarizeEntries(entries);
+  const output = { ...result, filters, entries, summary };
+  if (args.includes("--json")) {
+    console.log(JSON.stringify(output, null, 2));
+    return output;
+  }
+
+  console.log("Harness canonical state report");
+  console.log(`target: ${root}`);
+  console.log(`status: ${result.ok ? "ok" : "error"}`);
+  printSummary(summary);
+  printItems("errors", result.errors);
+  printItems("warnings", result.warnings);
+  return output;
+}
+
 export function runState({ cwd = process.cwd(), args = [] } = {}) {
   const [subcommand, ...rest] = args;
 
@@ -221,7 +330,9 @@ export function runState({ cwd = process.cwd(), args = [] } = {}) {
   const targetArg = argValue(rest, "--target", cwd);
   const root = resolve(cwd, targetArg);
 
+  if (subcommand === "list") return runList(root, rest);
   if (subcommand === "check") return runCheck(root, rest);
+  if (subcommand === "report") return runReport(root, rest);
 
   console.error(`fail unknown state command '${subcommand}'`);
   printHelp();

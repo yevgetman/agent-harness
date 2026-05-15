@@ -86,8 +86,10 @@ Current dogfood state:
   `npm run metadata:check`, `npm run metadata:report`, filtered list/JSON
   output, dependency-reference validation, and doctor validation.
 - Canonical State exists in first dogfood form via
-  `state/canonical-state.yaml`, `npm run state:check`, metadata-reference
-  validation, dependency-reference validation, and doctor validation.
+  `state/canonical-state.yaml`, `npm run state:list`,
+  `npm run state:check`, `npm run state:report`, role/status/owner-domain
+  filters, JSON output, metadata-reference validation, dependency-reference
+  validation, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -153,6 +155,6 @@ before the next Phase 4 breadth unit.
   process-domain modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
-- Candidate next Canonical State depth, if needed: state listing/reporting,
-  projection freshness checks, or source/projection reconciliation.
+- Candidate next Canonical State depth, if needed: projection freshness checks
+  or source/projection reconciliation.
 - Keep `status.md` current after significant choices.

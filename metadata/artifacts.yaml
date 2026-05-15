@@ -228,3 +228,14 @@ metadata:
         - decision
       depends_on:
         - canonical-state-design
+
+    - id: canonical-state-depth-decision
+      path: decisions/0012-deepen-canonical-state-query-and-reporting.md
+      kind: decision
+      status: active
+      owner_domain: canonical-state
+      tags:
+        - canonical-state
+        - decision
+      depends_on:
+        - canonical-state-decision

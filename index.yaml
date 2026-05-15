@@ -56,6 +56,7 @@ reading_order:
   - decision-0009
   - decision-0010
   - decision-0011
+  - decision-0012
   - decision-template
   - package
   - harness-cli
@@ -198,7 +199,7 @@ documents:
     title: "Formal Design: V1 Canonical State"
     kind: formal-design
     status: active
-    summary: "Accepted baseline for the second Phase 4 process-domain module: canonical state registry, authority-role validation, metadata-reference validation, and doctor validation."
+    summary: "Accepted baseline for the second Phase 4 process-domain module: canonical state registry, query/report commands, authority-role validation, metadata-reference validation, and doctor validation."
     depends_on:
       - v1-process-domain-design
       - v1-structured-metadata-design
@@ -313,7 +314,7 @@ documents:
     title: Canonical State Module
     kind: module-definition
     status: active
-    summary: Module definition for canonical state registry and state check validation.
+    summary: Module definition for canonical state registry, state list/check/report commands, filtering, and validation.
     depends_on:
       - v1-canonical-state-design
       - v1-installed-manifest-design
@@ -445,6 +446,16 @@ documents:
       - v1-canonical-state-design
       - v1-product-spec-and-roadmap
 
+  - doc_id: decision-0012
+    file: decisions/0012-deepen-canonical-state-query-and-reporting.md
+    title: Deepen Canonical State Query And Reporting
+    kind: decision
+    status: active
+    summary: Decision record adding canonical state filters, JSON output, and report summaries.
+    depends_on:
+      - v1-canonical-state-design
+      - decision-0011
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -533,7 +544,7 @@ documents:
     title: Harness State CLI
     kind: cli
     status: active
-    summary: Canonical State command implementation for validating authority-role shape, active paths, dependency references, and metadata references.
+    summary: Canonical State command implementation for filtered listing, JSON output, report summaries, authority-role validation, active paths, dependency references, and metadata references.
     depends_on:
       - v1-canonical-state-design
       - canonical-state-registry

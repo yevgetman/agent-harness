@@ -27,7 +27,9 @@ Usage:
   harness metadata list
   harness metadata check
   harness metadata report
+  harness state list
   harness state check
+  harness state report
   harness lock refresh
   harness lock check
   harness upgrade --plan

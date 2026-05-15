@@ -6,7 +6,11 @@ module:
     - canonical-state
   provides:
     - canonical-state-registry
+    - state-list-command
     - state-check-command
+    - state-report-command
+    - state-filtering
+    - state-reporting
     - state-role-validation
     - state-metadata-reference-validation
   creates:
@@ -15,7 +19,9 @@ module:
     - path: state/canonical-state.yaml
       mode: merge
   commands:
+    state-list: harness state list
     state-check: harness state check
+    state-report: harness state report
   install:
     artifacts:
       - path: state/canonical-state.yaml
@@ -30,6 +36,7 @@ module:
     - canonical state roles are allowed
     - canonical state dependencies resolve to known entry IDs
     - metadata_id references resolve when metadata/artifacts.yaml is available
+    - canonical state can be filtered by role, status, and owner domain
   instructions:
     - Classify durable state by authority role, not by file extension.
     - Mark summaries and context briefings as projections when they derive from deeper sources.

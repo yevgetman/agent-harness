@@ -8,8 +8,10 @@ Phase 4 Additional Process Domains breadth pass. Structured Metadata and
 Canonical State are installed in the dogfood repo. Structured Metadata has
 metadata commands, filtered and JSON queries, report summaries, dependency
 validation, doctor validation, and `metadata/artifacts.yaml`. Canonical State
-has `state/canonical-state.yaml`, `harness state check`, metadata-reference
-validation, dependency-reference validation, and doctor validation.
+has `state/canonical-state.yaml`, `harness state list`, `harness state check`,
+`harness state report`, role/status/owner-domain filters, JSON output,
+metadata-reference validation, dependency-reference validation, and doctor
+validation.
 
 The repo currently has exploratory specs, ten formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -34,9 +36,9 @@ Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
 package scripts for local dogfood use, and doctor validation when
 `structured-metadata` is installed. Canonical State exists via
-`state/canonical-state.yaml`, `harness state check`, the local
-`npm run state:check` script, and doctor validation when `canonical-state` is
-installed.
+`state/canonical-state.yaml`, `harness state list`, `harness state check`,
+`harness state report`, local package scripts, and doctor validation when
+`canonical-state` is installed.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -150,7 +152,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run metadata:check` validates `metadata/artifacts.yaml`.
 - `npm run metadata:report` summarizes metadata by status, kind, and tag.
 - `harness metadata list` supports tag, kind, status, and JSON output filters.
+- `npm run state:list` lists canonical state entries.
 - `npm run state:check` validates `state/canonical-state.yaml`.
+- `npm run state:report` summarizes canonical state by role, status, owner
+  domain, and refresh mode.
 - `npm run modules:list` lists registry modules with installed/installable
   state.
 - `node scripts/harness.mjs modules add <module-id> --target <path>` installs
@@ -161,8 +166,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `canonical-state-module` as the current
-  complete depth pass for the second Phase 4 breadth unit.
+- `build/depth-gate.yaml` records `canonical-state-query-reporting` as the
+  current complete depth pass for the second Phase 4 breadth unit.
 
 ## Active Artifacts
 
@@ -222,6 +227,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   and dependency validation.
 - `decisions/0011-adopt-canonical-state-as-second-phase-4-module.md` —
   decision record for adopting Canonical State as the second Phase 4 module.
+- `decisions/0012-deepen-canonical-state-query-and-reporting.md` — decision
+  record for Canonical State list/report queries and JSON output.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -244,9 +251,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Decide whether Canonical State should be deepened before the next Phase 4
-  breadth unit. Candidate depth includes state listing/reporting, projection
-  freshness checks, and source/projection reconciliation.
+- Decide whether Canonical State is deep enough for the next Phase 4 breadth
+  unit. Remaining depth candidates include projection freshness checks and
+  source/projection reconciliation.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

@@ -142,7 +142,9 @@ Current commands:
 - `harness metadata list`
 - `harness metadata check`
 - `harness metadata report`
+- `harness state list`
 - `harness state check`
+- `harness state report`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
@@ -298,8 +300,12 @@ Initial behavior:
 - `harness doctor` validates metadata when the module is installed.
 - `state/canonical-state.yaml` records source, projection, registry,
   lifecycle, generated, scratch, and archive roles for durable state.
+- `harness state list` lists canonical state entries with role, status, and
+  owner-domain filters plus JSON output.
 - `harness state check` validates canonical state shape, active paths,
   dependency references, and metadata references.
+- `harness state report` summarizes canonical state by role, status, owner
+  domain, and refresh mode.
 - `harness doctor` validates canonical state when the module is installed.
 - The dogfood profile installs the Structured Metadata and Canonical State
   modules.

@@ -109,7 +109,8 @@ The first mechanically installable follow-on module is
 `decisions-open-questions`. `structured-metadata` is also installable and adds
 `metadata/artifacts.yaml`, `harness metadata list`, `harness metadata check`,
 and `harness metadata report`. `canonical-state` adds
-`state/canonical-state.yaml` and `harness state check`.
+`state/canonical-state.yaml`, `harness state list`, `harness state check`, and
+`harness state report`.
 
 ## Current Limits
 

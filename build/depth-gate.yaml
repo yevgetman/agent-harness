@@ -435,45 +435,84 @@ build_strategy:
             - metadata/artifacts.yaml now records artifact dependencies.
             - npm run metadata:check, npm run metadata:report, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: canonical-state-module
+      breadth_unit: >
+        Add Canonical State as the second Phase 4 process-domain module with an
+        authority-role registry, state check command, metadata-reference
+        validation, doctor validation, profile wiring, and dogfood installation.
+      completed_on: 2026-05-15
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness state check validates state/canonical-state.yaml.
+            - harness state check --json emits parseable machine-readable output.
+            - canonical-state is installable through modules add.
+            - The dogfood profile includes canonical-state.
+        - id: validation
+          status: satisfied
+          evidence:
+            - Canonical State validation checks version, required fields, unique IDs, allowed statuses, allowed state roles, active paths, and dependency references.
+            - Canonical State validation checks metadata_id references against metadata/artifacts.yaml when metadata is available.
+            - harness doctor consumes Canonical State validation through validateCanonicalState.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers canonical-state module installation.
+            - npm test covers state check success and JSON output.
+            - npm test covers unknown metadata_id validation failure.
+            - npm test covers invalid state_role validation failure.
+            - npm test covers dogfood profile installation with canonical-state.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-canonical-state-design.md defines the Canonical State domain baseline.
+            - decisions/0011-adopt-canonical-state-as-second-phase-4-module.md records the decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - canonical-state is installed in .harness/manifest.yaml.
+            - state/canonical-state.yaml classifies current dogfood state authority.
+            - npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: canonical-state-module
+    id: canonical-state-query-reporting
     breadth_unit: >
-      Add Canonical State as the second Phase 4 process-domain module with an
-      authority-role registry, state check command, metadata-reference
-      validation, doctor validation, profile wiring, and dogfood installation.
+      Deepen Canonical State with filtered and JSON query output plus report
+      summaries before adding more Phase 4 breadth.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness state check validates state/canonical-state.yaml.
-          - harness state check --json emits parseable machine-readable output.
-          - canonical-state is installable through modules add.
-          - The dogfood profile includes canonical-state.
+          - harness state list supports --role, --status, --owner-domain, and --json.
+          - harness state report emits role, status, owner-domain, and refresh summaries.
+          - harness state report supports filtered and JSON output.
       - id: validation
         status: satisfied
         evidence:
-          - Canonical State validation checks version, required fields, unique IDs, allowed statuses, allowed state roles, active paths, and dependency references.
-          - Canonical State validation checks metadata_id references against metadata/artifacts.yaml when metadata is available.
-          - harness doctor consumes Canonical State validation through validateCanonicalState.
+          - State list and report consume validateCanonicalState before returning entries.
+          - The dogfood manifest wires state-list, state-check, and state-report commands.
+          - harness doctor validates the expanded command wiring.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers canonical-state module installation.
-          - npm test covers state check success and JSON output.
-          - npm test covers unknown metadata_id validation failure.
-          - npm test covers invalid state_role validation failure.
-          - npm test covers dogfood profile installation with canonical-state.
+          - npm test covers state role, status, and owner-domain filters.
+          - npm test covers state list JSON output.
+          - npm test covers state report summaries and JSON output.
+          - npm test covers dogfood profile state report usage.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-canonical-state-design.md defines the Canonical State domain baseline.
-          - decisions/0011-adopt-canonical-state-as-second-phase-4-module.md records the decision.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
+          - design/v1-canonical-state-design.md describes list, report, filters, and JSON output.
+          - decisions/0012-deepen-canonical-state-query-and-reporting.md records the depth decision.
+          - design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the deeper behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - canonical-state is installed in .harness/manifest.yaml.
-          - state/canonical-state.yaml classifies current dogfood state authority.
+          - npm run state:list -- --role projection has been run against the dogfood repo.
+          - npm run state:report has been run against the dogfood repo.
           - npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.

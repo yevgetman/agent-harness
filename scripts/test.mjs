@@ -450,6 +450,38 @@ withTempDir((root) => {
   ));
   assert.equal(jsonCheck.entries.length, 4, "state check --json should emit canonical state entries");
 
+  const projectionEntries = quiet(() => runState({ cwd: target, args: ["list", "--role", "projection"] }));
+  assert.equal(projectionEntries.entries.length, 2, "state list should filter entries by role");
+
+  const ownerEntries = quiet(() => runState({
+    cwd: target,
+    args: ["list", "--owner-domain", "progressive-orientation"],
+  }));
+  assert.equal(ownerEntries.entries.length, 2, "state list should filter entries by owner domain");
+
+  const activeEntries = quiet(() => runState({ cwd: target, args: ["list", "--status", "active"] }));
+  assert.equal(activeEntries.entries.length, 4, "state list should filter entries by status");
+
+  const report = quiet(() => runState({ cwd: target, args: ["report"] }));
+  assert.equal(report.ok, true, "state report should pass after install");
+  assert.equal(report.summary.total, 4, "state report should summarize entry count");
+  assert.equal(report.summary.by_role.projection, 2, "state report should summarize role counts");
+  assert.equal(report.summary.by_owner_domain["progressive-orientation"], 2, "state report should summarize owners");
+
+  const jsonList = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "state", "list", "--role", "projection", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonList.entries.length, 2, "state list --json should emit filtered entries");
+
+  const jsonReport = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "state", "report", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonReport.summary.by_role.source, 1, "state report --json should emit summary JSON");
+
   const doctor = quiet(() => runDoctor({ cwd: target }));
   assert.equal(doctor.ok, true, "doctor should validate canonical state after install");
   assert.equal(
@@ -461,7 +493,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after canonical-state install");
   assert.equal(upgrade.plan.managed_files.length, 6, "canonical-state should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 12, "canonical-state should add one command record");
+  assert.equal(upgrade.plan.commands.length, 14, "canonical-state should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "canonical-state")?.status,
     "unchanged",
@@ -570,6 +602,8 @@ withTempDir((root) => {
   assert.equal(metadataReport.summary.total, 4, "dogfood profile init should support metadata report");
   const state = quiet(() => runState({ cwd: target, args: ["check"] }));
   assert.equal(state.ok, true, "dogfood profile init should install valid canonical state");
+  const stateReport = quiet(() => runState({ cwd: target, args: ["report"] }));
+  assert.equal(stateReport.summary.total, 4, "dogfood profile init should support state report");
 
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");
