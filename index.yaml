@@ -31,10 +31,12 @@ reading_order:
   - v1-upgrade-operation-contract
   - v1-structured-metadata-design
   - v1-canonical-state-design
+  - v1-invariants-golden-principles-design
   - installed-manifest
   - installed-lock
   - metadata-artifacts
   - canonical-state-registry
+  - invariants-golden-principles
   - module-registry
   - profile-minimal
   - profile-dogfood
@@ -43,6 +45,7 @@ reading_order:
   - module-decisions-open-questions
   - module-structured-metadata
   - module-canonical-state
+  - module-invariants-golden-principles
   - depth-gate
   - open-questions
   - decision-0001
@@ -57,6 +60,7 @@ reading_order:
   - decision-0010
   - decision-0011
   - decision-0012
+  - decision-0013
   - decision-template
   - package
   - harness-cli
@@ -66,6 +70,7 @@ reading_order:
   - profiles-cli
   - metadata-cli
   - state-cli
+  - invariants-cli
   - lock-cli
   - decisions-cli
   - questions-cli
@@ -204,6 +209,16 @@ documents:
       - v1-process-domain-design
       - v1-structured-metadata-design
 
+  - doc_id: v1-invariants-golden-principles-design
+    file: design/v1-invariants-golden-principles-design.md
+    title: "Formal Design: V1 Invariants And Golden Principles"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the third Phase 4 process-domain module: checked invariant registry, simple file checks, canonical-state references, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-canonical-state-design
+
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
     title: Installed Harness Manifest
@@ -241,6 +256,16 @@ documents:
     depends_on:
       - v1-canonical-state-design
       - metadata-artifacts
+
+  - doc_id: invariants-golden-principles
+    file: invariants/golden-principles.yaml
+    title: Invariants And Golden Principles
+    kind: invariant-registry
+    status: active
+    summary: Machine-readable registry of checked repo invariants and golden principles.
+    depends_on:
+      - v1-invariants-golden-principles-design
+      - canonical-state-registry
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -319,6 +344,16 @@ documents:
       - v1-canonical-state-design
       - v1-installed-manifest-design
 
+  - doc_id: module-invariants-golden-principles
+    file: modules/invariants-golden-principles/module.yaml
+    title: Invariants And Golden Principles Module
+    kind: module-definition
+    status: active
+    summary: Module definition for checked invariant registry and invariants check command.
+    depends_on:
+      - v1-invariants-golden-principles-design
+      - v1-installed-manifest-design
+
   - doc_id: open-questions
     file: open-questions.yaml
     title: Open Questions
@@ -333,7 +368,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current Canonical State pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current Invariants And Golden Principles pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -456,6 +491,16 @@ documents:
       - v1-canonical-state-design
       - decision-0011
 
+  - doc_id: decision-0013
+    file: decisions/0013-adopt-invariants-and-golden-principles-module.md
+    title: Adopt Invariants And Golden Principles Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Invariants And Golden Principles as a Phase 4 process-domain module.
+    depends_on:
+      - v1-invariants-golden-principles-design
+      - v1-product-spec-and-roadmap
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -470,7 +515,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
+    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -480,7 +525,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, lock maintenance, upgrade planning/apply scaffolding, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, invariants, lock maintenance, upgrade planning/apply scaffolding, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -549,6 +594,16 @@ documents:
       - v1-canonical-state-design
       - canonical-state-registry
 
+  - doc_id: invariants-cli
+    file: scripts/invariants.mjs
+    title: Harness Invariants CLI
+    kind: cli
+    status: active
+    summary: Invariants command implementation for registry validation, simple file checks, canonical-state reference validation, and JSON check output.
+    depends_on:
+      - v1-invariants-golden-principles-design
+      - invariants-golden-principles
+
   - doc_id: lock-cli
     file: scripts/lock.mjs
     title: Harness Lock CLI
@@ -598,18 +653,20 @@ documents:
       - v1-decisions-open-questions-design
       - v1-lock-provenance-design
       - v1-canonical-state-design
+      - v1-invariants-golden-principles-design
 
   - doc_id: test
     file: scripts/test.mjs
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
       - metadata-cli
       - state-cli
+      - invariants-cli
       - lock-cli
       - decisions-cli
       - questions-cli

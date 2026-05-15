@@ -145,6 +145,7 @@ Current commands:
 - `harness state list`
 - `harness state check`
 - `harness state report`
+- `harness invariants check`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
@@ -158,6 +159,7 @@ Current dogfood modules:
 - `decisions-open-questions`
 - `structured-metadata`
 - `canonical-state`
+- `invariants-golden-principles`
 
 Current repo-local build support:
 
@@ -271,24 +273,23 @@ Exit signal:
 
 ### Phase 4: Additional Process Domains
 
-Status: active; Structured Metadata and Canonical State breadth increments are
-implemented and dogfooded.
+Status: active; Structured Metadata, Canonical State, and Invariants And
+Golden Principles breadth increments are implemented and dogfooded.
 
 Purpose:
 
 - Add v1 process-domain breadth only when the module/profile lifecycle can
   install and validate it.
 
-Likely candidates:
+Remaining likely candidates:
 
-- Canonical State
 - Plans And Status
-- Invariants And Golden Principles
 
 Initial implemented modules:
 
 - `structured-metadata`
 - `canonical-state`
+- `invariants-golden-principles`
 
 Initial behavior:
 
@@ -307,8 +308,13 @@ Initial behavior:
 - `harness state report` summarizes canonical state by role, status, owner
   domain, and refresh mode.
 - `harness doctor` validates canonical state when the module is installed.
-- The dogfood profile installs the Structured Metadata and Canonical State
-  modules.
+- `invariants/golden-principles.yaml` records checked repo rules and canonical
+  patterns.
+- `harness invariants check` validates the invariant registry and runs active
+  `file_exists` and `file_contains` checks.
+- `harness doctor` validates invariants when the module is installed.
+- The dogfood profile installs the Structured Metadata, Canonical State, and
+  Invariants And Golden Principles modules.
 
 Exit signal:
 

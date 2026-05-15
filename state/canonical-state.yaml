@@ -82,6 +82,17 @@ canonical_state:
       depends_on:
         - process-domain-design
 
+    - id: invariants-design
+      path: design/v1-invariants-golden-principles-design.md
+      metadata_id: invariants-design
+      state_role: source
+      status: active
+      owner_domain: invariants-and-golden-principles
+      refresh: manual
+      depends_on:
+        - process-domain-design
+        - canonical-state-design
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       metadata_id: metadata-artifacts
@@ -102,6 +113,17 @@ canonical_state:
       depends_on:
         - canonical-state-design
         - metadata-artifacts
+
+    - id: invariants-golden-principles
+      path: invariants/golden-principles.yaml
+      metadata_id: invariants-golden-principles
+      state_role: registry
+      status: active
+      owner_domain: invariants-and-golden-principles
+      refresh: manual
+      depends_on:
+        - invariants-design
+        - canonical-state-registry
 
     - id: installed-manifest
       path: .harness/manifest.yaml
@@ -133,6 +155,16 @@ canonical_state:
       depends_on:
         - installed-manifest
 
+    - id: depth-gate
+      path: build/depth-gate.yaml
+      metadata_id: depth-gate
+      state_role: lifecycle
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - product-spec
+
     - id: canonical-state-module
       path: modules/canonical-state/module.yaml
       metadata_id: canonical-state-module
@@ -142,6 +174,17 @@ canonical_state:
       refresh: manual
       depends_on:
         - canonical-state-design
+        - module-registry
+
+    - id: invariants-module
+      path: modules/invariants-golden-principles/module.yaml
+      metadata_id: invariants-module
+      state_role: source
+      status: active
+      owner_domain: invariants-and-golden-principles
+      refresh: manual
+      depends_on:
+        - invariants-design
         - module-registry
 
     - id: state-cli
@@ -154,3 +197,14 @@ canonical_state:
       depends_on:
         - canonical-state-module
         - canonical-state-registry
+
+    - id: invariants-cli
+      path: scripts/invariants.mjs
+      metadata_id: invariants-cli
+      state_role: source
+      status: active
+      owner_domain: invariants-and-golden-principles
+      refresh: manual
+      depends_on:
+        - invariants-module
+        - invariants-golden-principles

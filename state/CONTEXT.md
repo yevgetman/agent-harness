@@ -12,6 +12,7 @@ generated_from:
   - design/v1-upgrade-operation-contract.md
   - design/v1-structured-metadata-design.md
   - design/v1-canonical-state-design.md
+  - design/v1-invariants-golden-principles-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -90,6 +91,10 @@ Current dogfood state:
   `npm run state:check`, `npm run state:report`, role/status/owner-domain
   filters, JSON output, metadata-reference validation, dependency-reference
   validation, and doctor validation.
+- Invariants And Golden Principles exists in first dogfood form via
+  `invariants/golden-principles.yaml`, `npm run invariants:check`, simple
+  file existence/content checks, canonical-state reference validation, and
+  doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -141,8 +146,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to decide whether Canonical State should be deepened
-before the next Phase 4 breadth unit.
+The current useful step is to decide whether Invariants And Golden Principles
+should be deepened before the next Phase 4 breadth unit.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -151,10 +156,12 @@ before the next Phase 4 breadth unit.
   selecting the next breadth unit.
 - Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
   reference when making that choice.
-- Phase 4 has Structured Metadata and Canonical State installed as additional
-  process-domain modules.
+- Phase 4 has Structured Metadata, Canonical State, and Invariants And Golden
+  Principles installed as additional process-domain modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
-- Candidate next Canonical State depth, if needed: projection freshness checks
-  or source/projection reconciliation.
+- Canonical State now has list/report queries, role/status/owner-domain
+  filtering, JSON output, and report summaries.
+- Candidate next Invariants depth, if needed: invariant listing/reporting,
+  richer check types, or generated invariant reports.
 - Keep `status.md` current after significant choices.

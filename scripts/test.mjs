@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDecisions } from "./decisions.mjs";
 import { runDoctor } from "./doctor.mjs";
+import { runInvariants } from "./invariants.mjs";
 import { runInit } from "./init.mjs";
 import { runLock } from "./lock.mjs";
 import { runMetadata } from "./metadata.mjs";
@@ -536,6 +537,104 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before invariants module add");
+
+  const stateInstall = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "canonical-state", "--target", target],
+  }));
+  assert.equal(stateInstall.ok, true, "modules add should install canonical-state before invariants");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "invariants-golden-principles", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install invariants-golden-principles");
+  assertExists(target, "modules/invariants-golden-principles/module.yaml");
+  assertExists(target, "invariants/golden-principles.yaml");
+
+  const check = quiet(() => runInvariants({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "invariants check should pass after install");
+  assert.equal(check.principles.length, 2, "invariants check should return installed template principles");
+  assert.equal(check.check_results.length, 2, "invariants check should run installed template checks");
+
+  const jsonCheck = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "invariants", "check", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonCheck.principles.length, 2, "invariants check --json should emit principles");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate invariants after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("invariants/golden-principles.yaml")),
+    true,
+    "doctor should report invariants validation",
+  );
+
+  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after invariants install");
+  assert.equal(upgrade.plan.managed_files.length, 6, "invariants should add one managed file");
+  assert.equal(upgrade.plan.commands.length, 12, "invariants should add one command record");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "invariants-golden-principles")?.status,
+    "unchanged",
+    "upgrade --plan should report invariants as installed",
+  );
+
+  writeFileSync(join(target, "invariants", "golden-principles.yaml"), `invariants:
+  version: 1
+  principles:
+    - id: bad-canonical-reference
+      title: Bad canonical reference
+      status: active
+      severity: error
+      statement: Fixture.
+      canonical_state_id: missing
+      checks:
+        - type: file_contains
+          path: status.md
+          text: not a changelog
+`);
+  const badReference = quiet(() => runInvariants({ cwd: target, args: ["check"] }));
+  assert.equal(badReference.ok, false, "invariants check should fail unknown canonical state references");
+  assert.equal(
+    badReference.errors.some((item) => item.includes("canonical_state_id 'missing' is unknown")),
+    true,
+    "invariants check should report unknown canonical state references",
+  );
+
+  writeFileSync(join(target, "invariants", "golden-principles.yaml"), `invariants:
+  version: 1
+  principles:
+    - id: missing-required-text
+      title: Missing required text
+      status: active
+      severity: error
+      statement: Fixture.
+      checks:
+        - type: file_contains
+          path: status.md
+          text: phrase that is absent
+`);
+  const badText = quiet(() => runInvariants({ cwd: target, args: ["check"] }));
+  assert.equal(badText.ok, false, "invariants check should fail missing required text");
+  assert.equal(
+    badText.errors.some((item) => item.includes("does not contain required text")),
+    true,
+    "invariants check should report missing required text",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -562,9 +661,11 @@ withTempDir((root) => {
     "modules/decisions-open-questions/module.yaml",
     "modules/structured-metadata/module.yaml",
     "modules/canonical-state/module.yaml",
+    "modules/invariants-golden-principles/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
+    "invariants/golden-principles.yaml",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -595,6 +696,11 @@ withTempDir((root) => {
     true,
     "dogfood profile init should install canonical-state",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "invariants-golden-principles")?.installed,
+    true,
+    "dogfood profile init should install invariants-golden-principles",
+  );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "dogfood profile init should install valid metadata");
@@ -604,6 +710,8 @@ withTempDir((root) => {
   assert.equal(state.ok, true, "dogfood profile init should install valid canonical state");
   const stateReport = quiet(() => runState({ cwd: target, args: ["report"] }));
   assert.equal(stateReport.summary.total, 4, "dogfood profile init should support state report");
+  const invariants = quiet(() => runInvariants({ cwd: target, args: ["check"] }));
+  assert.equal(invariants.ok, true, "dogfood profile init should install valid invariants");
 
   const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");

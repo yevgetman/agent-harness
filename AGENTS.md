@@ -155,6 +155,14 @@ Use `npm run metadata:check` to validate the artifact registry.
 Use `npm run metadata:report` or filtered `node scripts/harness.mjs metadata
 list --tag <tag>` when orienting through structured artifact metadata.
 
+## Invariants And Golden Principles Discipline
+
+Keep `invariants/golden-principles.yaml` current when a repo rule becomes
+important enough that future agents should preserve or copy it.
+
+Use `npm run invariants:check` to validate checked invariants after changing
+operating-contract, status, build-strategy, or lifecycle-discipline artifacts.
+
 ## Current Design Vocabulary
 
 - **Harness process domain** is the canonical term for a conceptual operating

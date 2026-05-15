@@ -110,7 +110,8 @@ The first mechanically installable follow-on module is
 `metadata/artifacts.yaml`, `harness metadata list`, `harness metadata check`,
 and `harness metadata report`. `canonical-state` adds
 `state/canonical-state.yaml`, `harness state list`, `harness state check`, and
-`harness state report`.
+`harness state report`. `invariants-golden-principles` adds
+`invariants/golden-principles.yaml` and `harness invariants check`.
 
 ## Current Limits
 

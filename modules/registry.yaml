@@ -23,3 +23,8 @@ modules:
     path: modules/canonical-state/module.yaml
     status: active
     installable: true
+
+  - id: invariants-golden-principles
+    path: modules/invariants-golden-principles/module.yaml
+    status: active
+    installable: true

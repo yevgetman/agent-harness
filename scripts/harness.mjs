@@ -10,6 +10,7 @@ import { runProfiles } from "./profiles.mjs";
 import { runLock } from "./lock.mjs";
 import { runMetadata } from "./metadata.mjs";
 import { runState } from "./state.mjs";
+import { runInvariants } from "./invariants.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -30,6 +31,7 @@ Usage:
   harness state list
   harness state check
   harness state report
+  harness invariants check
   harness lock refresh
   harness lock check
   harness upgrade --plan
@@ -87,6 +89,11 @@ if (command === "metadata") {
 
 if (command === "state") {
   const result = runState({ cwd: process.cwd(), args });
+  process.exit(result.ok ? 0 : 2);
+}
+
+if (command === "invariants") {
+  const result = runInvariants({ cwd: process.cwd(), args });
   process.exit(result.ok ? 0 : 2);
 }
 

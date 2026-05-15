@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-14
+  updated: 2026-05-15
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -90,6 +90,18 @@ metadata:
       depends_on:
         - process-domain-design
 
+    - id: invariants-design
+      path: design/v1-invariants-golden-principles-design.md
+      kind: formal-design
+      status: active
+      owner_domain: invariants-and-golden-principles
+      tags:
+        - invariants
+        - phase-4
+      depends_on:
+        - process-domain-design
+        - canonical-state-design
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       kind: metadata-registry
@@ -134,6 +146,17 @@ metadata:
       depends_on:
         - installed-manifest
 
+    - id: depth-gate
+      path: build/depth-gate.yaml
+      kind: build-state
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - build-strategy
+        - validation
+      depends_on:
+        - product-spec
+
     - id: structured-metadata-module
       path: modules/structured-metadata/module.yaml
       kind: module-definition
@@ -156,6 +179,18 @@ metadata:
         - canonical-state
       depends_on:
         - canonical-state-design
+        - module-registry
+
+    - id: invariants-module
+      path: modules/invariants-golden-principles/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: invariants-and-golden-principles
+      tags:
+        - module
+        - invariants
+      depends_on:
+        - invariants-design
         - module-registry
 
     - id: metadata-cli
@@ -183,6 +218,19 @@ metadata:
         - canonical-state-design
         - metadata-artifacts
 
+    - id: invariants-golden-principles
+      path: invariants/golden-principles.yaml
+      kind: invariant-registry
+      status: active
+      owner_domain: invariants-and-golden-principles
+      tags:
+        - invariants
+        - registry
+        - validation
+      depends_on:
+        - invariants-design
+        - canonical-state-registry
+
     - id: state-cli
       path: scripts/state.mjs
       kind: cli
@@ -195,6 +243,19 @@ metadata:
       depends_on:
         - canonical-state-module
         - canonical-state-registry
+
+    - id: invariants-cli
+      path: scripts/invariants.mjs
+      kind: cli
+      status: active
+      owner_domain: invariants-and-golden-principles
+      tags:
+        - invariants
+        - cli
+        - validation
+      depends_on:
+        - invariants-module
+        - invariants-golden-principles
 
     - id: structured-metadata-decision
       path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
@@ -239,3 +300,14 @@ metadata:
         - decision
       depends_on:
         - canonical-state-decision
+
+    - id: invariants-decision
+      path: decisions/0013-adopt-invariants-and-golden-principles-module.md
+      kind: decision
+      status: active
+      owner_domain: invariants-and-golden-principles
+      tags:
+        - invariants
+        - decision
+      depends_on:
+        - invariants-design

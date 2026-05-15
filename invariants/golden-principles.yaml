@@ -1,0 +1,65 @@
+# Harness managed file: invariants-golden-principles
+invariants:
+  version: 1
+  updated: 2026-05-15
+  scope: harness-source-repo
+  principles:
+    - id: formal-designs-are-authoritative
+      title: Formal designs outrank exploratory specs
+      status: active
+      severity: error
+      owner_domain: agent-operating-contract
+      statement: Exploratory specs are supporting material unless a formal design document says otherwise.
+      canonical_state_id: agents
+      tags:
+        - design
+        - authority
+      checks:
+        - type: file_contains
+          path: AGENTS.md
+          text: Do not treat exploratory specs as binding unless a formal design document says
+
+    - id: status-is-current-state
+      title: Status is a current-state projection
+      status: active
+      severity: error
+      owner_domain: agent-operating-contract
+      statement: status.md projects current state and must not become an unbounded changelog.
+      canonical_state_id: status
+      tags:
+        - status
+        - orientation
+      checks:
+        - type: file_contains
+          path: status.md
+          text: not a changelog
+
+    - id: depth-gate-is-repo-local
+      title: Depth gate is repo-local
+      status: active
+      severity: error
+      owner_domain: harness-lifecycle
+      statement: build/depth-gate.yaml is local build methodology, not a portable process-domain artifact.
+      canonical_state_id: depth-gate
+      tags:
+        - build-strategy
+        - portability
+      checks:
+        - type: file_contains
+          path: build/depth-gate.yaml
+          text: "portable_process_domain: false"
+
+    - id: lock-refresh-discipline-is-declared
+      title: Lock refresh discipline is declared
+      status: active
+      severity: error
+      owner_domain: harness-lifecycle
+      statement: Agents are told to refresh the lock after intentionally changing locked dogfood files.
+      canonical_state_id: agents
+      tags:
+        - lock
+        - provenance
+      checks:
+        - type: file_contains
+          path: AGENTS.md
+          text: npm run lock:refresh

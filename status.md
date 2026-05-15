@@ -4,19 +4,22 @@ Last updated: 2026-05-15
 
 ## Current Phase
 
-Phase 4 Additional Process Domains breadth pass. Structured Metadata and
-Canonical State are installed in the dogfood repo. Structured Metadata has
-metadata commands, filtered and JSON queries, report summaries, dependency
-validation, doctor validation, and `metadata/artifacts.yaml`. Canonical State
-has `state/canonical-state.yaml`, `harness state list`, `harness state check`,
-`harness state report`, role/status/owner-domain filters, JSON output,
-metadata-reference validation, dependency-reference validation, and doctor
-validation.
+Phase 4 Additional Process Domains breadth pass. Structured Metadata,
+Canonical State, and Invariants And Golden Principles are installed in the
+dogfood repo. Structured Metadata has metadata commands, filtered and JSON
+queries, report summaries, dependency validation, doctor validation, and
+`metadata/artifacts.yaml`. Canonical State has `state/canonical-state.yaml`,
+`harness state list`, `harness state check`, `harness state report`,
+role/status/owner-domain filters, JSON output, metadata-reference validation,
+dependency-reference validation, and doctor validation. Invariants And Golden
+Principles has `invariants/golden-principles.yaml`,
+`harness invariants check`, simple file existence/content checks,
+canonical-state reference validation, and doctor validation.
 
-The repo currently has exploratory specs, ten formal v1 documents, a root
+The repo currently has exploratory specs, eleven formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
-lock file, five active module definitions, a runnable `harness doctor`
+lock file, six active module definitions, a runnable `harness doctor`
 command, a profile-backed `harness init --profile <profile>` installer, a
 repo-local depth gate, and a read-only `harness upgrade --plan` command. The
 first module/profile installation surface exists through `modules/registry.yaml`,
@@ -38,7 +41,10 @@ package scripts for local dogfood use, and doctor validation when
 `structured-metadata` is installed. Canonical State exists via
 `state/canonical-state.yaml`, `harness state list`, `harness state check`,
 `harness state report`, local package scripts, and doctor validation when
-`canonical-state` is installed.
+`canonical-state` is installed. Invariants And Golden Principles exists via
+`invariants/golden-principles.yaml`, `harness invariants check`, the local
+`npm run invariants:check` script, and doctor validation when
+`invariants-golden-principles` is installed.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -54,8 +60,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Phase 3 Lock And Provenance is active; the closeout implementation includes
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
-- Phase 4 Additional Process Domains is active; Structured Metadata and
-  Canonical State are installed breadth units.
+- Phase 4 Additional Process Domains is active; Structured Metadata, Canonical
+  State, and Invariants And Golden Principles are installed breadth units.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -79,12 +85,14 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Installed-file provenance is recorded at `.harness/lock.yaml`.
 - Active module definitions are `agent-operating-contract`,
   `progressive-orientation`, `decisions-open-questions`,
-  `structured-metadata`, and `canonical-state`.
+  `structured-metadata`, `canonical-state`, and
+  `invariants-golden-principles`.
 - `modules/registry.yaml` is the source registry for available modules.
   `agent-operating-contract` and `progressive-orientation` are bootstrap
   modules installed by `harness init --profile minimal`;
-  `decisions-open-questions`, `structured-metadata`, and `canonical-state` are
-  standalone `modules add` installable modules.
+  `decisions-open-questions`, `structured-metadata`, `canonical-state`, and
+  `invariants-golden-principles` are standalone `modules add` installable
+  modules.
 - Profiles now exist under `profiles/` for `minimal` and `dogfood`.
 - `npm run profiles:list` lists available source profiles and their module
   bundles.
@@ -156,18 +164,20 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run state:check` validates `state/canonical-state.yaml`.
 - `npm run state:report` summarizes canonical state by role, status, owner
   domain, and refresh mode.
+- `npm run invariants:check` validates `invariants/golden-principles.yaml` and
+  runs active invariant checks.
 - `npm run modules:list` lists registry modules with installed/installable
   state.
 - `node scripts/harness.mjs modules add <module-id> --target <path>` installs
   the first registry-backed modules into a target manifest.
 - Module install tests cover clean install, collision refusal, force install,
   unknown module failure, bootstrap module no-op, missing source template
-  preflight, structured metadata install, doctor after install, and upgrade
-  plan after install.
+  preflight, structured metadata, canonical state, invariants install, doctor
+  after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `canonical-state-query-reporting` as the
-  current complete depth pass for the second Phase 4 breadth unit.
+- `build/depth-gate.yaml` records `invariants-golden-principles-module` as the
+  current complete depth pass for the third Phase 4 breadth unit.
 
 ## Active Artifacts
 
@@ -191,6 +201,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `design/v1-structured-metadata-design.md` — formal Structured Metadata
   design.
 - `design/v1-canonical-state-design.md` — formal Canonical State design.
+- `design/v1-invariants-golden-principles-design.md` — formal Invariants And
+  Golden Principles design.
 - `build/depth-gate.yaml` — repo-local depth gate for the current build
   methodology.
 - `docs/minimal-profile.md` — reference for the current minimal install
@@ -199,6 +211,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `.harness/lock.yaml` — dogfood installed-file provenance lock.
 - `metadata/artifacts.yaml` — dogfood structured artifact metadata registry.
 - `state/canonical-state.yaml` — dogfood canonical state authority registry.
+- `invariants/golden-principles.yaml` — dogfood checked invariants and golden
+  principles registry.
 - `modules/*/module.yaml` — active module definitions.
 - `open-questions.yaml` — structured unresolved questions.
 - `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
@@ -229,6 +243,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   decision record for adopting Canonical State as the second Phase 4 module.
 - `decisions/0012-deepen-canonical-state-query-and-reporting.md` — decision
   record for Canonical State list/report queries and JSON output.
+- `decisions/0013-adopt-invariants-and-golden-principles-module.md` —
+  decision record for adopting Invariants And Golden Principles as a Phase 4
+  module.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -236,13 +253,14 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
   `scripts/profiles.mjs` / `scripts/metadata.mjs` / `scripts/lock.mjs` /
-  `scripts/state.mjs` / `scripts/doctor.mjs` —
+  `scripts/state.mjs` / `scripts/invariants.mjs` / `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
-  metadata commands, canonical state validation, lock command/helpers, upgrade
-  planner, and doctor command.
+  metadata commands, canonical state validation, invariants validation, lock
+  command/helpers, upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
-  modules, structured metadata, canonical state, semantic lock provenance,
-  upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+  modules, structured metadata, canonical state, invariants, semantic lock
+  provenance, upgrade planning/apply behavior, depth-gate validation, and
+  doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
@@ -251,9 +269,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Decide whether Canonical State is deep enough for the next Phase 4 breadth
-  unit. Remaining depth candidates include projection freshness checks and
-  source/projection reconciliation.
+- Decide whether Invariants And Golden Principles should be deepened before the
+  next Phase 4 breadth unit. Candidate depth includes invariant
+  listing/reporting, richer check types, and generated invariant reports.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

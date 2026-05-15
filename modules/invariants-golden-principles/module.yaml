@@ -1,0 +1,40 @@
+module:
+  id: invariants-golden-principles
+  version: 0.1.0
+  status: active
+  process_domains:
+    - invariants-and-golden-principles
+  provides:
+    - invariant-registry
+    - invariants-check-command
+    - invariant-shape-validation
+    - invariant-file-exists-check
+    - invariant-file-contains-check
+    - invariant-canonical-state-reference-validation
+  creates:
+    - invariants/
+    - invariants/golden-principles.yaml
+  managed_files:
+    - path: invariants/golden-principles.yaml
+      mode: merge
+  commands:
+    invariants-check: harness invariants check
+  install:
+    artifacts:
+      - path: invariants/
+        type: directory
+      - path: invariants/golden-principles.yaml
+        type: template
+        source: modules/invariants-golden-principles/templates/golden-principles.yaml
+  validates:
+    - invariants/golden-principles.yaml parses as YAML
+    - invariant registry version is supported
+    - principle IDs are unique
+    - active file_exists checks pass
+    - active file_contains checks pass
+    - canonical_state_id references resolve when Canonical State is available
+  instructions:
+    - Capture only rules that future agents should preserve or copy.
+    - Prefer checks that are deterministic and cheap before adding semantic checks.
+    - Reference canonical_state_id when a principle is owned by a canonical state artifact.
+    - Keep statements concise enough to scan during orientation.

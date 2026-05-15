@@ -477,42 +477,86 @@ build_strategy:
             - state/canonical-state.yaml classifies current dogfood state authority.
             - npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: canonical-state-query-reporting
+      breadth_unit: >
+        Deepen Canonical State with filtered and JSON query output plus report
+        summaries before adding more Phase 4 breadth.
+      completed_on: 2026-05-15
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness state list supports --role, --status, --owner-domain, and --json.
+            - harness state report emits role, status, owner-domain, and refresh summaries.
+            - harness state report supports filtered and JSON output.
+        - id: validation
+          status: satisfied
+          evidence:
+            - State list and report consume validateCanonicalState before returning entries.
+            - The dogfood manifest wires state-list, state-check, and state-report commands.
+            - harness doctor validates the expanded command wiring.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers state role, status, and owner-domain filters.
+            - npm test covers state list JSON output.
+            - npm test covers state report summaries and JSON output.
+            - npm test covers dogfood profile state report usage.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-canonical-state-design.md describes list, report, filters, and JSON output.
+            - decisions/0012-deepen-canonical-state-query-and-reporting.md records the depth decision.
+            - design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the deeper behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run state:list -- --role projection has been run against the dogfood repo.
+            - npm run state:report has been run against the dogfood repo.
+            - npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: canonical-state-query-reporting
+    id: invariants-golden-principles-module
     breadth_unit: >
-      Deepen Canonical State with filtered and JSON query output plus report
-      summaries before adding more Phase 4 breadth.
+      Add Invariants And Golden Principles as the third Phase 4 process-domain
+      module with a checked invariant registry, simple file checks,
+      canonical-state reference validation, doctor validation, profile wiring,
+      and dogfood installation.
     status: complete
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness state list supports --role, --status, --owner-domain, and --json.
-          - harness state report emits role, status, owner-domain, and refresh summaries.
-          - harness state report supports filtered and JSON output.
+          - harness invariants check validates invariants/golden-principles.yaml.
+          - harness invariants check --json emits parseable machine-readable output.
+          - invariants-golden-principles is installable through modules add.
+          - The dogfood profile includes invariants-golden-principles.
       - id: validation
         status: satisfied
         evidence:
-          - State list and report consume validateCanonicalState before returning entries.
-          - The dogfood manifest wires state-list, state-check, and state-report commands.
-          - harness doctor validates the expanded command wiring.
+          - Invariants validation checks version, required fields, unique IDs, allowed statuses, allowed severities, tags, and checks.
+          - Invariants validation runs active file_exists and file_contains checks.
+          - Invariants validation checks canonical_state_id references when Canonical State is available.
+          - harness doctor consumes Invariants validation through validateInvariants.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers state role, status, and owner-domain filters.
-          - npm test covers state list JSON output.
-          - npm test covers state report summaries and JSON output.
-          - npm test covers dogfood profile state report usage.
+          - npm test covers invariants-golden-principles module installation.
+          - npm test covers invariants check success and JSON output.
+          - npm test covers unknown canonical_state_id validation failure.
+          - npm test covers missing required text validation failure.
+          - npm test covers dogfood profile installation with invariants-golden-principles.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-canonical-state-design.md describes list, report, filters, and JSON output.
-          - decisions/0012-deepen-canonical-state-query-and-reporting.md records the depth decision.
-          - design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the deeper behavior.
+          - design/v1-invariants-golden-principles-design.md defines the Invariants And Golden Principles domain baseline.
+          - decisions/0013-adopt-invariants-and-golden-principles-module.md records the decision.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run state:list -- --role projection has been run against the dogfood repo.
-          - npm run state:report has been run against the dogfood repo.
-          - npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+          - invariants-golden-principles is installed in .harness/manifest.yaml.
+          - invariants/golden-principles.yaml captures current dogfood rules.
+          - npm run invariants:check, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.

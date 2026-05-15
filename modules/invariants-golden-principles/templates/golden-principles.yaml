@@ -1,0 +1,35 @@
+# Harness managed file: invariants-golden-principles
+invariants:
+  version: 1
+  updated: 2026-05-15
+  scope: target-repo
+  principles:
+    - id: status-is-current-state
+      title: Status is a current-state projection
+      status: active
+      severity: error
+      owner_domain: agent-operating-contract
+      statement: status.md is current state, not a changelog.
+      canonical_state_id: status
+      tags:
+        - status
+        - orientation
+      checks:
+        - type: file_contains
+          path: status.md
+          text: not a changelog
+
+    - id: boot-sequence-is-declared
+      title: Agent boot sequence is declared
+      status: active
+      severity: error
+      owner_domain: agent-operating-contract
+      statement: AGENTS.md declares a boot sequence for substantive sessions.
+      canonical_state_id: agents
+      tags:
+        - agents
+        - orientation
+      checks:
+        - type: file_contains
+          path: AGENTS.md
+          text: "## Boot Sequence"

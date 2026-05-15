@@ -22,6 +22,7 @@
     "state:list": "node scripts/harness.mjs state list",
     "state:check": "node scripts/harness.mjs state check",
     "state:report": "node scripts/harness.mjs state report",
+    "invariants:check": "node scripts/harness.mjs invariants check",
     "lock:refresh": "node scripts/harness.mjs lock refresh",
     "lock:check": "node scripts/harness.mjs lock check",
     "upgrade:plan": "node scripts/harness.mjs upgrade --plan",
