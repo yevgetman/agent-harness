@@ -74,11 +74,29 @@ plans_status:
 
     - id: phase-5-registry-discovery
       title: Add registry version discovery
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
       summary: Phase 5 package-installed upgrade plans now query npm registry state and report available, unpublished/private, unavailable, or skipped status without blocking unpublished/private packages.
-      next_action: Decide whether to implement the actual publish workflow or external-target smoke next.
+      canonical_state_id: product-spec
+      tags:
+        - phase-5
+        - distribution
+        - complete
+      references:
+        - design/v1-product-spec-and-roadmap.md
+        - design/v1-distribution-readiness-design.md
+        - decisions/0018-adopt-registry-version-discovery.md
+        - scripts/upgrade.mjs
+        - scripts/test.mjs
+
+    - id: phase-5-external-target-smoke
+      title: Add external target smoke
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Phase 5 distribution smoke can now copy caller-supplied git target repos into the smoke workspace, install the packed tarball there, and validate init, doctor, and upgrade behavior without mutating the original target.
+      next_action: Decide whether to implement actual publish workflow, registry access policy, or a named real-repo dogfood smoke target next.
       canonical_state_id: product-spec
       tags:
         - phase-5
@@ -87,6 +105,7 @@ plans_status:
       references:
         - design/v1-product-spec-and-roadmap.md
         - design/v1-distribution-readiness-design.md
-        - decisions/0018-adopt-registry-version-discovery.md
-        - scripts/upgrade.mjs
+        - decisions/0019-adopt-external-target-distribution-smoke.md
+        - docs/install.md
+        - scripts/distribution.mjs
         - scripts/test.mjs

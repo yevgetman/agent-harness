@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -102,7 +102,7 @@ function printHelp() {
 Usage:
   harness distribution check [--json]
   harness distribution release --plan [--json]
-  harness distribution smoke [--profile <profile>] [--json] [--keep]
+  harness distribution smoke [--profile <profile>] [--target <path>] [--json] [--keep]
 
 Commands:
   check    Validate explicit npm package contents without writing a tarball.
@@ -111,20 +111,31 @@ Commands:
 
 Options:
   --profile <profile>  Profile to smoke. May be repeated. Defaults to minimal and dogfood.
+  --target <path>      Existing git target repo to copy into the smoke workspace. May be repeated.
   --json               Emit JSON result.
   --keep               Keep the temporary smoke directory for debugging.
 `);
 }
 
-function profileArgs(args) {
-  const profiles = [];
+function repeatedArg(args, flag) {
+  const values = [];
   for (let i = 0; i < args.length; i += 1) {
-    if (args[i] === "--profile" && i + 1 < args.length) {
-      profiles.push(args[i + 1]);
+    if (args[i] === flag && i + 1 < args.length) {
+      values.push(args[i + 1]);
       i += 1;
     }
   }
-  return profiles.length > 0 ? profiles : DEFAULT_PROFILES;
+  return values;
+}
+
+function profileArgs(args, defaults = DEFAULT_PROFILES) {
+  const profiles = [];
+  profiles.push(...repeatedArg(args, "--profile"));
+  return profiles.length > 0 ? profiles : defaults;
+}
+
+function targetArgs(args) {
+  return repeatedArg(args, "--target").map((target) => resolve(process.cwd(), target));
 }
 
 function validatePackageFiles(files) {
@@ -236,13 +247,60 @@ function publishDryRun() {
   };
 }
 
-function smokeProfile({ workRoot, tarball, profile }) {
-  const target = join(workRoot, `target-${profile}`);
-  mkdirSync(target, { recursive: true });
+function validateExternalTargets(targets) {
+  const errors = [];
+  for (const target of targets) {
+    if (!existsSync(target)) {
+      errors.push(`${target}: target does not exist`);
+      continue;
+    }
+    if (!statSync(target).isDirectory()) {
+      errors.push(`${target}: target is not a directory`);
+      continue;
+    }
+    if (!existsSync(join(target, ".git"))) {
+      errors.push(`${target}: target is not a git repo`);
+    }
+  }
+  return errors;
+}
+
+function safeName(value) {
+  return value.replace(/[^a-zA-Z0-9._-]/g, "-");
+}
+
+function copyExternalTarget({ source, destination }) {
+  const excluded = new Set([".git", "node_modules"]);
+  cpSync(source, destination, {
+    recursive: true,
+    filter: (entry) => {
+      const rel = relative(source, entry);
+      if (!rel) return true;
+      return !excluded.has(rel.split(/[\\/]/)[0]);
+    },
+  });
+  run("git", ["init"], { cwd: destination });
+}
+
+function ensurePackageJson(target) {
+  if (!existsSync(join(target, "package.json"))) {
+    run("npm", ["init", "-y"], { cwd: target });
+  }
+}
+
+function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetIndex = null }) {
+  const target = targetSource
+    ? join(workRoot, `target-${targetIndex}-${safeName(basename(targetSource))}-${safeName(profile)}`)
+    : join(workRoot, `target-${safeName(profile)}`);
 
   try {
-    run("git", ["init"], { cwd: target });
-    run("npm", ["init", "-y"], { cwd: target });
+    if (targetSource) {
+      copyExternalTarget({ source: targetSource, destination: target });
+    } else {
+      mkdirSync(target, { recursive: true });
+      run("git", ["init"], { cwd: target });
+    }
+    ensurePackageJson(target);
     run("npm", ["install", tarball, "--no-audit", "--no-fund", "--ignore-scripts"], { cwd: target });
 
     const harnessBin = join(target, "node_modules", ".bin", "harness");
@@ -274,6 +332,7 @@ function smokeProfile({ workRoot, tarball, profile }) {
 
     return {
       profile,
+      target_source: targetSource,
       target,
       ok: errors.length === 0,
       errors,
@@ -284,6 +343,7 @@ function smokeProfile({ workRoot, tarball, profile }) {
   } catch (error) {
     return {
       profile,
+      target_source: targetSource,
       target,
       ok: false,
       errors: [commandError(error)],
@@ -301,9 +361,18 @@ function printResult(result) {
   console.log(`tarball_entries: ${result.file_count}`);
   console.log(`package_check: ${result.package_check?.ok ? "ok" : "error"}`);
   console.log(`work_root: ${result.work_root}${result.kept ? "" : " (removed)"}`);
+  if ((result.external_targets ?? []).length > 0) {
+    console.log("external_targets:");
+    for (const target of result.external_targets) {
+      console.log(`  ${target}`);
+    }
+  }
   console.log("profiles:");
   for (const profile of result.profiles) {
     console.log(`  ${profile.profile}: ${profile.ok ? "ok" : "error"}`);
+    if (profile.target_source) {
+      console.log(`    target_source: ${profile.target_source}`);
+    }
     console.log(`    version_source: ${profile.version_source?.type ?? "unknown"}`);
     console.log(`    managed_files: ${profile.managed_files}`);
     console.log(`    commands: ${profile.commands}`);
@@ -445,6 +514,8 @@ function runReleasePlan() {
 
 function runSmoke(args) {
   const keep = args.includes("--keep");
+  const externalTargets = targetArgs(args);
+  const profilesToSmoke = profileArgs(args, externalTargets.length > 0 ? ["minimal"] : DEFAULT_PROFILES);
   const workRoot = mkdtempSync(join(tmpdir(), "harness-distribution-smoke-"));
   let result;
 
@@ -464,6 +535,7 @@ function runSmoke(args) {
           required_files: REQUIRED_PACKAGE_FILES.length,
           forbidden_rules: FORBIDDEN_PACKAGE_PREFIXES.length + FORBIDDEN_PACKAGE_FILES.length,
         },
+        external_targets: externalTargets,
         profiles: [],
         errors: [packed.error],
       };
@@ -480,14 +552,37 @@ function runSmoke(args) {
         package_version: packed.package_version,
         file_count: packed.file_count,
         package_check: packageCheck,
+        external_targets: externalTargets,
         profiles: [],
         errors: packageCheck.errors,
       };
       return result;
     }
 
-    const profiles = profileArgs(args).map((profile) =>
-      smokeProfile({ workRoot, tarball: packed.tarball, profile }),
+    const targetErrors = validateExternalTargets(externalTargets);
+    if (targetErrors.length > 0) {
+      result = {
+        ok: false,
+        work_root: workRoot,
+        kept: keep,
+        package_name: packed.package_name,
+        package_version: packed.package_version,
+        file_count: packed.file_count,
+        package_check: packageCheck,
+        external_targets: externalTargets,
+        profiles: [],
+        errors: targetErrors,
+      };
+      return result;
+    }
+
+    const smokeRuns = externalTargets.length > 0
+      ? externalTargets.flatMap((target, targetIndex) =>
+        profilesToSmoke.map((profile) => ({ profile, targetSource: target, targetIndex })),
+      )
+      : profilesToSmoke.map((profile) => ({ profile, targetSource: null, targetIndex: null }));
+    const profiles = smokeRuns.map((runSpec) =>
+      smokeProfile({ workRoot, tarball: packed.tarball, ...runSpec }),
     );
     result = {
       ok: profiles.every((profile) => profile.ok),
@@ -497,6 +592,7 @@ function runSmoke(args) {
       package_version: packed.package_version,
       file_count: packed.file_count,
       package_check: packageCheck,
+      external_targets: externalTargets,
       profiles,
       errors: profiles.flatMap((profile) => profile.errors),
     };

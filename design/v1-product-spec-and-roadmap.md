@@ -343,8 +343,8 @@ dogfooding requires an external target sooner.
 ### Phase 5: Distribution Readiness
 
 Status: active; local packed-package smoke validation, explicit package
-boundary validation, release preflight planning, and registry version discovery
-are implemented and dogfooded.
+boundary validation, release preflight planning, registry version discovery,
+and external-target smoke are implemented and dogfooded.
 
 Purpose:
 
@@ -371,6 +371,9 @@ Initial behavior:
   validates package contents, installs the packed tarball into temporary target
   repos, runs the installed `harness` binary, initializes profiles, runs
   `harness doctor`, and verifies `harness upgrade --plan --json`.
+- `harness distribution smoke --target <path>` copies a caller-supplied git
+  target into the smoke workspace, installs the packed tarball there, validates
+  init/doctor/upgrade behavior, and leaves the original target unchanged.
 - Packed-package smoke validation covers the `minimal` and `dogfood` profiles
   by default.
 - Upgrade planning reports `version_source.type: package` when a target was

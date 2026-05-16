@@ -39,6 +39,17 @@ package.
 `npm run distribution:smoke` validates the packed tarball by installing it into
 temporary target repos and running the installed `harness` binary.
 
+To validate a real target repo shape without mutating it, pass the target path
+to smoke:
+
+```bash
+npm run distribution:smoke -- --target ../some-target --profile minimal
+```
+
+The smoke command copies the target into a temporary work directory, excludes
+`.git` and `node_modules`, installs the packed tarball into the copy, and runs
+the harness checks there.
+
 ## Registry Install
 
 Registry installation is deferred until the package name, access policy, and

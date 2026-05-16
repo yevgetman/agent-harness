@@ -489,3 +489,16 @@ metadata:
       depends_on:
         - distribution-readiness-design
         - upgrade-cli
+
+    - id: external-target-smoke-decision
+      path: decisions/0019-adopt-external-target-distribution-smoke.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - external-target
+        - decision
+      depends_on:
+        - distribution-readiness-design
+        - distribution-cli

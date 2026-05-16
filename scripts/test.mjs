@@ -965,6 +965,46 @@ withTempDir((root) => {
 }
 
 withTempDir((root) => {
+  const externalTarget = join(root, "external-target");
+  initGitRepo(externalTarget);
+  writeFileSync(join(externalTarget, "README.md"), "# External Target\n");
+
+  const smoke = quiet(() => withRegistryDiscoverySkip(() =>
+    runDistribution({ args: ["smoke", "--profile", "minimal", "--target", externalTarget] }),
+  ));
+  assert.equal(smoke.ok, true, "external target distribution smoke should pass");
+  assert.equal(smoke.external_targets[0], externalTarget, "external smoke should report source target path");
+  assert.equal(smoke.profiles.length, 1, "external smoke should run the requested profile");
+  assert.equal(smoke.profiles[0].target_source, externalTarget, "external smoke should report profile target source");
+  assert.equal(smoke.profiles[0].version_source.type, "package", "external smoke should use package version source");
+  assert.equal(
+    smoke.profiles[0].version_source.registry.status,
+    "skipped",
+    "external smoke should report skipped registry discovery in tests",
+  );
+  assert.equal(
+    existsSync(join(externalTarget, "AGENTS.md")),
+    false,
+    "external smoke should not write harness files into the source target",
+  );
+  assert.equal(
+    existsSync(join(externalTarget, "package.json")),
+    false,
+    "external smoke should not write package metadata into the source target",
+  );
+
+  const missingTarget = quiet(() => withRegistryDiscoverySkip(() =>
+    runDistribution({ args: ["smoke", "--target", join(root, "missing-target")] }),
+  ));
+  assert.equal(missingTarget.ok, false, "external smoke should fail for a missing target");
+  assert.equal(
+    missingTarget.errors.some((error) => error.includes("target does not exist")),
+    true,
+    "external smoke should explain missing target failures",
+  );
+});
+
+withTempDir((root) => {
   const target = join(root, "target");
   initGitRepo(target);
 

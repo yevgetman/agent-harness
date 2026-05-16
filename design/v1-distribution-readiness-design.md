@@ -3,7 +3,7 @@
 **Status:** accepted baseline
 **Date:** 2026-05-16
 **Scope:** Phase 5 packed-package smoke validation, package boundary, release
-preflight, and registry version discovery
+preflight, registry version discovery, and external-target smoke
 
 This is a formal design document. It defines the first Distribution Readiness
 increments after the Phase 4 Plans And Status breadth pass.
@@ -28,6 +28,10 @@ registry publication blocked while the package is private.
 The fourth increment adds registry version discovery for package-installed
 targets. This lets upgrade planning report the registry state without making an
 unpublished or private package a blocker.
+
+The fifth increment adds caller-supplied external-target smoke. This validates
+the packed package against a copied target repo shape before registry
+publication exists.
 
 ## Command
 
@@ -85,12 +89,27 @@ Supported options:
 ```bash
 harness distribution smoke --profile minimal
 harness distribution smoke --profile dogfood
+harness distribution smoke --target ../some-target --profile minimal
 harness distribution smoke --json
 harness distribution smoke --keep
 ```
 
 `--keep` preserves the temporary directory for debugging. Without it, the
 temporary directory is removed after the run.
+
+When `--target <path>` is provided, the smoke command:
+
+1. Requires the source target path to exist and contain `.git`.
+2. Copies the target into the temporary smoke workspace, excluding `.git` and
+   `node_modules`.
+3. Initializes a new git repo in the copied target.
+4. Installs the packed tarball and runs the same init, doctor, and upgrade plan
+   checks in the copy.
+5. Leaves the original target path unchanged.
+
+If an external target is supplied without `--profile`, the command defaults to
+the `minimal` profile. Repeated `--target` and `--profile` options produce one
+copied smoke target for each target/profile pair.
 
 ## Upgrade Version Source
 
@@ -203,9 +222,10 @@ Current release preflight evidence:
 The distribution commands are not a replacement for `npm test`. They are
 integration checks across the npm package boundary.
 
-`npm test` should cover package contents validation, release preflight, and at
-least a minimal packed-package smoke path. Local validation before publishing or
-handoff should run the full check, release-plan, and smoke commands.
+`npm test` should cover package contents validation, release preflight, at
+least a minimal packed-package smoke path, and external-target smoke. Local
+validation before publishing or handoff should run the full check,
+release-plan, and smoke commands.
 
 ## Current Limits
 
@@ -214,7 +234,8 @@ handoff should run the full check, release-plan, and smoke commands.
 - No Homebrew, standalone binary, or Bun distribution exists.
 - Registry discovery is npm-only, and unpublished/private or unavailable
   registry state still falls back to the package currently executing.
-- The smoke target is temporary and local, not a real external repository.
+- External-target smoke copies a target repo into a temporary workspace; it does
+  not mutate the original target and does not prove registry install.
 
 These limits are acceptable for the current Phase 5 depth because the key risk
 is whether the harness works when not run from `~/code/harness`.
