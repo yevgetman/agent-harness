@@ -3,6 +3,9 @@
 The current distribution path is a local npm tarball. The package is not
 published to a registry yet.
 
+For the full v1 closeout validation matrix and deferred-scope summary, see
+`docs/v1-validation.md`.
+
 ## Local Tarball
 
 From the harness source repo:
@@ -31,10 +34,10 @@ dogfood process-domain modules.
 ## Package Boundary
 
 The package intentionally includes the CLI scripts, module definitions, module
-templates, profiles, install docs, and Distribution Readiness design. Repo-local
-dogfood state such as `.harness/`, `build/`, `decisions/`, `metadata/`,
-`plans/`, `state/`, `status.md`, and test fixtures is not part of the runtime
-package.
+templates, profiles, install/minimal/v1-validation docs, and Distribution
+Readiness design. Repo-local dogfood state such as `.harness/`, `build/`,
+`decisions/`, `metadata/`, `plans/`, `state/`, `status.md`, and test fixtures
+is not part of the runtime package.
 
 `npm run distribution:check` validates this boundary with `npm pack --dry-run`.
 `npm run distribution:smoke` validates the packed tarball by installing it into

@@ -194,6 +194,20 @@ metadata:
       depends_on:
         - distribution-readiness-design
         - package
+        - v1-validation
+
+    - id: v1-validation
+      path: docs/v1-validation.md
+      kind: validation-baseline
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - v1
+        - validation
+        - closeout
+      depends_on:
+        - product-spec
+        - distribution-readiness-design
 
     - id: depth-gate
       path: build/depth-gate.yaml
@@ -542,3 +556,16 @@ metadata:
       depends_on:
         - distribution-readiness-design
         - force-init-overwrite-decision
+
+    - id: v1-validation-decision
+      path: decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - v1
+        - validation
+        - decision
+      depends_on:
+        - v1-validation
+        - phase-5-closeout-decision

@@ -124,6 +124,17 @@ canonical_state:
       depends_on:
         - distribution-readiness-design
 
+    - id: v1-validation
+      path: docs/v1-validation.md
+      metadata_id: v1-validation
+      state_role: source
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - product-spec
+        - distribution-readiness-design
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       metadata_id: metadata-artifacts

@@ -93,6 +93,18 @@ provide:
 V1 does not need to solve every process domain deeply. It must prove the
 portable installation, validation, module, and upgrade loop.
 
+## V1 Closeout Status
+
+V1 is complete for local packed npm tarball distribution.
+
+The closeout baseline is `docs/v1-validation.md`. It records the validation
+matrix, rerunnable command set, v1 behavior boundary, and deferred post-v1
+work.
+
+Current v1 distribution is local tarball based. Public npm publication remains
+deferred until a release-license and publication decision clears the current
+release blockers.
+
 ## Product Principles
 
 - **Portable first:** no assumption that the target repo is a document set, code
@@ -438,5 +450,7 @@ When choosing the next increment:
   apply safety behavior.
 - `design/v1-distribution-readiness-design.md` defines Phase 5 package
   boundary, package smoke, and distribution-readiness behavior.
+- `docs/v1-validation.md` records the v1 validation matrix and deferred-scope
+  baseline.
 - `spec/` contains exploratory source material and does not override formal
   product or design documents.

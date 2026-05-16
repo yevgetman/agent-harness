@@ -44,6 +44,7 @@ const REQUIRED_PACKAGE_FILES = [
   "profiles/dogfood.yaml",
   "docs/install.md",
   "docs/minimal-profile.md",
+  "docs/v1-validation.md",
   "design/v1-distribution-readiness-design.md",
 ];
 const FORBIDDEN_PACKAGE_PREFIXES = [

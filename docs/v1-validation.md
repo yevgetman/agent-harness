@@ -1,0 +1,111 @@
+# V1 Validation And Deferred Scope
+
+Last updated: 2026-05-16
+
+This document is the v1 closeout matrix for the portable harness. It records
+what v1 proves, the commands that validate it, and the work intentionally left
+outside v1.
+
+## V1 Status
+
+V1 is validated for local packed npm tarball distribution.
+
+The harness can be installed into target git repos from a packed package, can
+initialize `minimal` and `dogfood` profiles, can validate installed state with
+doctor, can plan upgrades from installed manifest and lock state, and can add
+the current installable process-domain modules.
+
+Public npm registry publication is not part of v1 closeout. The guarded publish
+workflow exists, but confirmation remains blocked while `package.json` has
+`private: true`, `license: UNLICENSED`, or any release-preflight blocker.
+
+## Validation Matrix
+
+| Area | V1 behavior | Validation |
+| --- | --- | --- |
+| Agent operating contract | `AGENTS.md` establishes boot, status, lock, plans, metadata, distribution, and vocabulary discipline. | `npm run doctor` validates the file and the installed manifest references. |
+| Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
+| Minimal profile install | `harness init --profile minimal` installs operating contract, status, index, context, manifest, lock, and bootstrap module definitions. | `npm test` covers fresh git-target init, doctor, upgrade plan, dry-run collisions, and force overwrite. |
+| Force init contract | Normal init warns/refuses when planned artifacts exist; `--force` definitively overwrites planned harness artifacts. | `npm test` covers warnings, collision reporting, and overwrite of an existing `AGENTS.md`. |
+| Module/profile lifecycle | Source profiles are listable; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, and `npm run modules:list`. |
+| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
+| Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
+| Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, and JSON-capable. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
+| Safe upgrade apply scaffold | Apply permits only safe/noop, safe/refresh-lock, and deterministic safe/repair-command operations. | `npm test` covers safe apply, blocked plans, and review-required refusal. |
+| Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
+| Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. | `npm run distribution:smoke`. |
+| External target smoke | A caller-supplied git target is copied into the smoke workspace and validated without mutating the source repo. | `npm test` and `node scripts/harness.mjs distribution smoke --target <path> --profile minimal --force`. |
+| Named real-repo smoke | `~/code/meetingly` validates as a named target for both `minimal` and `dogfood` profiles. | `node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force` and the same command with `--profile dogfood`. |
+| Release preflight | Release planning runs package validation and `npm publish --dry-run --json` without publishing. | `npm run distribution:release-plan`; expected v1 status is blocked. |
+| Guarded publish planning | Publish planning reports readiness without publishing; confirmation refuses blocked plans. | `npm run distribution:publish-plan`; expected v1 status is blocked. |
+
+## Closeout Command Set
+
+Run this set before claiming the v1 baseline is still healthy:
+
+```bash
+node --check scripts/init.mjs
+node --check scripts/distribution.mjs
+node --check scripts/upgrade.mjs
+node --check scripts/test.mjs
+npm test
+npm run metadata:check
+npm run state:check
+npm run invariants:check
+npm run plans:check
+npm run lock:check
+npm run doctor
+npm run upgrade:plan
+npm run distribution:check
+npm run distribution:release-plan
+npm run distribution:publish-plan
+npm run distribution:smoke
+node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force
+node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile dogfood --force
+git diff --check
+```
+
+Expected v1 release/publish state:
+
+- `distribution:release-plan` exits successfully but reports `status: blocked`.
+- `distribution:publish-plan` exits successfully but reports `status: blocked`.
+- Blockers are intentional until a release-license and publication decision is
+  resumed.
+
+## V1 Behavior Boundary
+
+V1 includes:
+
+- Local packed npm tarball distribution.
+- Install, minimal-profile, and v1 validation docs in the package.
+- `minimal` and `dogfood` profile installation.
+- Registry-backed module listing and module add.
+- Dogfooded Decisions And Open Questions, Structured Metadata, Canonical State,
+  Invariants And Golden Principles, and Plans And Status.
+- Lock-aware doctor and upgrade planning.
+- Limited safe upgrade apply scaffold.
+- Package boundary validation, release preflight, guarded publish planning, and
+  external-target smoke.
+
+V1 does not include:
+
+- Public npm registry publication.
+- Release license selection.
+- Clearing `private: true`.
+- Homebrew, Bun, standalone binary, or other distribution channels.
+- Full automated file/template upgrade application for human-facing files.
+- Profile switching or profile inspection commands.
+- Full semantic drift detection across arbitrary corpora.
+- Deep implementation of every v1 process domain.
+- UI, dashboard, or LLM-provider-specific integration.
+
+## Next Work After V1
+
+The strongest post-v1 candidates are:
+
+1. Broaden `harness upgrade apply` beyond the safe scaffold while preserving
+   review boundaries for human-facing files.
+2. Add profile inspection and profile switching.
+3. Resume publication work by choosing a release license, clearing
+   `private: true`, and running release/publish planning again.
+4. Add more named real-repo smoke targets to broaden compatibility evidence.

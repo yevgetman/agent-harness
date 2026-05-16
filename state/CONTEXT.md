@@ -153,7 +153,8 @@ Current dogfood state:
   `~/code/meetingly` passed named real-repo smoke for both `minimal` and
   `dogfood` profiles using the packed package and forced init in the copy.
   Actual npm publication is deferred for now; Phase 5 is complete for v1 local
-  tarball distribution.
+  tarball distribution. `docs/v1-validation.md` records the v1 validation
+  matrix, closeout command set, behavior boundary, and deferred-scope summary.
   `docs/install.md` documents local tarball installation.
 
 ## Orientation rule
@@ -171,7 +172,7 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is v1 closeout hardening while npm publication remains
+The current useful step is post-v1 sequencing while npm publication remains
 deferred.
 
 - Keep `harness doctor` focused on installed harness health plus active module
@@ -197,6 +198,7 @@ deferred.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: final v1 validation matrix, docs/status cleanup, and explicit
-  v1/deferred-scope summary.
+- Next work: choose a post-v1 increment. Strong candidates are broader
+  `harness upgrade apply`, profile inspection/switching, publication/license
+  work, or more named real-repo smoke targets.
 - Keep `status.md` current after significant choices.

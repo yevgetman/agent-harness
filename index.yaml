@@ -34,6 +34,7 @@ reading_order:
   - v1-invariants-golden-principles-design
   - v1-plans-status-design
   - v1-distribution-readiness-design
+  - v1-validation
   - installed-manifest
   - installed-lock
   - metadata-artifacts
@@ -74,6 +75,7 @@ reading_order:
   - decision-0020
   - decision-0021
   - decision-0022
+  - decision-0023
   - decision-template
   - package
   - harness-cli
@@ -111,7 +113,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout and post-v1 sequencing. Not a changelog.
     depends_on:
       - agents
 
@@ -120,7 +122,7 @@ documents:
     title: Harness Context Briefing
     kind: orientation
     status: active
-    summary: Condensed briefing for fresh agents; points to formal design and specs.
+    summary: Condensed briefing for fresh agents; points to formal design, v1 validation, and specs.
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
@@ -254,6 +256,17 @@ documents:
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-upgrade-operation-contract
+
+  - doc_id: v1-validation
+    file: docs/v1-validation.md
+    title: V1 Validation And Deferred Scope
+    kind: validation-baseline
+    status: active
+    summary: V1 closeout matrix, rerunnable command set, behavior boundary, deferred-scope summary, and post-v1 candidates.
+    depends_on:
+      - v1-product-spec-and-roadmap
+      - v1-distribution-readiness-design
+      - decision-0022
 
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
@@ -425,7 +438,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current Plans And Status pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current v1 closeout validation pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -652,6 +665,17 @@ documents:
       - decision-0021
       - distribution-cli
 
+  - doc_id: decision-0023
+    file: decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md
+    title: Adopt V1 Validation And Deferred Scope Baseline
+    kind: decision
+    status: active
+    summary: Decision record adopting docs/v1-validation.md as the v1 closeout validation and deferred-scope baseline.
+    depends_on:
+      - v1-validation
+      - v1-product-spec-and-roadmap
+      - decision-0022
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -666,7 +690,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, explicit package files boundary, and scripts for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/external smoke, lock maintenance, registry-aware upgrade planning/apply scaffolding, doctor, and tests.
+    summary: Node package wiring, publish metadata, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/external smoke, lock maintenance, registry-aware upgrade planning/apply scaffolding, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -708,10 +732,11 @@ documents:
     title: Harness Install
     kind: reference
     status: active
-    summary: Local tarball install guide, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, and package-installed registry discovery expectation.
+    summary: Local tarball install guide, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, package-installed registry discovery expectation, and v1 validation pointer.
     depends_on:
       - v1-distribution-readiness-design
       - package
+      - v1-validation
 
   - doc_id: modules-cli
     file: scripts/modules.mjs

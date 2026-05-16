@@ -41,6 +41,7 @@
     "profiles/",
     "docs/install.md",
     "docs/minimal-profile.md",
+    "docs/v1-validation.md",
     "design/v1-distribution-readiness-design.md"
   ],
   "scripts": {

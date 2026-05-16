@@ -203,7 +203,7 @@ includes:
 - CLI scripts required by `scripts/harness.mjs`.
 - Module definitions and module templates under `modules/`.
 - Profile definitions under `profiles/`.
-- Install and minimal-profile docs under `docs/`.
+- Install, minimal-profile, and v1 validation docs under `docs/`.
 - This Distribution Readiness design.
 
 The package excludes dogfood and source-repo-local artifacts:

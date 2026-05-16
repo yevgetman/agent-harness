@@ -152,18 +152,36 @@ plans_status:
 
     - id: v1-closeout-hardening
       title: V1 closeout hardening
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Phase 5 is complete for local tarball distribution; the active work is to close v1 with final validation, docs/status cleanup, and explicit deferred-scope notes.
-      next_action: Build a final v1 validation matrix and update the install/roadmap/status docs to distinguish v1 behavior from deferred post-v1 work.
+      summary: V1 now has a validation matrix, closeout command set, behavior boundary, and deferred-scope baseline in docs/v1-validation.md.
+      next_action: Use docs/v1-validation.md before claiming future changes preserve or expand the v1 baseline.
       canonical_state_id: product-spec
       tags:
         - v1
         - closeout
-        - current
+        - complete
       references:
         - design/v1-product-spec-and-roadmap.md
+        - decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md
+        - docs/v1-validation.md
         - status.md
         - docs/install.md
         - build/depth-gate.yaml
+
+    - id: post-v1-sequencing
+      title: Choose post-v1 increment
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: V1 is closed for local tarball distribution; the next work is choosing the first post-v1 increment.
+      next_action: Choose between broader upgrade apply, profile inspection/switching, publication/license work, or additional named real-repo smoke.
+      canonical_state_id: product-spec
+      tags:
+        - post-v1
+        - current
+      references:
+        - docs/v1-validation.md
+        - design/v1-product-spec-and-roadmap.md
+        - status.md

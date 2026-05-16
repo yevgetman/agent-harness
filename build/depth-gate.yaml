@@ -816,10 +816,10 @@ build_strategy:
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
   current_depth_pass:
-    id: distribution-named-real-repo-smoke
+    id: v1-closeout-validation-baseline
     breadth_unit: >
-      Close Phase 5 Distribution Readiness for v1 by validating the packed
-      package against a named real repo and keeping npm publication deferred.
+      Close v1 with a durable validation matrix, closeout command set, behavior
+      boundary, and deferred-scope baseline.
     status: complete
     completed_on: 2026-05-16
     ready_for_next_breadth: true
@@ -827,36 +827,34 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness distribution smoke supports --force for forced init inside copied smoke targets.
-          - harness init warns and refuses when planned artifacts already exist without --force.
-          - harness init --force definitively overwrites planned harness artifacts.
-          - The packed package installs and validates against the named /Users/julie/code/meetingly target.
+          - docs/v1-validation.md records the v1 validation matrix.
+          - docs/v1-validation.md records the closeout command set.
+          - docs/v1-validation.md records v1-supported behavior and deferred post-v1 work.
+          - docs/install.md points readers to the v1 closeout baseline.
       - id: validation
         status: satisfied
         evidence:
-          - External smoke still copies targets before init and leaves the original target unmodified.
-          - The meetingly source repo had a clean git status after smoke validation.
-          - Minimal-profile meetingly smoke reported package version source, 4 managed files, and 8 commands.
-          - Dogfood-profile meetingly smoke reported package version source, 10 managed files, and 21 commands.
+          - metadata/artifacts.yaml includes the v1 validation artifact.
+          - index.yaml includes docs/v1-validation.md in the orientation graph.
+          - plans/current.yaml marks v1 closeout hardening complete and records post-v1 sequencing as active.
+          - status.md and state/CONTEXT.md point future agents to the closeout baseline.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers init collision warnings.
-          - npm test covers init --force overwriting an existing AGENTS.md process file.
-          - npm test covers external-target smoke with --force.
-          - npm test verifies external smoke does not mutate the source target.
+          - npm test passes after adding the closeout baseline.
+          - npm run metadata:check validates the artifact registry.
+          - npm run plans:check validates the current plan transition.
+          - npm run doctor validates the orientation graph and decision record.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0021-adopt-forceable-external-smoke-init.md records the force init overwrite contract.
-          - decisions/0022-close-phase-5-with-local-tarball-distribution.md records Phase 5 closeout with npm publication deferred.
-          - design/v1-distribution-readiness-design.md defines forceable external smoke and named real-repo evidence.
-          - docs/install.md documents --force for disposable smoke copies.
-          - status.md, state/CONTEXT.md, plans/current.yaml, and index.yaml describe Phase 5 closeout state.
+          - decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md records the closeout baseline decision.
+          - design/v1-product-spec-and-roadmap.md points to docs/v1-validation.md.
+          - docs/v1-validation.md distinguishes v1 behavior from deferred work.
+          - status.md, state/CONTEXT.md, and plans/current.yaml describe post-v1 sequencing as next.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force passed.
-          - node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile dogfood --force passed.
-          - plans/current.yaml records v1 closeout hardening as active after Phase 5 completion.
+          - The harness repo dogfoods the closeout baseline through status, context, plans, metadata, index, and doctor validation.
           - npm publication remains deferred while private/license blockers remain.
+          - post-v1 sequencing is now the active plan item.

@@ -36,7 +36,8 @@ blocked while
 `private: true`, `UNLICENSED`, or any release preflight blocker remains. Actual
 npm publication is deferred for now. Named real-repo smoke has passed against
 `~/code/meetingly` for both `minimal` and `dogfood` profiles using the packed
-package and forced init in the copied target.
+package and forced init in the copied target. The v1 closeout validation matrix
+and deferred-scope baseline live in `docs/v1-validation.md`.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -60,6 +61,7 @@ version discovery, external-target smoke, forceable external-smoke init,
 guarded publish planning, and named real-repo smoke exist. Npm publication and
 the release-license decision are intentionally deferred. General file/template
 upgrade apply, profile switching, and non-npm distribution do not exist yet.
+The current v1 baseline is documented in `docs/v1-validation.md`.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -105,8 +107,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   validation, explicit npm package-boundary validation, release preflight
   planning, registry version discovery, external-target smoke, guarded publish
   planning, forceable external-smoke init, and named real-repo smoke are
-  implemented. Actual npm publication is deferred for now, and the next useful
-  increment is v1 closeout hardening.
+  implemented. Actual npm publication is deferred for now.
+- `docs/v1-validation.md` is the v1 closeout validation and deferred-scope
+  baseline; the next useful increment is post-v1 sequencing.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -245,8 +248,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   install, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `distribution-named-real-repo-smoke` as the
-  current complete depth pass for the Phase 5 closeout increment.
+- `build/depth-gate.yaml` records `v1-closeout-validation-baseline` as the
+  current complete depth pass for the v1 closeout increment.
 - `~/code/meetingly` has passed distribution smoke for both `minimal` and
   `dogfood` profiles with forced init in a copied target; the original repo was
   not mutated.
@@ -285,6 +288,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `docs/minimal-profile.md` — reference for the current minimal install
   profile.
 - `docs/install.md` — local tarball install guide and package-boundary note.
+- `docs/v1-validation.md` — v1 validation matrix, closeout command set,
+  behavior boundary, and deferred-scope summary.
 - `.harness/manifest.yaml` — dogfood installed harness manifest.
 - `.harness/lock.yaml` — dogfood installed-file provenance lock.
 - `metadata/artifacts.yaml` — dogfood structured artifact metadata registry.
@@ -344,6 +349,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0022-close-phase-5-with-local-tarball-distribution.md` — decision
   record for closing Phase 5 with local tarball distribution while registry
   publication remains deferred.
+- `decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md` —
+  decision record for adopting the v1 validation matrix and deferred-scope
+  baseline.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -371,8 +379,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Run v1 closeout hardening: final validation matrix, install docs cleanup,
-  and explicit v1/deferred-scope summary.
+- Choose the next post-v1 increment. Strong candidates are broader
+  `harness upgrade apply`, profile inspection/switching, publication/license
+  work, or more named real-repo smoke targets.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   until the release-license and publication decision is intentionally resumed.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
