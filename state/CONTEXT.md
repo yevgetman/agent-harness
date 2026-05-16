@@ -149,6 +149,8 @@ Current dogfood state:
   without mutating the original target. It now exposes guarded public npm
   publish planning through `npm run distribution:publish-plan`, while publish
   confirmation remains blocked by private/license release blockers.
+  Actual npm publication is deferred for now; the active Phase 5 follow-on is
+  named real-repo dogfood smoke before any release-blocker cleanup.
   `docs/install.md` documents local tarball installation.
 
 ## Orientation rule
@@ -166,9 +168,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to decide whether Distribution Readiness should be
-deepened next toward clearing release blockers, choosing a public release
-license, or running a named real-repo dogfood smoke target.
+The current useful step is to deepen Distribution Readiness with named
+real-repo dogfood smoke while npm publication remains deferred.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -192,6 +193,7 @@ license, or running a named real-repo dogfood smoke target.
   packed-package smoke validation for package install/init/doctor/upgrade plan,
   copied external-target smoke, public npm access policy, and guarded publish
   planning.
-- Candidate next Distribution depth: release blocker cleanup, public release
-  license decision, or named real-repo dogfood smoke.
+- Next Distribution depth: run a named real-repo dogfood smoke target, capture
+  compatibility gaps, and decide whether Phase 5 can close without registry
+  publication.
 - Keep `status.md` current after significant choices.

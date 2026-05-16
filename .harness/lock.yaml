@@ -184,7 +184,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: d17c908fa26f6fef5de16636bb359f72a92a112e26b1715dc3681ebd105ec8be
+      sha256: c029607b90a435c101593f6e5fe365aec2743fe81e4c05a7ef181dc6450e9373
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -206,7 +206,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: c9cca2cc89ca9968898d613cbe06d4c975282ec89c19145af81bda036c10c494
+      sha256: d39cf10045c2e0feec2e4017d546a0ff9b3eb0ffb211ede528c1aff83a9c8844
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -216,7 +216,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: fa55f3243734bd0b80249957daa7b1e7193c82f275fe85fdb87a8da76f943350
+      sha256: e0078c759ca6c4b6be7d6b8163ef35ec0b8226e68acd1d1f545d9f15277535ba
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

@@ -111,16 +111,16 @@ plans_status:
 
     - id: phase-5-guarded-publish-workflow
       title: Add guarded npm publish workflow
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
       summary: Phase 5 now has public npm access policy plus guarded publish planning and confirmation; publish confirmation remains blocked while private/license release blockers remain.
-      next_action: Decide whether to clear release blockers, choose a public release license, or run a named real-repo dogfood smoke target next.
+      next_action: Keep npm publication deferred until the release-license and publication decision is intentionally resumed.
       canonical_state_id: product-spec
       tags:
         - phase-5
         - distribution
-        - current
+        - complete
       references:
         - design/v1-product-spec-and-roadmap.md
         - design/v1-distribution-readiness-design.md
@@ -129,3 +129,21 @@ plans_status:
         - package.json
         - scripts/distribution.mjs
         - scripts/test.mjs
+
+    - id: phase-5-named-real-repo-smoke
+      title: Run named real-repo dogfood smoke
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Validate the packed package against at least one named existing git repo before considering Phase 5 closeout or npm publication.
+      next_action: Select a non-source git target and run `node scripts/harness.mjs distribution smoke --target <path> --profile minimal`, then capture any compatibility gaps.
+      canonical_state_id: product-spec
+      tags:
+        - phase-5
+        - distribution
+        - current
+      references:
+        - design/v1-product-spec-and-roadmap.md
+        - design/v1-distribution-readiness-design.md
+        - docs/install.md
+        - scripts/distribution.mjs

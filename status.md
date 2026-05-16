@@ -30,7 +30,9 @@ init/doctor/upgrade behavior, and leaves the source target unchanged. Guarded
 npm publish planning is implemented through `harness distribution publish
 --plan` and `npm run distribution:publish-plan`; the first registry access
 policy is public, and publish confirmation remains blocked while
-`private: true`, `UNLICENSED`, or any release preflight blocker remains.
+`private: true`, `UNLICENSED`, or any release preflight blocker remains. Actual
+npm publication is deferred for now; the next Phase 5 depth step is named
+real-repo dogfood smoke rather than clearing release blockers immediately.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -51,8 +53,9 @@ operation records, JSON plans, operation summaries, and a limited safe
 `harness upgrade apply` scaffold. Local packed-package distribution smoke,
 explicit npm package-boundary validation, release preflight planning, registry
 version discovery, external-target smoke, and guarded publish planning exist,
-but no published package, release-license decision, general file/template
-upgrade apply, profile switching, or non-npm distribution exists yet.
+but npm publication and the release-license decision are intentionally deferred.
+General file/template upgrade apply, profile switching, and non-npm distribution
+do not exist yet.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -96,8 +99,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Phase 5 Distribution Readiness is active; packed-package smoke validation,
   explicit npm package-boundary validation, release preflight planning, registry
   version discovery, external-target smoke, and guarded publish planning are
-  implemented breadth/depth increments, and guarded publish planning is the
-  current depth increment.
+  implemented breadth/depth increments. Guarded publish planning is
+  depth-complete, actual npm publication is deferred for now, and the next
+  useful depth increment is named real-repo dogfood smoke.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -238,6 +242,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   dogfood profile init into real temp git targets.
 - `build/depth-gate.yaml` records `distribution-guarded-publish-workflow` as
   the current complete depth pass for the guarded publish workflow increment.
+- `plans/current.yaml` records named real-repo dogfood smoke as the active
+  Phase 5 follow-on while npm publication remains deferred.
 
 ## Active Artifacts
 
@@ -352,9 +358,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Decide whether Distribution Readiness should deepen next toward clearing
-  release blockers, choosing a public release license, or running a named
-  real-repo dogfood smoke target.
+- Run named real-repo dogfood smoke against at least one non-source git target
+  using the packed package, then capture any compatibility gaps.
+- Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
+  until the release-license and publication decision is intentionally resumed.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 
