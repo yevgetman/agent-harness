@@ -2,7 +2,8 @@
 
 **Status:** accepted baseline
 **Date:** 2026-05-16
-**Scope:** Phase 5 packed-package smoke validation and package boundary
+**Scope:** Phase 5 packed-package smoke validation, package boundary, and
+release preflight
 
 This is a formal design document. It defines the first Distribution Readiness
 increments after the Phase 4 Plans And Status breadth pass.
@@ -20,14 +21,15 @@ The second increment makes the npm package boundary explicit and mechanically
 checked. The package should be a runtime distribution, not a source-repo
 snapshot.
 
-This does not publish a release. It proves that the package boundary contains
-the CLI, modules, profiles, templates, validators, and runtime dependencies
-needed by target repos.
+The third increment adds a release preflight plan. This does not publish a
+release; it proves the release metadata and dry-run publish shape, then keeps
+registry publication blocked while the package is private.
 
 ## Command
 
 ```bash
 harness distribution check
+harness distribution release --plan
 harness distribution smoke
 ```
 
@@ -35,12 +37,25 @@ Local package script:
 
 ```bash
 npm run distribution:check
+npm run distribution:release-plan
 npm run distribution:smoke
 ```
 
 `harness distribution check` runs `npm pack --dry-run --json` and validates the
 package contents. It fails when required runtime files are missing or when
 repo-local dogfood/build artifacts leak into the package.
+
+`harness distribution release --plan` runs the package contents check and
+`npm publish --dry-run --json`. It reports release readiness separately from
+command success:
+
+- `ok` means the preflight command could inspect package and publish metadata.
+- `ready` means no release blockers remain.
+- While `package.json` has `private: true`, the plan is expected to be blocked.
+
+The release plan must block when npm dry-run publish auto-corrects package
+metadata, because that means the repository's package metadata is not the same
+as what npm would publish.
 
 `harness distribution smoke`:
 
@@ -138,18 +153,36 @@ The package excludes dogfood and source-repo-local artifacts:
 The package remains private and unpublished until a later release decision
 chooses the package name, registry access policy, and publish workflow.
 
+## Release Preflight
+
+The release preflight is deliberately plan-only. It does not call `npm publish`
+without `--dry-run`.
+
+Current blockers:
+
+- `package.json private` is true.
+- Registry package access policy is undecided.
+- The first publish workflow is undecided.
+
+Current release preflight evidence:
+
+- package contents validation passes.
+- `npm publish --dry-run --json` emits publish metadata.
+- npm publish dry-run does not auto-correct package metadata.
+
 ## Doctor And Test Relationship
 
 The distribution commands are not a replacement for `npm test`. They are
 integration checks across the npm package boundary.
 
-`npm test` should cover package contents validation and at least a minimal
-packed-package smoke path. Local validation before publishing or handoff should
-run the full check and smoke commands.
+`npm test` should cover package contents validation, release preflight, and at
+least a minimal packed-package smoke path. Local validation before publishing or
+handoff should run the full check, release-plan, and smoke commands.
 
 ## Current Limits
 
 - The package remains private and unpublished.
+- Release preflight is blocked by design while `private: true`.
 - No Homebrew, standalone binary, or Bun distribution exists.
 - Version discovery still reads from the package currently executing, not from
   an external registry.

@@ -450,3 +450,16 @@ metadata:
       depends_on:
         - distribution-readiness-design
         - package
+
+    - id: release-preflight-decision
+      path: decisions/0017-adopt-release-preflight-plan.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - release
+        - decision
+      depends_on:
+        - distribution-readiness-design
+        - package

@@ -15,6 +15,11 @@ version-source reporting. Package boundary validation is implemented through
 repo-local dogfood/build artifacts from the package. Phase 4 Additional Process
 Domains has Structured Metadata, Canonical State, Invariants And Golden
 Principles, and Plans And Status installed in the dogfood repo.
+Release preflight planning is implemented through
+`harness distribution release --plan` and
+`npm run distribution:release-plan`; it runs package contents validation,
+`npm publish --dry-run --json`, and reports registry publication as blocked
+while `package.json` remains private.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -33,9 +38,9 @@ command, and doctor validation. Baseline installed-file provenance exists via
 doctor checks, semantic lock metadata, lock-aware upgrade planning with typed
 operation records, JSON plans, operation summaries, and a limited safe
 `harness upgrade apply` scaffold. Local packed-package distribution smoke and
-explicit npm package-boundary validation exist, but no published package,
-registry version discovery, general file/template upgrade apply, profile
-switching, or non-npm distribution exists yet.
+explicit npm package-boundary validation, and release preflight planning exist,
+but no published package, registry version discovery, general file/template
+upgrade apply, profile switching, or non-npm distribution exists yet.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -51,9 +56,11 @@ package scripts for local dogfood use, and doctor validation when
 `harness plans report`, local package scripts, and doctor validation when
 `plans-and-status` is installed. Distribution Readiness exists via
 `harness distribution check`, `npm run distribution:check`,
+`harness distribution release --plan`, `npm run distribution:release-plan`,
 `harness distribution smoke`, `npm run distribution:smoke`, an explicit package
 `files` boundary, install docs, package-based upgrade version-source reporting,
-and packed-package smoke validation for the `minimal` and `dogfood` profiles.
+release preflight blockers while the package is private, and packed-package
+smoke validation for the `minimal` and `dogfood` profiles.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -74,7 +81,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   units.
 - Phase 5 Distribution Readiness is active; packed-package smoke validation and
   explicit npm package-boundary validation are implemented breadth/depth
-  increments.
+  increments, and release preflight planning is the current depth increment.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -186,6 +193,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   domain.
 - `npm run distribution:check` validates explicit npm package contents with
   `npm pack --dry-run --json`.
+- `npm run distribution:release-plan` validates package contents, runs
+  `npm publish --dry-run --json`, and reports registry publication as blocked
+  while the package is private.
 - `npm run distribution:smoke` packs the local npm package, validates package
   contents, and validates the installed harness binary in temporary target
   repos.
@@ -199,8 +209,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   install, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `distribution-package-boundary` as the
-  current complete depth pass for the package/release readiness increment.
+- `build/depth-gate.yaml` records `distribution-release-preflight` as the
+  current complete depth pass for the release preflight increment.
 
 ## Active Artifacts
 
@@ -280,6 +290,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   record for adopting packed-package distribution smoke validation.
 - `decisions/0016-adopt-explicit-npm-package-boundary.md` — decision record
   for adopting an explicit npm package boundary and contents check.
+- `decisions/0017-adopt-release-preflight-plan.md` — decision record for
+  adopting a blocked release preflight plan before publish automation.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -306,7 +318,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 ## Next Work
 
 - Decide whether Distribution Readiness should deepen next toward registry
-  version discovery, release publish workflow, or external-target smoke.
+  version discovery, actual publish workflow, or external-target smoke.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

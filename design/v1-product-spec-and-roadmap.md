@@ -150,6 +150,7 @@ Current commands:
 - `harness plans check`
 - `harness plans report`
 - `harness distribution check`
+- `harness distribution release --plan`
 - `harness distribution smoke`
 - `harness lock refresh`
 - `harness lock check`
@@ -341,8 +342,9 @@ dogfooding requires an external target sooner.
 
 ### Phase 5: Distribution Readiness
 
-Status: active; local packed-package smoke validation and explicit package
-boundary validation are implemented and dogfooded.
+Status: active; local packed-package smoke validation, explicit package
+boundary validation, and release preflight planning are implemented and
+dogfooded.
 
 Purpose:
 
@@ -361,6 +363,10 @@ Initial behavior:
 - `harness distribution check` runs `npm pack --dry-run --json` and verifies
   that the npm package includes required runtime files and excludes repo-local
   dogfood/build artifacts.
+- `harness distribution release --plan` runs package contents validation and
+  `npm publish --dry-run --json`, reports release blockers separately from
+  command success, and keeps registry publication blocked while the package is
+  private.
 - `harness distribution smoke` runs `npm pack` against the source repo,
   validates package contents, installs the packed tarball into temporary target
   repos, runs the installed `harness` binary, initializes profiles, runs

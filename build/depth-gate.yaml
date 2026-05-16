@@ -646,12 +646,54 @@ build_strategy:
             - plans/current.yaml records Phase 5 distribution smoke as active current work.
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: distribution-package-boundary
+      breadth_unit: >
+        Deepen Phase 5 Distribution Readiness by making the npm package boundary
+        explicit, validating package contents before smoke tests, documenting the
+        local tarball install path, and keeping release publication deferred.
+      status: complete
+      completed_on: 2026-05-16
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - package.json has an explicit runtime-oriented files list.
+            - harness distribution check validates package contents with npm pack --dry-run --json.
+            - harness distribution smoke validates package contents before installing the tarball into temporary target repos.
+            - docs/install.md documents local tarball installation for target repos.
+        - id: validation
+          status: satisfied
+          evidence:
+            - The package check fails when required CLI, module, profile, docs, or design files are missing.
+            - The package check fails when repo-local dogfood/build paths leak into the package.
+            - The package manifest records repository, license, keyword, engine, bin, and file-boundary metadata.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers distribution package contents validation.
+            - npm test covers package contents validation before minimal distribution smoke.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-distribution-readiness-design.md defines the explicit package boundary.
+            - decisions/0016-adopt-explicit-npm-package-boundary.md records the boundary decision.
+            - docs/install.md documents the local tarball install path and registry-install deferral.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the package-boundary behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run distribution:check has been run against the dogfood repo.
+            - npm run distribution:smoke has been run against the dogfood repo after adding the explicit package boundary.
+            - plans/current.yaml records Phase 5 package boundary as active current work.
+            - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: distribution-package-boundary
+    id: distribution-release-preflight
     breadth_unit: >
-      Deepen Phase 5 Distribution Readiness by making the npm package boundary
-      explicit, validating package contents before smoke tests, documenting the
-      local tarball install path, and keeping release publication deferred.
+      Deepen Phase 5 Distribution Readiness with a plan-only release preflight
+      that runs package contents validation, npm publish dry-run, metadata
+      auto-correction detection, and intentional private-package blockers.
     status: complete
     completed_on: 2026-05-16
     ready_for_next_breadth: true
@@ -659,32 +701,32 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - package.json has an explicit runtime-oriented files list.
-          - harness distribution check validates package contents with npm pack --dry-run --json.
-          - harness distribution smoke validates package contents before installing the tarball into temporary target repos.
-          - docs/install.md documents local tarball installation for target repos.
+          - harness distribution release --plan runs package contents validation.
+          - harness distribution release --plan runs npm publish --dry-run --json.
+          - npm run distribution:release-plan exposes the release preflight locally.
+          - package.json bin metadata is normalized so npm dry-run publish does not auto-correct it.
       - id: validation
         status: satisfied
         evidence:
-          - The package check fails when required CLI, module, profile, docs, or design files are missing.
-          - The package check fails when repo-local dogfood/build paths leak into the package.
-          - The package manifest records repository, license, keyword, engine, bin, and file-boundary metadata.
+          - The release plan reports command success separately from release readiness.
+          - The release plan blocks registry publication while package.json private is true.
+          - The release plan blocks npm publish dry-run metadata auto-correction.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers distribution package contents validation.
-          - npm test covers package contents validation before minimal distribution smoke.
+          - npm test covers distribution release plan execution.
+          - npm test covers the private-package publication blocker.
+          - npm test covers npm publish dry-run execution.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-distribution-readiness-design.md defines the explicit package boundary.
-          - decisions/0016-adopt-explicit-npm-package-boundary.md records the boundary decision.
-          - docs/install.md documents the local tarball install path and registry-install deferral.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the package-boundary behavior.
+          - design/v1-distribution-readiness-design.md defines the release preflight plan.
+          - decisions/0017-adopt-release-preflight-plan.md records the release preflight decision.
+          - docs/install.md documents the release preflight before registry publish attempts.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the release preflight behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run distribution:check has been run against the dogfood repo.
-          - npm run distribution:smoke has been run against the dogfood repo after adding the explicit package boundary.
-          - plans/current.yaml records Phase 5 package boundary as active current work.
-          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, and npm test pass against the dogfood repo.
+          - npm run distribution:release-plan has been run against the dogfood repo.
+          - plans/current.yaml records Phase 5 release preflight as active current work.
+          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:smoke, and npm test pass against the dogfood repo.

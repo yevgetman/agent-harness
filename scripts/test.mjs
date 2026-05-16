@@ -840,6 +840,16 @@ withTempDir((root) => {
   assert.equal(check.files.includes("status.md"), false, "distribution package should exclude dogfood status");
   assert.equal(check.errors.length, 0, "distribution check should not report package boundary errors");
 
+  const release = quiet(() => runDistribution({ args: ["release", "--plan"] }));
+  assert.equal(release.ok, true, "distribution release plan should run");
+  assert.equal(release.ready, false, "distribution release plan should stay blocked while package is private");
+  assert.equal(release.publish_dry_run.ok, true, "distribution release plan should run npm publish dry-run");
+  assert.equal(
+    release.blockers.includes("package.json private is true; registry publication is intentionally blocked"),
+    true,
+    "distribution release plan should block registry publication while package is private",
+  );
+
   const smoke = quiet(() => runDistribution({ args: ["smoke", "--profile", "minimal"] }));
   assert.equal(smoke.ok, true, "distribution smoke should pass for the minimal profile");
   assert.equal(smoke.package_check.ok, true, "distribution smoke should validate package contents before install");

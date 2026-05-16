@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -74,6 +74,22 @@ function run(command, args, options = {}) {
   });
 }
 
+function runCaptured(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    ...options,
+  });
+
+  return {
+    ok: result.status === 0,
+    status: result.status,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    error: result.error?.message ?? null,
+  };
+}
+
 function commandError(error) {
   const stderr = error.stderr?.toString?.().trim();
   const stdout = error.stdout?.toString?.().trim();
@@ -85,10 +101,12 @@ function printHelp() {
 
 Usage:
   harness distribution check [--json]
+  harness distribution release --plan [--json]
   harness distribution smoke [--profile <profile>] [--json] [--keep]
 
 Commands:
   check    Validate explicit npm package contents without writing a tarball.
+  release  Plan release readiness without publishing.
   smoke    Pack the local npm package and validate installed target repos.
 
 Options:
@@ -173,6 +191,48 @@ function packPackage(workRoot = null, { dryRun = false } = {}) {
     package_version: packed[0].version,
     file_count: packed[0].entryCount,
     files,
+  };
+}
+
+function readPackageJson() {
+  return JSON.parse(readFileSync(join(SOURCE_ROOT, "package.json"), "utf8"));
+}
+
+function npmWarnings(stderr) {
+  return stderr
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("npm warn"));
+}
+
+function publishDryRun() {
+  const result = runCaptured("npm", ["publish", "--dry-run", "--json"], { cwd: SOURCE_ROOT });
+  let publish = null;
+  const errors = [];
+
+  if (result.error) {
+    errors.push(result.error);
+  }
+
+  if (result.stdout.trim()) {
+    try {
+      publish = JSON.parse(result.stdout);
+    } catch (parseError) {
+      errors.push(`npm publish --dry-run JSON parse error: ${parseError.message}`);
+    }
+  } else {
+    errors.push("npm publish --dry-run did not emit JSON output");
+  }
+
+  return {
+    ok: result.ok && errors.length === 0,
+    status: result.status,
+    package_name: publish?.name ?? "unknown",
+    package_version: publish?.version ?? "unknown",
+    file_count: publish?.entryCount ?? 0,
+    files: (publish?.files ?? []).map((file) => file.path).sort(),
+    warnings: npmWarnings(result.stderr),
+    errors,
   };
 }
 
@@ -265,6 +325,36 @@ function printCheckResult(result) {
   }
 }
 
+function printReleasePlan(result) {
+  console.log("Harness distribution release plan");
+  console.log(`status: ${result.ready ? "ready" : "blocked"}`);
+  console.log(`package: ${result.package_name}@${result.package_version}`);
+  console.log(`private: ${result.private}`);
+  console.log(`package_check: ${result.package_check.ok ? "ok" : "error"}`);
+  console.log(`publish_dry_run: ${result.publish_dry_run.ok ? "ok" : "error"}`);
+  console.log(`tarball_entries: ${result.file_count}`);
+  console.log("blockers:");
+  if (result.blockers.length === 0) {
+    console.log("  none");
+  } else {
+    for (const blocker of result.blockers) {
+      console.log(`  ${blocker}`);
+    }
+  }
+  console.log("warnings:");
+  if (result.warnings.length === 0) {
+    console.log("  none");
+  } else {
+    for (const warning of result.warnings) {
+      console.log(`  ${warning}`);
+    }
+  }
+  console.log("next_actions:");
+  for (const action of result.next_actions) {
+    console.log(`  ${action}`);
+  }
+}
+
 function runCheck() {
   const packed = packPackage(null, { dryRun: true });
   if (packed.error) {
@@ -293,6 +383,63 @@ function runCheck() {
     files: packed.files,
     package_check: packageCheck,
     errors: packageCheck.errors,
+  };
+}
+
+function runReleasePlan() {
+  const packageJson = readPackageJson();
+  const check = runCheck();
+  const publish = publishDryRun();
+  const blockers = [];
+  const warnings = [];
+
+  if (!check.ok) {
+    blockers.push(...check.errors);
+  }
+
+  if (!publish.ok) {
+    blockers.push(...publish.errors);
+  }
+
+  if (packageJson.private === true) {
+    blockers.push("package.json private is true; registry publication is intentionally blocked");
+  }
+
+  if (!packageJson.repository?.url) {
+    blockers.push("package.json missing repository.url");
+  }
+
+  if (!packageJson.license) {
+    blockers.push("package.json missing license");
+  }
+
+  if (!packageJson.engines?.node) {
+    blockers.push("package.json missing engines.node");
+  }
+
+  const autoCorrectWarning = publish.warnings.find((warning) => warning.includes("auto-corrected"));
+  if (autoCorrectWarning) {
+    blockers.push("npm publish --dry-run auto-corrected package metadata");
+  }
+
+  warnings.push(...publish.warnings.filter((warning) => !warning.includes("requires you to be logged in")));
+
+  return {
+    ok: check.ok && publish.ok,
+    ready: blockers.length === 0,
+    package_name: check.package_name,
+    package_version: check.package_version,
+    private: packageJson.private === true,
+    file_count: check.file_count,
+    package_check: check.package_check,
+    publish_dry_run: publish,
+    blockers,
+    warnings,
+    next_actions: [
+      "choose npm package access policy and publish target",
+      "set package.json private to false only after a release decision",
+      "rerun npm run distribution:release-plan before any publish attempt",
+    ],
   };
 }
 
@@ -374,6 +521,22 @@ export function runDistribution({ args = [] } = {}) {
       console.log(JSON.stringify(result, null, 2));
     } else {
       printCheckResult(result);
+    }
+    return result;
+  }
+
+  if (subcommand === "release") {
+    if (!rest.includes("--plan")) {
+      console.error("fail distribution release requires --plan");
+      printHelp();
+      return { ok: false };
+    }
+
+    const result = runReleasePlan();
+    if (rest.includes("--json")) {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      printReleasePlan(result);
     }
     return result;
   }

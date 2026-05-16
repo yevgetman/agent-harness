@@ -9,6 +9,7 @@ From the harness source repo:
 
 ```bash
 npm run distribution:check
+npm run distribution:release-plan
 npm run distribution:smoke
 npm pack --pack-destination /tmp/harness-pack
 ```
@@ -42,3 +43,13 @@ temporary target repos and running the installed `harness` binary.
 
 Registry installation is deferred until the package name, access policy, and
 release workflow are decided.
+
+Run the release preflight before any registry publish attempt:
+
+```bash
+npm run distribution:release-plan
+```
+
+The current expected result is blocked because `package.json` has
+`private: true`. Treat that as intentional until a release decision records the
+package name, access policy, and publish workflow.

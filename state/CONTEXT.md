@@ -138,11 +138,13 @@ Current dogfood state:
   `npm run questions:list`.
 - Distribution Readiness exists in first dogfood form via
   `npm run distribution:check`, which validates explicit npm package contents,
-  and `npm run distribution:smoke`, which packs the local npm package,
-  validates package contents, installs it into temporary target repos, runs the
-  installed `harness` binary, validates initialized profiles with doctor, and
-  confirms package-based upgrade version source reporting. `docs/install.md`
-  documents local tarball installation.
+  `npm run distribution:release-plan`, which runs package validation plus
+  `npm publish --dry-run --json` and reports publishing as blocked while the
+  package is private, and `npm run distribution:smoke`, which packs the local
+  npm package, validates package contents, installs it into temporary target
+  repos, runs the installed `harness` binary, validates initialized profiles
+  with doctor, and confirms package-based upgrade version source reporting.
+  `docs/install.md` documents local tarball installation.
 
 ## Orientation rule
 
@@ -160,7 +162,7 @@ Then open the relevant formal design or exploratory spec for the task.
 ## Near-term work
 
 The current useful step is to decide whether Distribution Readiness should be
-deepened next toward registry version discovery, release publish workflow, or
+deepened next toward registry version discovery, actual publish workflow, or
 external-target smoke.
 
 - Keep `harness doctor` focused on installed harness health plus active module
@@ -180,9 +182,9 @@ external-target smoke.
 - Plans And Status now has list/report queries, status/owner/priority
   filtering, JSON output, status-projection validation, plan-reference
   validation, and report summaries.
-- Distribution Readiness now has explicit package contents validation, local
-  tarball install docs, and packed-package smoke validation for package install,
-  init, doctor, and upgrade plan.
-- Candidate next Distribution depth: registry version discovery, release
-  publish workflow, or external-target smoke.
+- Distribution Readiness now has explicit package contents validation, release
+  preflight planning, local tarball install docs, and packed-package smoke
+  validation for package install, init, doctor, and upgrade plan.
+- Candidate next Distribution depth: registry version discovery, actual publish
+  workflow, or external-target smoke.
 - Keep `status.md` current after significant choices.

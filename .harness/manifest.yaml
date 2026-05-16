@@ -99,6 +99,7 @@ harness:
     plans-check: npm run plans:check
     plans-report: npm run plans:report
     distribution-check: npm run distribution:check
+    distribution-release-plan: npm run distribution:release-plan
     distribution-smoke: npm run distribution:smoke
   upgrade:
     policy: plan-first

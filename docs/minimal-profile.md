@@ -117,6 +117,7 @@ and `harness metadata report`. `canonical-state` adds
 
 Distribution readiness is checked from the source repo with
 `npm run distribution:check`, which validates explicit npm package contents,
+`npm run distribution:release-plan`, which runs a blocked release preflight,
 and `npm run distribution:smoke`, which packs the local npm package and
 validates the installed `harness` binary in temporary target repos.
 
