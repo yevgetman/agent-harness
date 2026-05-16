@@ -343,8 +343,8 @@ dogfooding requires an external target sooner.
 ### Phase 5: Distribution Readiness
 
 Status: active; local packed-package smoke validation, explicit package
-boundary validation, and release preflight planning are implemented and
-dogfooded.
+boundary validation, release preflight planning, and registry version discovery
+are implemented and dogfooded.
 
 Purpose:
 
@@ -353,7 +353,7 @@ Purpose:
 Candidate work:
 
 - choose npm, Bun, Homebrew, standalone binary, or a staged combination
-- version-source discovery outside local checkout
+- publish workflow and registry access policy
 - release packaging
 - install docs
 - smoke tests against external target repos
@@ -376,6 +376,10 @@ Initial behavior:
 - Upgrade planning reports `version_source.type: package` when a target was
   initialized from the installed package and `local-checkout` for this dogfood
   repo.
+- For package-installed targets, upgrade planning queries the npm registry for
+  the configured dist tag, records available/unpublished/private/unavailable
+  registry status, and falls back to the executing package version when no
+  registry version is available.
 - The package manifest has an explicit runtime-oriented `files` list plus
   repository, license, keyword, and engine metadata.
 - `docs/install.md` documents local tarball installation and records registry

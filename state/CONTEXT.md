@@ -143,8 +143,9 @@ Current dogfood state:
   package is private, and `npm run distribution:smoke`, which packs the local
   npm package, validates package contents, installs it into temporary target
   repos, runs the installed `harness` binary, validates initialized profiles
-  with doctor, and confirms package-based upgrade version source reporting.
-  `docs/install.md` documents local tarball installation.
+  with doctor, and confirms package-based upgrade version source plus npm
+  registry status reporting. `docs/install.md` documents local tarball
+  installation.
 
 ## Orientation rule
 
@@ -162,8 +163,7 @@ Then open the relevant formal design or exploratory spec for the task.
 ## Near-term work
 
 The current useful step is to decide whether Distribution Readiness should be
-deepened next toward registry version discovery, actual publish workflow, or
-external-target smoke.
+deepened next toward an actual publish workflow or external-target smoke.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.

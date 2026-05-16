@@ -19,7 +19,11 @@ Release preflight planning is implemented through
 `harness distribution release --plan` and
 `npm run distribution:release-plan`; it runs package contents validation,
 `npm publish --dry-run --json`, and reports registry publication as blocked
-while `package.json` remains private.
+while `package.json` remains private. Registry version discovery is implemented
+through `harness upgrade --plan` for package-installed targets; it queries npm
+for the configured dist tag, reports available/unpublished/private/unavailable
+status, and falls back to the executing package version when no registry
+version is available.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -37,10 +41,11 @@ command, and doctor validation. Baseline installed-file provenance exists via
 `.harness/lock.yaml`, `harness lock refresh`, `harness lock check`, lock-aware
 doctor checks, semantic lock metadata, lock-aware upgrade planning with typed
 operation records, JSON plans, operation summaries, and a limited safe
-`harness upgrade apply` scaffold. Local packed-package distribution smoke and
-explicit npm package-boundary validation, and release preflight planning exist,
-but no published package, registry version discovery, general file/template
-upgrade apply, profile switching, or non-npm distribution exists yet.
+`harness upgrade apply` scaffold. Local packed-package distribution smoke,
+explicit npm package-boundary validation, release preflight planning, and
+registry version discovery exist, but no published package, actual publish
+workflow, general file/template upgrade apply, profile switching, or non-npm
+distribution exists yet.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -59,8 +64,9 @@ package scripts for local dogfood use, and doctor validation when
 `harness distribution release --plan`, `npm run distribution:release-plan`,
 `harness distribution smoke`, `npm run distribution:smoke`, an explicit package
 `files` boundary, install docs, package-based upgrade version-source reporting,
-release preflight blockers while the package is private, and packed-package
-smoke validation for the `minimal` and `dogfood` profiles.
+package-installed registry status reporting, release preflight blockers while
+the package is private, and packed-package smoke validation for the `minimal`
+and `dogfood` profiles.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -79,9 +85,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Phase 4 Additional Process Domains has Structured Metadata, Canonical State,
   Invariants And Golden Principles, and Plans And Status installed as breadth
   units.
-- Phase 5 Distribution Readiness is active; packed-package smoke validation and
-  explicit npm package-boundary validation are implemented breadth/depth
-  increments, and release preflight planning is the current depth increment.
+- Phase 5 Distribution Readiness is active; packed-package smoke validation,
+  explicit npm package-boundary validation, release preflight planning, and
+  registry version discovery are implemented breadth/depth increments, and
+  registry version discovery is the current depth increment.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -148,6 +155,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   changes.
 - The upgrade planner uses the explicit v1 version source `local-checkout` for
   the dogfood repo and reports `package` for package-installed targets.
+- For package-installed targets, the upgrade planner reports npm registry
+  discovery status under `version_source.registry` and uses a discovered
+  registry version as `available_harness_version` when one is available.
 - The upgrade planner reports plan schema, operation contract version, modules,
   registry-available modules, managed files, lock state, command wiring, typed
   operations, operation summaries, actions, warnings, blockers, and notes.
@@ -199,6 +209,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run distribution:smoke` packs the local npm package, validates package
   contents, and validates the installed harness binary in temporary target
   repos.
+- Package-installed distribution smoke validates that upgrade planning reports
+  package source and registry status without adding warnings or blockers for an
+  unpublished/private package.
 - `npm run modules:list` lists registry modules with installed/installable
   state.
 - `node scripts/harness.mjs modules add <module-id> --target <path>` installs
@@ -209,8 +222,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   install, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `distribution-release-preflight` as the
-  current complete depth pass for the release preflight increment.
+- `build/depth-gate.yaml` records `distribution-registry-discovery` as the
+  current complete depth pass for the registry discovery increment.
 
 ## Active Artifacts
 
@@ -292,6 +305,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   for adopting an explicit npm package boundary and contents check.
 - `decisions/0017-adopt-release-preflight-plan.md` — decision record for
   adopting a blocked release preflight plan before publish automation.
+- `decisions/0018-adopt-registry-version-discovery.md` — decision record for
+  adopting npm registry version discovery in package-installed upgrade plans.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -304,11 +319,12 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   harness CLI, installer, decision/question commands, module/profile commands,
   metadata commands, canonical state validation, invariants validation, plans
   validation and reporting, distribution contents/smoke validation, lock
-  command/helpers, upgrade planner, and doctor command.
+  command/helpers, registry-aware upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, structured metadata, canonical state, invariants, plans/status,
   distribution package contents and smoke validation, semantic lock provenance,
-  upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+  registry discovery, upgrade planning/apply behavior, depth-gate validation,
+  and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
@@ -317,8 +333,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Decide whether Distribution Readiness should deepen next toward registry
-  version discovery, actual publish workflow, or external-target smoke.
+- Decide whether Distribution Readiness should deepen next toward an actual
+  publish workflow or external-target smoke.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

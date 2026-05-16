@@ -79,6 +79,61 @@ function hasOperation(plan, code, subject = null) {
   );
 }
 
+function registryFixture({
+  packageName,
+  distTag = "latest",
+  status,
+  version = null,
+  detail,
+}) {
+  return {
+    type: "npm",
+    package: packageName,
+    dist_tag: distTag,
+    registry: "https://registry.npmjs.org/",
+    status,
+    version,
+    detail,
+  };
+}
+
+function unpublishedRegistry({ packageName, distTag = "latest" }) {
+  return registryFixture({
+    packageName,
+    distTag,
+    status: "unpublished-or-private",
+    detail: "fixture unpublished/private package",
+  });
+}
+
+function availableRegistry(version) {
+  return ({ packageName, distTag = "latest" }) => registryFixture({
+    packageName,
+    distTag,
+    status: "available",
+    version,
+    detail: "fixture available version",
+  });
+}
+
+function runTestUpgrade(options = {}) {
+  return runUpgrade({ registryDiscovery: unpublishedRegistry, ...options });
+}
+
+function withRegistryDiscoverySkip(fn) {
+  const previous = process.env.HARNESS_REGISTRY_DISCOVERY;
+  process.env.HARNESS_REGISTRY_DISCOVERY = "skip";
+  try {
+    return fn();
+  } finally {
+    if (previous == null) {
+      delete process.env.HARNESS_REGISTRY_DISCOVERY;
+    } else {
+      process.env.HARNESS_REGISTRY_DISCOVERY = previous;
+    }
+  }
+}
+
 function initGitRepo(path) {
   mkdirSync(path, { recursive: true });
   execFileSync("git", ["init"], { cwd: path, stdio: "ignore" });
@@ -226,7 +281,7 @@ withTempDir((root) => {
   }));
   assert.equal(forced.ok, true, "init --force should overwrite and pass");
 
-  const upgrade = quiet(() => runUpgrade({ cwd: gitTarget, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: gitTarget, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after init");
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after init");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after init");
@@ -238,6 +293,41 @@ withTempDir((root) => {
     "upgrade plan should expose an operation contract version",
   );
   assert.equal(upgrade.plan.version_source.type, "package", "upgrade plan should report package version source for initialized targets");
+  assert.equal(
+    upgrade.plan.version_source.registry.status,
+    "unpublished-or-private",
+    "upgrade plan should report unpublished/private package registry status",
+  );
+  assert.equal(
+    upgrade.plan.version_source.registry.version,
+    null,
+    "unpublished/private registry discovery should not report a version",
+  );
+  assert.equal(
+    upgrade.plan.available_harness_version,
+    "0.1.0",
+    "unpublished/private registry discovery should fall back to executing package version",
+  );
+  const registryUpgrade = quiet(() => runTestUpgrade({
+    cwd: gitTarget,
+    args: ["--plan"],
+    registryDiscovery: availableRegistry("0.2.0"),
+  }));
+  assert.equal(
+    registryUpgrade.plan.version_source.registry.status,
+    "available",
+    "upgrade plan should report available registry versions",
+  );
+  assert.equal(
+    registryUpgrade.plan.available_harness_version,
+    "0.2.0",
+    "available registry discovery should set the available harness version",
+  );
+  assert.equal(
+    hasOperation(registryUpgrade.plan, "review/harness-version-change", "0.1.0 -> 0.2.0"),
+    true,
+    "available registry version changes should be review-required operations",
+  );
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
   assert.equal(upgrade.plan.commands.length, 8, "upgrade plan should include command states");
   assert.equal(upgrade.plan.operation_summary.by_status.safe > 0, true, "upgrade plan should summarize safe operations");
@@ -256,7 +346,7 @@ withTempDir((root) => {
     true,
     "upgrade plan should classify apply behavior as deferred",
   );
-  const apply = quiet(() => runUpgrade({ cwd: gitTarget, args: ["apply"] }));
+  const apply = quiet(() => runTestUpgrade({ cwd: gitTarget, args: ["apply"] }));
   assert.equal(apply.ok, true, "upgrade apply should pass for safe/noop-only initialized targets");
   assert.equal(
     apply.apply.applied.some((item) => item.includes("safe/noop")),
@@ -266,9 +356,18 @@ withTempDir((root) => {
   const jsonPlan = JSON.parse(execFileSync(
     process.execPath,
     [join(REPO_ROOT, "scripts", "harness.mjs"), "upgrade", "--plan", "--json"],
-    { cwd: gitTarget, encoding: "utf8" },
+    {
+      cwd: gitTarget,
+      encoding: "utf8",
+      env: { ...process.env, HARNESS_REGISTRY_DISCOVERY: "skip" },
+    },
   ));
   assert.equal(jsonPlan.plan_schema_version, 1, "upgrade --plan --json should emit parseable plan JSON");
+  assert.equal(
+    jsonPlan.version_source.registry.status,
+    "skipped",
+    "HARNESS_REGISTRY_DISCOVERY=skip should be reported in JSON upgrade plans",
+  );
   assert.equal(
     jsonPlan.operation_summary.by_code["safe/noop"] > 0,
     true,
@@ -373,7 +472,7 @@ withTempDir((root) => {
     "doctor should report metadata validation",
   );
 
-  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after structured metadata install");
   assert.equal(upgrade.plan.managed_files.length, 5, "structured metadata should add one managed file");
   assert.equal(upgrade.plan.commands.length, 11, "structured metadata should add three command records");
@@ -493,7 +592,7 @@ withTempDir((root) => {
     "doctor should report canonical state validation",
   );
 
-  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after canonical-state install");
   assert.equal(upgrade.plan.managed_files.length, 6, "canonical-state should add one managed file");
   assert.equal(upgrade.plan.commands.length, 14, "canonical-state should add three command records");
@@ -582,7 +681,7 @@ withTempDir((root) => {
     "doctor should report invariants validation",
   );
 
-  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after invariants install");
   assert.equal(upgrade.plan.managed_files.length, 6, "invariants should add one managed file");
   assert.equal(upgrade.plan.commands.length, 12, "invariants should add one command record");
@@ -687,7 +786,7 @@ withTempDir((root) => {
     "doctor should report plans validation",
   );
 
-  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after plans install");
   assert.equal(upgrade.plan.managed_files.length, 6, "plans should add one managed file");
   assert.equal(upgrade.plan.commands.length, 14, "plans should add three command records");
@@ -826,7 +925,7 @@ withTempDir((root) => {
   const plansReport = quiet(() => runPlans({ cwd: target, args: ["report"] }));
   assert.equal(plansReport.summary.total, 1, "dogfood profile init should support plans report");
 
-  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");
   assert.equal(upgrade.plan.blockers.length, 0, "dogfood profile upgrade plan should have no blockers");
   assert.equal(upgrade.plan.warnings.length, 0, "dogfood profile upgrade plan should have no warnings");
@@ -850,11 +949,18 @@ withTempDir((root) => {
     "distribution release plan should block registry publication while package is private",
   );
 
-  const smoke = quiet(() => runDistribution({ args: ["smoke", "--profile", "minimal"] }));
+  const smoke = quiet(() => withRegistryDiscoverySkip(() =>
+    runDistribution({ args: ["smoke", "--profile", "minimal"] }),
+  ));
   assert.equal(smoke.ok, true, "distribution smoke should pass for the minimal profile");
   assert.equal(smoke.package_check.ok, true, "distribution smoke should validate package contents before install");
   assert.equal(smoke.profiles.length, 1, "distribution smoke should run the requested profile");
   assert.equal(smoke.profiles[0].version_source.type, "package", "package-installed upgrade plan should report package version source");
+  assert.equal(
+    smoke.profiles[0].version_source.registry.status,
+    "skipped",
+    "test distribution smoke should report skipped registry discovery",
+  );
   assert.equal(smoke.profiles[0].managed_files, 4, "minimal distribution smoke should validate managed files");
 }
 
@@ -923,7 +1029,7 @@ withTempDir((root) => {
     "modules list should report the added module as installed",
   );
 
-  const upgrade = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after module add");
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
@@ -1063,7 +1169,7 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
-  const upgrade = quiet(() => runUpgrade({ cwd: root, args: ["--plan"] }));
+  const upgrade = quiet(() => runTestUpgrade({ cwd: root, args: ["--plan"] }));
   assert.equal(upgrade.ok, false, "upgrade --plan should fail without a manifest");
 });
 
@@ -1077,7 +1183,7 @@ withTempDir((root) => {
   assert.equal(init.ok, true, "init should pass before upgrade blocker mutation");
 
   unlinkSync(join(target, "status.md"));
-  const missingFilePlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const missingFilePlan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(missingFilePlan.ok, true, "upgrade --plan should still return a plan with blockers");
   assert.equal(
     missingFilePlan.plan.blockers.some((item) => item.includes("managed file 'status.md' is missing")),
@@ -1089,7 +1195,7 @@ withTempDir((root) => {
     true,
     "upgrade --plan should classify missing managed files as blocked operations",
   );
-  const missingApply = quiet(() => runUpgrade({ cwd: target, args: ["apply"] }));
+  const missingApply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
   assert.equal(missingApply.ok, false, "upgrade apply should refuse blocked plans");
   assert.equal(
     missingApply.apply.errors.some((item) => item.includes("blocked/missing-managed-file")),
@@ -1108,7 +1214,7 @@ withTempDir((root) => {
   assert.equal(init.ok, true, "init should pass before upgrade warning mutation");
 
   writeFileSync(join(target, "AGENTS.md"), "# Custom Agent Instructions\n");
-  const driftPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const driftPlan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(driftPlan.ok, true, "upgrade --plan should return a plan with warnings");
   assert.equal(
     driftPlan.plan.warnings.some((item) => item.includes("managed file 'AGENTS.md' differs from lock fingerprint")),
@@ -1120,7 +1226,7 @@ withTempDir((root) => {
     true,
     "upgrade --plan should classify modified managed files as review operations",
   );
-  const driftApply = quiet(() => runUpgrade({ cwd: target, args: ["apply"] }));
+  const driftApply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
   assert.equal(driftApply.ok, false, "upgrade apply should refuse review-required plans");
   assert.equal(
     driftApply.apply.errors.some((item) => item.includes("review/modified-managed-file")),
@@ -1142,7 +1248,7 @@ withTempDir((root) => {
   lock.files = lock.files.filter((file) => file.path !== "AGENTS.md");
   writeLock(target, lock);
 
-  const unlockedPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const unlockedPlan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(unlockedPlan.ok, true, "upgrade --plan should return a plan with unlocked-file warnings");
   assert.equal(
     hasOperation(unlockedPlan.plan, "review/unlocked-managed-file", "AGENTS.md"),
@@ -1213,7 +1319,7 @@ withTempDir((root) => {
   assert.equal(init.ok, true, "init should pass before legacy no-lock test");
 
   unlinkSync(join(target, ".harness", "lock.yaml"));
-  const legacyPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const legacyPlan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(legacyPlan.ok, true, "upgrade --plan should return a plan without a lock");
   assert.equal(
     legacyPlan.plan.warnings.some((item) => item.includes(".harness/lock.yaml is missing")),
@@ -1256,7 +1362,7 @@ withTempDir((root) => {
   );
   writeFileSync(manifestPath, manifest);
 
-  const commandPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const commandPlan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(commandPlan.ok, true, "upgrade --plan should return a plan with command blockers");
   assert.equal(
     commandPlan.plan.blockers.some((item) => item.includes("command 'doctor' is not runnable")),
@@ -1289,7 +1395,7 @@ withTempDir((root) => {
   );
   writeFileSync(manifestPath, manifest);
 
-  const repairPlan = quiet(() => runUpgrade({ cwd: target, args: ["--plan"] }));
+  const repairPlan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(repairPlan.ok, true, "upgrade --plan should return a plan with repairable commands");
   assert.equal(repairPlan.plan.blockers.length, 0, "repairable commands should not be blockers");
   assert.equal(
@@ -1298,7 +1404,7 @@ withTempDir((root) => {
     "upgrade --plan should classify deterministic command repairs as safe",
   );
 
-  const repairApply = quiet(() => runUpgrade({ cwd: target, args: ["apply"] }));
+  const repairApply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
   assert.equal(repairApply.ok, true, "upgrade apply should apply safe command repairs");
   assert.equal(
     repairApply.apply.applied.some((item) => item.includes("safe/repair-command")),

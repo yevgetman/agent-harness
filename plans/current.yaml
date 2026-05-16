@@ -56,11 +56,29 @@ plans_status:
 
     - id: phase-5-release-preflight
       title: Add release preflight plan
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
       summary: Phase 5 now has a plan-only release preflight that runs package validation and npm publish dry-run while keeping publication blocked for the private package.
-      next_action: Decide whether to implement registry version discovery, actual publish workflow, or external-target smoke next.
+      canonical_state_id: product-spec
+      tags:
+        - phase-5
+        - distribution
+        - complete
+      references:
+        - design/v1-product-spec-and-roadmap.md
+        - design/v1-distribution-readiness-design.md
+        - docs/install.md
+        - scripts/distribution.mjs
+        - package.json
+
+    - id: phase-5-registry-discovery
+      title: Add registry version discovery
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Phase 5 package-installed upgrade plans now query npm registry state and report available, unpublished/private, unavailable, or skipped status without blocking unpublished/private packages.
+      next_action: Decide whether to implement the actual publish workflow or external-target smoke next.
       canonical_state_id: product-spec
       tags:
         - phase-5
@@ -69,6 +87,6 @@ plans_status:
       references:
         - design/v1-product-spec-and-roadmap.md
         - design/v1-distribution-readiness-design.md
-        - docs/install.md
-        - scripts/distribution.mjs
-        - package.json
+        - decisions/0018-adopt-registry-version-discovery.md
+        - scripts/upgrade.mjs
+        - scripts/test.mjs

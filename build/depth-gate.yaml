@@ -688,12 +688,54 @@ build_strategy:
             - plans/current.yaml records Phase 5 package boundary as active current work.
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: distribution-release-preflight
+      breadth_unit: >
+        Deepen Phase 5 Distribution Readiness with a plan-only release preflight
+        that runs package contents validation, npm publish dry-run, metadata
+        auto-correction detection, and intentional private-package blockers.
+      status: complete
+      completed_on: 2026-05-16
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness distribution release --plan runs package contents validation.
+            - harness distribution release --plan runs npm publish --dry-run --json.
+            - npm run distribution:release-plan exposes the release preflight locally.
+            - package.json bin metadata is normalized so npm dry-run publish does not auto-correct it.
+        - id: validation
+          status: satisfied
+          evidence:
+            - The release plan reports command success separately from release readiness.
+            - The release plan blocks registry publication while package.json private is true.
+            - The release plan blocks npm publish dry-run metadata auto-correction.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers distribution release plan execution.
+            - npm test covers the private-package publication blocker.
+            - npm test covers npm publish dry-run execution.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-distribution-readiness-design.md defines the release preflight plan.
+            - decisions/0017-adopt-release-preflight-plan.md records the release preflight decision.
+            - docs/install.md documents the release preflight before registry publish attempts.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the release preflight behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run distribution:release-plan has been run against the dogfood repo.
+            - plans/current.yaml records Phase 5 release preflight as active current work.
+            - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:smoke, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: distribution-release-preflight
+    id: distribution-registry-discovery
     breadth_unit: >
-      Deepen Phase 5 Distribution Readiness with a plan-only release preflight
-      that runs package contents validation, npm publish dry-run, metadata
-      auto-correction detection, and intentional private-package blockers.
+      Deepen Phase 5 Distribution Readiness with npm registry version discovery
+      for package-installed upgrade plans while keeping unpublished/private
+      package state informational.
     status: complete
     completed_on: 2026-05-16
     ready_for_next_breadth: true
@@ -701,32 +743,31 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness distribution release --plan runs package contents validation.
-          - harness distribution release --plan runs npm publish --dry-run --json.
-          - npm run distribution:release-plan exposes the release preflight locally.
-          - package.json bin metadata is normalized so npm dry-run publish does not auto-correct it.
+          - harness upgrade --plan queries npm registry state for package-installed targets.
+          - package-installed plans record registry status under version_source.registry.
+          - registry-discovered versions become available_harness_version and reuse the existing review-required harness-version-change operation.
+          - HARNESS_REGISTRY_DISCOVERY=skip disables lookup for deterministic subprocess tests and smoke paths.
       - id: validation
         status: satisfied
         evidence:
-          - The release plan reports command success separately from release readiness.
-          - The release plan blocks registry publication while package.json private is true.
-          - The release plan blocks npm publish dry-run metadata auto-correction.
+          - Unpublished/private registry state falls back to the executing package version.
+          - Unavailable or skipped registry discovery falls back to the executing package version.
+          - Registry discovery state does not add warnings or blockers by itself.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers distribution release plan execution.
-          - npm test covers the private-package publication blocker.
-          - npm test covers npm publish dry-run execution.
+          - npm test covers unpublished/private registry fallback.
+          - npm test covers available registry versions changing available_harness_version.
+          - npm test covers skipped registry lookup for subprocess package-installed upgrade plans.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-distribution-readiness-design.md defines the release preflight plan.
-          - decisions/0017-adopt-release-preflight-plan.md records the release preflight decision.
-          - docs/install.md documents the release preflight before registry publish attempts.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the release preflight behavior.
+          - design/v1-distribution-readiness-design.md defines registry version discovery.
+          - decisions/0018-adopt-registry-version-discovery.md records the registry discovery decision.
+          - design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the registry discovery behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run distribution:release-plan has been run against the dogfood repo.
-          - plans/current.yaml records Phase 5 release preflight as active current work.
-          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:smoke, and npm test pass against the dogfood repo.
+          - npm view portable-harness version --json was run and reported the expected unpublished/private registry state.
+          - plans/current.yaml records Phase 5 registry discovery as active current work.
+          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.

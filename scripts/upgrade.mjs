@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,6 +30,7 @@ function versionSourceFor(harness) {
       type: "package",
       package: harness.source.package ?? readJsonFile(join(SOURCE_ROOT, "package.json")).name,
       channel: harness.source.channel ?? "unknown",
+      registry_tag: harness.source.registry_tag ?? "latest",
       harness_package: "package.json",
       module_registry: "modules/registry.yaml",
       modules: "modules/<id>/module.yaml",
@@ -52,6 +54,108 @@ function versionSourceFor(harness) {
     module_registry: "modules/registry.yaml",
     modules: "modules/<id>/module.yaml",
   };
+}
+
+function npmRegistryResult({
+  packageName,
+  distTag,
+  status,
+  version = null,
+  detail,
+}) {
+  return {
+    type: "npm",
+    package: packageName,
+    dist_tag: distTag,
+    registry: "https://registry.npmjs.org/",
+    status,
+    version,
+    detail,
+  };
+}
+
+function discoverNpmRegistryVersion({ packageName, distTag = "latest" } = {}) {
+  if (!packageName) {
+    return npmRegistryResult({
+      packageName: "unknown",
+      distTag,
+      status: "unavailable",
+      detail: "package name is unavailable",
+    });
+  }
+
+  if (process.env.HARNESS_REGISTRY_DISCOVERY === "skip") {
+    return npmRegistryResult({
+      packageName,
+      distTag,
+      status: "skipped",
+      detail: "registry discovery skipped by HARNESS_REGISTRY_DISCOVERY",
+    });
+  }
+
+  const result = spawnSync("npm", ["view", `${packageName}@${distTag}`, "version", "--json"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 5000,
+  });
+
+  if (result.error) {
+    return npmRegistryResult({
+      packageName,
+      distTag,
+      status: "unavailable",
+      detail: `npm registry lookup failed: ${result.error.message}`,
+    });
+  }
+
+  if (result.status !== 0) {
+    const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
+    const notFoundOrPrivate = /E404|404 Not Found|could not be found|not found|permission/i.test(output);
+    return npmRegistryResult({
+      packageName,
+      distTag,
+      status: notFoundOrPrivate ? "unpublished-or-private" : "unavailable",
+      detail: notFoundOrPrivate
+        ? "npm registry returned not found or permission denied"
+        : `npm registry lookup exited ${result.status}`,
+    });
+  }
+
+  const raw = String(result.stdout ?? "").trim();
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === "string" || typeof parsed === "number") {
+      return npmRegistryResult({
+        packageName,
+        distTag,
+        status: "available",
+        version: String(parsed),
+        detail: "npm registry version discovered",
+      });
+    }
+  } catch (parseError) {
+    return npmRegistryResult({
+      packageName,
+      distTag,
+      status: "unavailable",
+      detail: `npm registry output was not parseable JSON: ${parseError.message}`,
+    });
+  }
+
+  return npmRegistryResult({
+    packageName,
+    distTag,
+    status: "unavailable",
+    detail: "npm registry output did not contain a version string",
+  });
+}
+
+function registryDiscoveryFor(versionSource, registryDiscovery) {
+  if (versionSource.type !== "package") return null;
+  return registryDiscovery({
+    packageName: versionSource.package,
+    distTag: versionSource.registry_tag ?? "latest",
+  });
 }
 
 function readYamlFile(path) {
@@ -308,14 +412,14 @@ function summarizeOperations(operations) {
   };
 }
 
-function buildPlan({ root }) {
+function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
   const loaded = loadManifest(root);
   if (loaded.error) {
     return { ok: false, error: loaded.error };
   }
 
   const harness = loaded.harness;
-  const availableVersion = readPackageVersion();
+  const localPackageVersion = readPackageVersion();
   const installedVersion = String(harness.harness_version ?? "unknown");
   const actions = [];
   const blockers = [];
@@ -331,6 +435,13 @@ function buildPlan({ root }) {
   const loadedLock = readLock(root);
   const lockByPath = loadedLock.lock ? lockFileMap(loadedLock.lock) : new Map();
   const versionSource = versionSourceFor(harness);
+  const registryVersion = registryDiscoveryFor(versionSource, registryDiscovery);
+  if (registryVersion) {
+    versionSource.registry = registryVersion;
+  }
+  const availableVersion = registryVersion?.status === "available" && registryVersion.version
+    ? registryVersion.version
+    : localPackageVersion;
   const lock = {
     status: loadedLock.status,
     files: loadedLock.lock?.files?.length ?? 0,
@@ -540,7 +651,17 @@ function buildPlan({ root }) {
 
   notes.push("apply is limited to safe/noop, safe/refresh-lock, and safe/repair-command operations");
   if (versionSource.type === "package") {
-    notes.push("version source is package; available version is read from the executing installed package");
+    if (registryVersion?.status === "available") {
+      notes.push(
+        `version source is package; registry reports ${versionSource.package}@${versionSource.registry_tag} ${registryVersion.version}`,
+      );
+    } else if (registryVersion?.status === "unpublished-or-private") {
+      notes.push("version source is package; registry package is unpublished or private, using executing package version");
+    } else if (registryVersion) {
+      notes.push(`version source is package; registry discovery ${registryVersion.status}, using executing package version`);
+    } else {
+      notes.push("version source is package; using executing package version");
+    }
   } else if (versionSource.type === "local-checkout") {
     notes.push("version source is local-checkout; external package discovery is deferred");
   } else {
@@ -734,6 +855,10 @@ function printPlan(plan) {
   console.log(`profile: ${plan.profile}`);
   console.log(`policy: ${plan.policy}`);
   console.log(`version_source: ${plan.version_source.type}`);
+  if (plan.version_source.registry) {
+    console.log(`registry_status: ${plan.version_source.registry.status}`);
+    console.log(`registry_version: ${plan.version_source.registry.version ?? "unknown"}`);
+  }
   console.log(`installed_harness_version: ${plan.installed_harness_version}`);
   console.log(`available_harness_version: ${plan.available_harness_version}`);
   console.log("lock:");
@@ -782,7 +907,7 @@ function printApplyResult(result) {
   printList("errors", result.errors);
 }
 
-export function runUpgrade({ cwd = process.cwd(), args = [] } = {}) {
+export function runUpgrade({ cwd = process.cwd(), args = [], registryDiscovery = discoverNpmRegistryVersion } = {}) {
   const root = resolve(cwd);
   const wantsHelp = args.includes("--help") || args.includes("-h") || args[0] === "help";
   const wantsPlan = args.includes("--plan") || args[0] === "plan";
@@ -800,7 +925,7 @@ export function runUpgrade({ cwd = process.cwd(), args = [] } = {}) {
     return { ok: false };
   }
 
-  const result = buildPlan({ root });
+  const result = buildPlan({ root, registryDiscovery });
   if (!result.ok) {
     console.error(`fail ${result.error}`);
     return result;

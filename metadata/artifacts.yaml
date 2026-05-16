@@ -360,6 +360,19 @@ metadata:
         - distribution-readiness-design
         - package
 
+    - id: upgrade-cli
+      path: scripts/upgrade.mjs
+      kind: cli
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - upgrade
+        - registry
+        - cli
+      depends_on:
+        - product-spec
+        - package
+
     - id: structured-metadata-decision
       path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
       kind: decision
@@ -463,3 +476,16 @@ metadata:
       depends_on:
         - distribution-readiness-design
         - package
+
+    - id: registry-discovery-decision
+      path: decisions/0018-adopt-registry-version-discovery.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - registry
+        - decision
+      depends_on:
+        - distribution-readiness-design
+        - upgrade-cli

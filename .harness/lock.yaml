@@ -52,7 +52,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 6a3e097903ab000f8c7f3b6ff6258eaee134c54de4a253cc7d070d3fd1e38af6
+      sha256: e876cf097cc823249d9781e3366b333249706bf429f8cd0f85afa1b980677ec6
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -76,7 +76,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 431901b305d2f833c06623b84a021b1181100de5fa90d1c6afd9c54f960a5cbb
+      sha256: 4ebfa1ce28b8ea71d7e9f636d65df7d7d029e21adde0c86ddbc96480f99cd26e
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -184,7 +184,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: b1769f60f63e04cd440c36aba96d28f086c6ad2571da6d7c5d369fb096be6852
+      sha256: 6ee88ef68f231876a85f140de3fdbaa03063243c254bfc0e3df4e0f6cf4bf32f
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -206,7 +206,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: f2def4d1d6076f92125b7cd6020fcb255bac848e78cee29211594eacbc8a26e0
+      sha256: 47db44f836e0db08ae2df13b13e9724c222bc0067bd7e814e519bb1b40302764
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -216,7 +216,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 749db83d096edad8e8a90e139f37c7b7e7760e86f54010c802b5b441e43a5d6e
+      sha256: 4dcce385dec786aea7db7300c31a2ea5f27bde3f5f00832e438b1b1cf0b07ba8
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

@@ -2,8 +2,8 @@
 
 **Status:** accepted baseline
 **Date:** 2026-05-16
-**Scope:** Phase 5 packed-package smoke validation, package boundary, and
-release preflight
+**Scope:** Phase 5 packed-package smoke validation, package boundary, release
+preflight, and registry version discovery
 
 This is a formal design document. It defines the first Distribution Readiness
 increments after the Phase 4 Plans And Status breadth pass.
@@ -24,6 +24,10 @@ snapshot.
 The third increment adds a release preflight plan. This does not publish a
 release; it proves the release metadata and dry-run publish shape, then keeps
 registry publication blocked while the package is private.
+
+The fourth increment adds registry version discovery for package-installed
+targets. This lets upgrade planning report the registry state without making an
+unpublished or private package a blocker.
 
 ## Command
 
@@ -102,7 +106,31 @@ source:
 ```yaml
 version_source:
   type: package
+  package: portable-harness
+  registry_tag: latest
+  registry:
+    type: npm
+    status: unpublished-or-private
+    version: null
 ```
+
+For package-installed targets, the planner queries npm for the configured dist
+tag, currently `latest`, and records the result under `version_source.registry`.
+Supported registry statuses are:
+
+- `available`: npm returned a version; that version becomes
+  `available_harness_version`.
+- `unpublished-or-private`: npm reported not found or permission denied; the
+  planner falls back to the executing package version.
+- `unavailable`: npm lookup failed, timed out, or returned an unexpected shape;
+  the planner falls back to the executing package version.
+- `skipped`: `HARNESS_REGISTRY_DISCOVERY=skip` disabled lookup for deterministic
+  test or smoke paths; the planner falls back to the executing package version.
+
+Registry discovery outcomes are informational. They do not add warnings or
+blockers by themselves. A discovered registry version that differs from the
+installed manifest version still creates the normal review-required harness
+version-change operation.
 
 When the dogfood repo records:
 
@@ -184,9 +212,9 @@ handoff should run the full check, release-plan, and smoke commands.
 - The package remains private and unpublished.
 - Release preflight is blocked by design while `private: true`.
 - No Homebrew, standalone binary, or Bun distribution exists.
-- Version discovery still reads from the package currently executing, not from
-  an external registry.
+- Registry discovery is npm-only, and unpublished/private or unavailable
+  registry state still falls back to the package currently executing.
 - The smoke target is temporary and local, not a real external repository.
 
-These limits are acceptable for the first Phase 5 increment because the key
-risk is whether the harness works when not run from `~/code/harness`.
+These limits are acceptable for the current Phase 5 depth because the key risk
+is whether the harness works when not run from `~/code/harness`.

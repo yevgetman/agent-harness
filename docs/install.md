@@ -53,3 +53,8 @@ npm run distribution:release-plan
 The current expected result is blocked because `package.json` has
 `private: true`. Treat that as intentional until a release decision records the
 package name, access policy, and publish workflow.
+
+Package-installed upgrade plans query npm registry state for the configured
+dist tag. Until the package is published, `harness upgrade --plan` should report
+the registry package as unpublished or private and fall back to the installed
+package version.
