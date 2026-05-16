@@ -6,14 +6,14 @@
 
 - id: distribution-target
   title: Which distribution target should be assumed first?
-  status: open
+  status: resolved
   owner: maintainer
   trigger: before the CLI needs to be consumed outside this local checkout
-  notes: Candidate targets are Bun, npm, Homebrew, and standalone binary.
+  notes: V1 assumes local packed npm tarball distribution. Public npm registry publication is deferred.
 
 - id: upgrade-version-source
   title: How should upgrade discover available harness and module versions?
-  status: deferred
+  status: resolved
   owner: maintainer
   trigger: before harness upgrade --plan is used outside this local checkout
-  notes: Current v1 planner intentionally uses a local-checkout version source; external package or registry discovery remains deferred until distribution is chosen.
+  notes: V1 reports local-checkout for the dogfood repo and package source with npm registry discovery/fallback for package-installed targets.

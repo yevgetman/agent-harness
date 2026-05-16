@@ -38,8 +38,11 @@ By default, `harness init` expects the target to be a git repository. Use
 
 Use `--dry-run` to inspect the install plan without writing files.
 
-Use `--force` only after reviewing local changes. The installer will otherwise
-refuse to overwrite existing managed files.
+When planned harness artifacts already exist, `harness init` warns and refuses
+to overwrite them by default. Use `--force` only after reviewing local changes;
+forced init definitively overwrites the planned harness artifacts, including
+the repo operating contract, orientation files, manifest, lock, and installed
+module definitions.
 
 ## Upgrade Planning
 

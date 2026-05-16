@@ -51,6 +51,15 @@ The smoke command copies the target into a temporary work directory, excludes
 `.git` and `node_modules`, installs the packed tarball into the copy, and runs
 the harness checks there.
 
+If the copied target already has bootstrap files such as `AGENTS.md`, use
+forced init inside the disposable smoke copy:
+
+```bash
+npm run distribution:smoke -- --target ../some-target --profile minimal --force
+```
+
+The original target repo is still not mutated.
+
 ## Registry Install
 
 Registry installation is deferred until release blockers are cleared. The first

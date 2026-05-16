@@ -151,6 +151,7 @@ Current commands:
 - `harness plans report`
 - `harness distribution check`
 - `harness distribution release --plan`
+- `harness distribution publish --plan`
 - `harness distribution smoke`
 - `harness lock refresh`
 - `harness lock check`
@@ -342,10 +343,11 @@ dogfooding requires an external target sooner.
 
 ### Phase 5: Distribution Readiness
 
-Status: active; local packed-package smoke validation, explicit package
-boundary validation, release preflight planning, registry version discovery,
-external-target smoke, and guarded npm publish planning are implemented and
-dogfooded.
+Status: complete for v1; local packed-package smoke validation, explicit
+package boundary validation, release preflight planning, registry version
+discovery, external-target smoke, guarded npm publish planning, forced
+external-smoke init, and named real-repo smoke against `~/code/meetingly` are
+implemented and dogfooded. Public npm registry publication is deferred.
 
 Purpose:
 
@@ -378,6 +380,9 @@ Initial behavior:
 - `harness distribution smoke --target <path>` copies a caller-supplied git
   target into the smoke workspace, installs the packed tarball there, validates
   init/doctor/upgrade behavior, and leaves the original target unchanged.
+- `harness distribution smoke --target <path> --force` passes forced init only
+  inside the disposable copied target so real repo shapes with existing
+  bootstrap files can be validated without mutating the source target.
 - Packed-package smoke validation covers the `minimal` and `dogfood` profiles
   by default.
 - Upgrade planning reports `version_source.type: package` when a target was
@@ -393,11 +398,14 @@ Initial behavior:
   while `private: true`, `UNLICENSED`, or any release preflight blocker remains.
 - `docs/install.md` documents local tarball installation and records registry
   publication as deferred.
+- `~/code/meetingly` has passed named real-repo smoke for the `minimal` and
+  `dogfood` profiles using the packed package and forced init in the temporary
+  copy.
 
 Exit signal:
 
-- A target repo can install and validate the harness without depending on
-  `~/code/harness`.
+- Satisfied for v1: a named target repo can install and validate the harness
+  from the packed package without depending on `~/code/harness`.
 
 ## Sequencing Rules
 

@@ -4,12 +4,13 @@ Last updated: 2026-05-16
 
 ## Current Phase
 
-Phase 5 Distribution Readiness is active. Packed-package smoke validation is
-implemented through `harness distribution smoke` and `npm run
-distribution:smoke`; it runs `npm pack`, validates package contents, installs
-the packed tarball into temporary target repos, runs the installed `harness`
-binary, initializes profiles, runs doctor, and verifies package-based upgrade
-version-source reporting. Package boundary validation is implemented through
+Phase 5 Distribution Readiness is complete for v1 local-tarball distribution.
+Packed-package smoke validation is implemented through
+`harness distribution smoke` and `npm run distribution:smoke`; it runs
+`npm pack`, validates package contents, installs the packed tarball into
+temporary target repos, runs the installed `harness` binary, initializes
+profiles, runs doctor, and verifies package-based upgrade version-source
+reporting. Package boundary validation is implemented through
 `harness distribution check` and `npm run distribution:check`; it uses
 `npm pack --dry-run --json` to verify required runtime files and block
 repo-local dogfood/build artifacts from the package. Phase 4 Additional Process
@@ -26,13 +27,16 @@ status, and falls back to the executing package version when no registry
 version is available. External-target smoke is implemented through
 `harness distribution smoke --target <path>`; it copies a caller-supplied git
 target into the smoke workspace, installs the packed tarball there, validates
-init/doctor/upgrade behavior, and leaves the source target unchanged. Guarded
-npm publish planning is implemented through `harness distribution publish
---plan` and `npm run distribution:publish-plan`; the first registry access
-policy is public, and publish confirmation remains blocked while
+init/doctor/upgrade behavior, and leaves the source target unchanged. External
+smoke supports `--force` for forced init inside the disposable copied target.
+Guarded npm publish planning is implemented through
+`harness distribution publish --plan` and `npm run distribution:publish-plan`;
+the first registry access policy is public, and publish confirmation remains
+blocked while
 `private: true`, `UNLICENSED`, or any release preflight blocker remains. Actual
-npm publication is deferred for now; the next Phase 5 depth step is named
-real-repo dogfood smoke rather than clearing release blockers immediately.
+npm publication is deferred for now. Named real-repo smoke has passed against
+`~/code/meetingly` for both `minimal` and `dogfood` profiles using the packed
+package and forced init in the copied target.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -52,10 +56,10 @@ doctor checks, semantic lock metadata, lock-aware upgrade planning with typed
 operation records, JSON plans, operation summaries, and a limited safe
 `harness upgrade apply` scaffold. Local packed-package distribution smoke,
 explicit npm package-boundary validation, release preflight planning, registry
-version discovery, external-target smoke, and guarded publish planning exist,
-but npm publication and the release-license decision are intentionally deferred.
-General file/template upgrade apply, profile switching, and non-npm distribution
-do not exist yet.
+version discovery, external-target smoke, forceable external-smoke init,
+guarded publish planning, and named real-repo smoke exist. Npm publication and
+the release-license decision are intentionally deferred. General file/template
+upgrade apply, profile switching, and non-npm distribution do not exist yet.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -76,8 +80,9 @@ package scripts for local dogfood use, and doctor validation when
 `files` boundary, install docs, package-based upgrade version-source reporting,
 package-installed registry status reporting, release preflight blockers while
 the package is private, packed-package smoke validation for the `minimal` and
-`dogfood` profiles, copied external-target smoke validation, public npm access
-policy, and guarded publish planning.
+`dogfood` profiles, copied external-target smoke validation, forced init inside
+copied smoke targets, public npm access policy, guarded publish planning, and
+named `meetingly` smoke evidence.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -96,12 +101,12 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Phase 4 Additional Process Domains has Structured Metadata, Canonical State,
   Invariants And Golden Principles, and Plans And Status installed as breadth
   units.
-- Phase 5 Distribution Readiness is active; packed-package smoke validation,
-  explicit npm package-boundary validation, release preflight planning, registry
-  version discovery, external-target smoke, and guarded publish planning are
-  implemented breadth/depth increments. Guarded publish planning is
-  depth-complete, actual npm publication is deferred for now, and the next
-  useful depth increment is named real-repo dogfood smoke.
+- Phase 5 Distribution Readiness is complete for v1; packed-package smoke
+  validation, explicit npm package-boundary validation, release preflight
+  planning, registry version discovery, external-target smoke, guarded publish
+  planning, forceable external-smoke init, and named real-repo smoke are
+  implemented. Actual npm publication is deferred for now, and the next useful
+  increment is v1 closeout hardening.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -240,10 +245,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   install, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `distribution-guarded-publish-workflow` as
-  the current complete depth pass for the guarded publish workflow increment.
-- `plans/current.yaml` records named real-repo dogfood smoke as the active
-  Phase 5 follow-on while npm publication remains deferred.
+- `build/depth-gate.yaml` records `distribution-named-real-repo-smoke` as the
+  current complete depth pass for the Phase 5 closeout increment.
+- `~/code/meetingly` has passed distribution smoke for both `minimal` and
+  `dogfood` profiles with forced init in a copied target; the original repo was
+  not mutated.
+- `plans/current.yaml` records v1 closeout hardening as the active follow-on
+  while npm publication remains deferred.
 
 ## Active Artifacts
 
@@ -331,6 +339,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   record for adopting copied external-target distribution smoke validation.
 - `decisions/0020-adopt-guarded-npm-publish-workflow.md` — decision record for
   adopting public npm access policy and guarded publish planning.
+- `decisions/0021-adopt-forceable-external-smoke-init.md` — decision record
+  for explicit forced init overwrite semantics and forceable external smoke.
+- `decisions/0022-close-phase-5-with-local-tarball-distribution.md` — decision
+  record for closing Phase 5 with local tarball distribution while registry
+  publication remains deferred.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -358,8 +371,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Run named real-repo dogfood smoke against at least one non-source git target
-  using the packed package, then capture any compatibility gaps.
+- Run v1 closeout hardening: final validation matrix, install docs cleanup,
+  and explicit v1/deferred-scope summary.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   until the release-license and publication decision is intentionally resumed.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

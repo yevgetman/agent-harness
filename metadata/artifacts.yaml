@@ -516,3 +516,29 @@ metadata:
         - distribution-readiness-design
         - distribution-cli
         - package
+
+    - id: force-init-overwrite-decision
+      path: decisions/0021-adopt-forceable-external-smoke-init.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - init
+        - decision
+      depends_on:
+        - distribution-readiness-design
+        - distribution-cli
+
+    - id: phase-5-closeout-decision
+      path: decisions/0022-close-phase-5-with-local-tarball-distribution.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - phase-5
+        - decision
+      depends_on:
+        - distribution-readiness-design
+        - force-init-overwrite-decision

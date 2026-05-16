@@ -131,6 +131,11 @@ Initial artifact types:
 6. Write profile module commands into the target manifest.
 7. Write installed-file provenance into `.harness/lock.yaml`.
 
+When planned harness artifacts already exist, init should warn and refuse to
+overwrite them unless `--force` is explicitly passed. Forced init is a
+definitive overwrite of the planned harness artifacts in the target repo; it
+does not attempt to merge an existing harness process.
+
 ## Module Add Behavior
 
 `harness modules add <module-id>` should:

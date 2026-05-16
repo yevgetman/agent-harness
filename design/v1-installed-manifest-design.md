@@ -130,6 +130,12 @@ It should:
 
 It must not blindly overwrite target files.
 
+`harness init --force` is the explicit exception for first-class
+initialization. If planned harness artifacts already exist, normal init warns
+and refuses to write. With `--force`, init definitively overwrites the planned
+harness artifacts for the selected profile and writes a fresh manifest and
+lock. This is an initialization contract, not a general upgrade merge policy.
+
 The current implementation exposes only:
 
 ```text
@@ -139,8 +145,9 @@ harness upgrade apply
 ```
 
 The plan command reads installed state and reports a plan. The JSON form is the
-machine-readable contract. Upgrade planning does not fetch remote package
-metadata.
+machine-readable contract. The dogfood source repo uses a local-checkout
+version source; package-installed targets may query npm registry metadata for
+the configured dist tag as defined by Distribution Readiness.
 
 The apply command is intentionally narrow. It does not rewrite human-facing
 managed files.
@@ -160,17 +167,17 @@ The plan reports:
 
 ## Upgrade version source
 
-Until external distribution is chosen, upgrade planning uses a local version
-source:
+For the dogfood source repo, upgrade planning uses a local version source:
 
 - Available harness version comes from this package's `package.json`.
 - Available module versions come from local `modules/<id>/module.yaml` files in
   the target repo.
 - Source metadata is reported as `local-checkout`.
 
-This is intentionally limited. It gives the planner a deterministic local
-baseline while leaving package registry, Homebrew, standalone binary, or remote
-module-index discovery as later design work.
+This gives the source repo a deterministic local baseline. Package-installed
+targets use package version-source reporting and npm registry discovery when
+available; Homebrew, standalone binary, and remote module-index discovery
+remain later design work.
 
 When distribution is chosen, the planner should add a version source record to
 the plan output instead of hiding how available versions were resolved.

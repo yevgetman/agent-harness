@@ -52,7 +52,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 66dda46c269f4ee58bea2c8ea23ab658a47400bb0c87179d46feaf3fd61c7b61
+      sha256: c3a75736497f0648c6f32a80df2d6e264c653d422f7dd041e169a930cbe47c0f
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -76,7 +76,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 57e73872f17f9a1969a0c179a59160e79267ca1015e07ad7f4ed69aba02a6ce1
+      sha256: 93254793e3a827afcc729be467552588387c15da47b6e9e285388b3d38279768
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -172,7 +172,7 @@ lock:
       source_kind: module-template
       source_path: modules/decisions-open-questions/templates/open-questions.yaml
       source_sha256: d1ac79ec5a765928dcb54c5fd3a7441311f8361c4d65ebb04433a789ceb06bab
-      sha256: 2b2e9372d448747afd199af2bf53693256b15c2135e1681d076400bd11b4c07c
+      sha256: 3d28b91aa7f00c78b4a33c58e5b1b0ba1e3f558eed7d4369ea799dcb63dfa249
     - path: plans/current.yaml
       owner: plans-and-status
       owner_type: module
@@ -184,7 +184,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: c029607b90a435c101593f6e5fe365aec2743fe81e4c05a7ef181dc6450e9373
+      sha256: 54aced2aba19ad464bee6300fb88c20afa3f6d3aa26b6272e9d13955db36300c
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -206,7 +206,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: d39cf10045c2e0feec2e4017d546a0ff9b3eb0ffb211ede528c1aff83a9c8844
+      sha256: 7f9321b2fee8140e024d096187bb3448fc3086bc51a9b0325cc6bce6e7b79c9c
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -216,7 +216,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: e0078c759ca6c4b6be7d6b8163ef35ec0b8226e68acd1d1f545d9f15277535ba
+      sha256: afedf666d60c7062f65583fca91f26f379c90126cf368f07cdbccac5d9c38625
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

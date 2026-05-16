@@ -132,18 +132,38 @@ plans_status:
 
     - id: phase-5-named-real-repo-smoke
       title: Run named real-repo dogfood smoke
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Validate the packed package against at least one named existing git repo before considering Phase 5 closeout or npm publication.
-      next_action: Select a non-source git target and run `node scripts/harness.mjs distribution smoke --target <path> --profile minimal`, then capture any compatibility gaps.
+      summary: The packed package now validates against the named `~/code/meetingly` repo for both minimal and dogfood profiles using forced init in the copied smoke target.
+      next_action: Treat Phase 5 as complete for v1 local-tarball distribution while npm publication remains deferred.
       canonical_state_id: product-spec
       tags:
         - phase-5
         - distribution
-        - current
+        - complete
       references:
         - design/v1-product-spec-and-roadmap.md
         - design/v1-distribution-readiness-design.md
+        - decisions/0021-adopt-forceable-external-smoke-init.md
+        - decisions/0022-close-phase-5-with-local-tarball-distribution.md
         - docs/install.md
         - scripts/distribution.mjs
+
+    - id: v1-closeout-hardening
+      title: V1 closeout hardening
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Phase 5 is complete for local tarball distribution; the active work is to close v1 with final validation, docs/status cleanup, and explicit deferred-scope notes.
+      next_action: Build a final v1 validation matrix and update the install/roadmap/status docs to distinguish v1 behavior from deferred post-v1 work.
+      canonical_state_id: product-spec
+      tags:
+        - v1
+        - closeout
+        - current
+      references:
+        - design/v1-product-spec-and-roadmap.md
+        - status.md
+        - docs/install.md
+        - build/depth-gate.yaml

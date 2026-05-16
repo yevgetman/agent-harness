@@ -268,18 +268,34 @@ withTempDir((root) => {
   }));
   assert.equal(dryRunCollision.ok, true, "init --dry-run should report collisions without failing");
   assert.equal(dryRunCollision.collisions.length, 8, "dry-run should report planned file collisions");
+  assert.equal(
+    dryRunCollision.warnings.some((warning) => warning.includes("rerun with --force")),
+    true,
+    "init --dry-run should warn that --force can overwrite existing artifacts",
+  );
 
+  writeFileSync(join(gitTarget, "AGENTS.md"), "# Existing local process\n");
   const duplicate = quiet(() => runInit({
     cwd: root,
     args: ["--target", gitTarget, "--profile", "minimal"],
   }));
   assert.equal(duplicate.ok, false, "init should refuse to overwrite without --force");
+  assert.equal(duplicate.collisions.includes("AGENTS.md"), true, "init should report colliding artifacts");
+  assert.equal(
+    duplicate.warnings.some((warning) => warning.includes("rerun with --force")),
+    true,
+    "init should warn that --force can definitively overwrite existing artifacts",
+  );
 
   const forced = quiet(() => runInit({
     cwd: root,
     args: ["--target", gitTarget, "--profile", "minimal", "--force"],
   }));
   assert.equal(forced.ok, true, "init --force should overwrite and pass");
+  assert.equal(forced.overwrites.includes("AGENTS.md"), true, "init --force should report overwritten artifacts");
+  const forcedAgents = readFileSync(join(gitTarget, "AGENTS.md"), "utf8");
+  assert.match(forcedAgents, /This repo has the portable harness installed/, "init --force should write harness instructions");
+  assert.doesNotMatch(forcedAgents, /Existing local process/, "init --force should replace existing process text");
 
   const upgrade = quiet(() => runTestUpgrade({ cwd: gitTarget, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after init");
@@ -993,15 +1009,19 @@ withTempDir((root) => {
 withTempDir((root) => {
   const externalTarget = join(root, "external-target");
   initGitRepo(externalTarget);
+  const existingAgents = "# Existing Agent Instructions\n";
+  writeFileSync(join(externalTarget, "AGENTS.md"), existingAgents);
   writeFileSync(join(externalTarget, "README.md"), "# External Target\n");
 
   const smoke = quiet(() => withRegistryDiscoverySkip(() =>
-    runDistribution({ args: ["smoke", "--profile", "minimal", "--target", externalTarget] }),
+    runDistribution({ args: ["smoke", "--profile", "minimal", "--target", externalTarget, "--force"] }),
   ));
   assert.equal(smoke.ok, true, "external target distribution smoke should pass");
+  assert.equal(smoke.force_init, true, "external target distribution smoke should report forced init");
   assert.equal(smoke.external_targets[0], externalTarget, "external smoke should report source target path");
   assert.equal(smoke.profiles.length, 1, "external smoke should run the requested profile");
   assert.equal(smoke.profiles[0].target_source, externalTarget, "external smoke should report profile target source");
+  assert.equal(smoke.profiles[0].force_init, true, "external smoke profile should report forced init");
   assert.equal(smoke.profiles[0].version_source.type, "package", "external smoke should use package version source");
   assert.equal(
     smoke.profiles[0].version_source.registry.status,
@@ -1009,9 +1029,9 @@ withTempDir((root) => {
     "external smoke should report skipped registry discovery in tests",
   );
   assert.equal(
-    existsSync(join(externalTarget, "AGENTS.md")),
-    false,
-    "external smoke should not write harness files into the source target",
+    readFileSync(join(externalTarget, "AGENTS.md"), "utf8"),
+    existingAgents,
+    "external smoke should not mutate existing source target agent instructions",
   );
   assert.equal(
     existsSync(join(externalTarget, "package.json")),

@@ -149,8 +149,11 @@ Current dogfood state:
   without mutating the original target. It now exposes guarded public npm
   publish planning through `npm run distribution:publish-plan`, while publish
   confirmation remains blocked by private/license release blockers.
-  Actual npm publication is deferred for now; the active Phase 5 follow-on is
-  named real-repo dogfood smoke before any release-blocker cleanup.
+  External smoke supports `--force` for forced init inside the disposable copy.
+  `~/code/meetingly` passed named real-repo smoke for both `minimal` and
+  `dogfood` profiles using the packed package and forced init in the copy.
+  Actual npm publication is deferred for now; Phase 5 is complete for v1 local
+  tarball distribution.
   `docs/install.md` documents local tarball installation.
 
 ## Orientation rule
@@ -168,8 +171,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to deepen Distribution Readiness with named
-real-repo dogfood smoke while npm publication remains deferred.
+The current useful step is v1 closeout hardening while npm publication remains
+deferred.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -191,9 +194,9 @@ real-repo dogfood smoke while npm publication remains deferred.
 - Distribution Readiness now has explicit package contents validation, release
   preflight planning, registry discovery, local tarball install docs,
   packed-package smoke validation for package install/init/doctor/upgrade plan,
-  copied external-target smoke, public npm access policy, and guarded publish
-  planning.
-- Next Distribution depth: run a named real-repo dogfood smoke target, capture
-  compatibility gaps, and decide whether Phase 5 can close without registry
-  publication.
+  copied external-target smoke, forceable init inside copied smoke targets,
+  public npm access policy, guarded publish planning, and named `meetingly`
+  smoke evidence.
+- Next work: final v1 validation matrix, docs/status cleanup, and explicit
+  v1/deferred-scope summary.
 - Keep `status.md` current after significant choices.

@@ -3,8 +3,8 @@
 **Status:** accepted baseline
 **Date:** 2026-05-16
 **Scope:** Phase 5 packed-package smoke validation, package boundary, release
-preflight, registry version discovery, external-target smoke, and guarded npm
-publish workflow
+preflight, registry version discovery, external-target smoke, guarded npm
+publish workflow, forceable smoke init, and named real-repo smoke
 
 This is a formal design document. It defines the first Distribution Readiness
 increments after the Phase 4 Plans And Status breadth pass.
@@ -37,6 +37,11 @@ publication exists.
 The sixth increment adds a guarded npm publish workflow. It defines public npm
 registry access as the first publish policy, exposes publish planning, and
 refuses publish confirmation while release blockers remain.
+
+The seventh increment validates a named real repo, `~/code/meetingly`, using
+the packed package. That smoke found that real targets may already have
+bootstrap files, so external smoke now supports `--force` to pass forced init
+inside the disposable copied target.
 
 ## Command
 
@@ -105,6 +110,7 @@ Supported options:
 harness distribution smoke --profile minimal
 harness distribution smoke --profile dogfood
 harness distribution smoke --target ../some-target --profile minimal
+harness distribution smoke --target ../some-target --profile minimal --force
 harness distribution smoke --json
 harness distribution smoke --keep
 ```
@@ -125,6 +131,12 @@ When `--target <path>` is provided, the smoke command:
 If an external target is supplied without `--profile`, the command defaults to
 the `minimal` profile. Repeated `--target` and `--profile` options produce one
 copied smoke target for each target/profile pair.
+
+`--force` passes `--force` to the packaged `harness init` command inside the
+temporary smoke target. This is useful for real repo shapes that already have
+bootstrap files such as `AGENTS.md`. The original target is still copied first
+and is not mutated. Without `--force`, external smoke remains collision-averse
+and reports init refusal as a compatibility gap.
 
 ## Upgrade Version Source
 
@@ -232,6 +244,8 @@ Current release preflight evidence:
 - npm publish dry-run does not auto-correct package metadata.
 - `harness distribution publish --plan` reports the same blockers without
   publishing.
+- Named real-repo smoke passes against `~/code/meetingly` for the `minimal` and
+  `dogfood` profiles using `--force` in the copied target.
 
 ## Doctor And Test Relationship
 

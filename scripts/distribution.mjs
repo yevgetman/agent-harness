@@ -105,7 +105,7 @@ Usage:
   harness distribution release --plan [--json]
   harness distribution publish --plan [--json]
   harness distribution publish --confirm [--json]
-  harness distribution smoke [--profile <profile>] [--target <path>] [--json] [--keep]
+  harness distribution smoke [--profile <profile>] [--target <path>] [--force] [--json] [--keep]
 
 Commands:
   check    Validate explicit npm package contents without writing a tarball.
@@ -116,6 +116,7 @@ Commands:
 Options:
   --profile <profile>  Profile to smoke. May be repeated. Defaults to minimal and dogfood.
   --target <path>      Existing git target repo to copy into the smoke workspace. May be repeated.
+  --force              Pass --force to harness init inside the temporary smoke target.
   --json               Emit JSON result.
   --keep               Keep the temporary smoke directory for debugging.
 `);
@@ -332,7 +333,7 @@ function ensurePackageJson(target) {
   }
 }
 
-function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetIndex = null }) {
+function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetIndex = null, forceInit = false }) {
   const target = targetSource
     ? join(workRoot, `target-${targetIndex}-${safeName(basename(targetSource))}-${safeName(profile)}`)
     : join(workRoot, `target-${safeName(profile)}`);
@@ -351,13 +352,19 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
     if (!existsSync(harnessBin)) {
       return {
         profile,
+        target_source: targetSource,
+        force_init: forceInit,
         target,
         ok: false,
         errors: [`${harnessBin}: installed harness binary is missing`],
       };
     }
 
-    run(harnessBin, ["init", "--profile", profile, "--target", "."], { cwd: target });
+    const initArgs = ["init", "--profile", profile, "--target", "."];
+    if (forceInit) {
+      initArgs.push("--force");
+    }
+    run(harnessBin, initArgs, { cwd: target });
     run(harnessBin, ["doctor"], { cwd: target });
     const plan = JSON.parse(run(harnessBin, ["upgrade", "--plan", "--json"], { cwd: target }));
     const errors = [];
@@ -377,6 +384,7 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
     return {
       profile,
       target_source: targetSource,
+      force_init: forceInit,
       target,
       ok: errors.length === 0,
       errors,
@@ -388,6 +396,7 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
     return {
       profile,
       target_source: targetSource,
+      force_init: forceInit,
       target,
       ok: false,
       errors: [commandError(error)],
@@ -404,6 +413,7 @@ function printResult(result) {
   console.log(`package: ${result.package_name}@${result.package_version}`);
   console.log(`tarball_entries: ${result.file_count}`);
   console.log(`package_check: ${result.package_check?.ok ? "ok" : "error"}`);
+  console.log(`force_init: ${result.force_init ? "yes" : "no"}`);
   console.log(`work_root: ${result.work_root}${result.kept ? "" : " (removed)"}`);
   if ((result.external_targets ?? []).length > 0) {
     console.log("external_targets:");
@@ -655,6 +665,7 @@ function runPublish(args) {
 
 function runSmoke(args) {
   const keep = args.includes("--keep");
+  const forceInit = args.includes("--force");
   const externalTargets = targetArgs(args);
   const profilesToSmoke = profileArgs(args, externalTargets.length > 0 ? ["minimal"] : DEFAULT_PROFILES);
   const workRoot = mkdtempSync(join(tmpdir(), "harness-distribution-smoke-"));
@@ -677,6 +688,7 @@ function runSmoke(args) {
           forbidden_rules: FORBIDDEN_PACKAGE_PREFIXES.length + FORBIDDEN_PACKAGE_FILES.length,
         },
         external_targets: externalTargets,
+        force_init: forceInit,
         profiles: [],
         errors: [packed.error],
       };
@@ -694,6 +706,7 @@ function runSmoke(args) {
         file_count: packed.file_count,
         package_check: packageCheck,
         external_targets: externalTargets,
+        force_init: forceInit,
         profiles: [],
         errors: packageCheck.errors,
       };
@@ -711,6 +724,7 @@ function runSmoke(args) {
         file_count: packed.file_count,
         package_check: packageCheck,
         external_targets: externalTargets,
+        force_init: forceInit,
         profiles: [],
         errors: targetErrors,
       };
@@ -719,9 +733,9 @@ function runSmoke(args) {
 
     const smokeRuns = externalTargets.length > 0
       ? externalTargets.flatMap((target, targetIndex) =>
-        profilesToSmoke.map((profile) => ({ profile, targetSource: target, targetIndex })),
+        profilesToSmoke.map((profile) => ({ profile, targetSource: target, targetIndex, forceInit })),
       )
-      : profilesToSmoke.map((profile) => ({ profile, targetSource: null, targetIndex: null }));
+      : profilesToSmoke.map((profile) => ({ profile, targetSource: null, targetIndex: null, forceInit }));
     const profiles = smokeRuns.map((runSpec) =>
       smokeProfile({ workRoot, tarball: packed.tarball, ...runSpec }),
     );
@@ -734,6 +748,7 @@ function runSmoke(args) {
       file_count: packed.file_count,
       package_check: packageCheck,
       external_targets: externalTargets,
+      force_init: forceInit,
       profiles,
       errors: profiles.flatMap((profile) => profile.errors),
     };

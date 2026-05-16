@@ -46,15 +46,14 @@ Usage:
 Options:
   --profile <profile>   Install a profile from profiles/. Defaults to minimal.
   --target <path>       Target repository root. Defaults to the current dir.
-  --force               Overwrite existing managed files.
+  --force               Definitively overwrite planned harness artifacts.
   --dry-run             Print the install plan without writing files.
   --allow-non-git       Permit installation into a directory without .git.
   -h, --help            Show this help.
 `);
 }
 
-function collectCollisions(targetRoot, planned, force) {
-  if (force) return [];
+function collectExistingArtifacts(targetRoot, planned) {
   return planned
     .filter((entry) => {
       const path = join(targetRoot, entry.path);
@@ -63,6 +62,10 @@ function collectCollisions(targetRoot, planned, force) {
       return true;
     })
     .map((entry) => entry.path);
+}
+
+function collisionWarning(count) {
+  return `${count} planned harness artifact(s) already exist; rerun with --force to overwrite them`;
 }
 
 function writePlannedEntries(targetRoot, planned) {
@@ -78,7 +81,7 @@ function writePlannedEntries(targetRoot, planned) {
   }
 }
 
-function printPlan({ targetRoot, profile, entries, dryRun, collisions = [] }) {
+function printPlan({ targetRoot, profile, entries, dryRun, collisions = [], overwrites = [], warnings = [] }) {
   const label = dryRun ? "dry-run plan" : "install plan";
   console.log(`Harness init: ${label}`);
   console.log(`target: ${targetRoot}`);
@@ -93,9 +96,24 @@ function printPlan({ targetRoot, profile, entries, dryRun, collisions = [] }) {
       console.log(`  ${file}`);
     }
   }
+  if (overwrites.length > 0) {
+    console.log(`overwriting:`);
+    for (const file of overwrites) {
+      console.log(`  ${file}`);
+    }
+  }
+  if (warnings.length > 0) {
+    console.log(`warnings:`);
+    for (const warning of warnings) {
+      console.log(`  ${warning}`);
+    }
+  }
 }
 
-function printFailure(errors) {
+function printFailure(errors, warnings = []) {
+  for (const warning of warnings) {
+    console.error(`warn ${warning}`);
+  }
   for (const error of errors) {
     console.error(`fail ${error}`);
   }
@@ -483,10 +501,13 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
     errors.push(`${targetRoot}: target is not a git repo (pass --allow-non-git to override)`);
   }
 
-  const collisions = errors.length === 0 ? collectCollisions(targetRoot, plan.entries, force) : [];
+  const existingArtifacts = errors.length === 0 ? collectExistingArtifacts(targetRoot, plan.entries) : [];
+  const collisions = force ? [] : existingArtifacts;
+  const overwrites = force ? existingArtifacts : [];
+  const warnings = collisions.length > 0 ? [collisionWarning(collisions.length)] : [];
 
   if (dryRun && errors.length === 0) {
-    printPlan({ targetRoot, profile, entries: plan.entries, dryRun, collisions });
+    printPlan({ targetRoot, profile, entries: plan.entries, dryRun, collisions, overwrites, warnings });
     console.log("");
     console.log("Harness init: dry run complete; no files written");
     return {
@@ -494,6 +515,8 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
       targetRoot,
       planned: plan.entries.map((entry) => entry.path),
       collisions,
+      overwrites,
+      warnings,
     };
   }
 
@@ -504,11 +527,11 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
   }
 
   if (errors.length > 0) {
-    printFailure(errors);
-    return { ok: false, targetRoot, errors };
+    printFailure(errors, warnings);
+    return { ok: false, targetRoot, errors, warnings, collisions };
   }
 
-  printPlan({ targetRoot, profile, entries: plan.entries, dryRun });
+  printPlan({ targetRoot, profile, entries: plan.entries, dryRun, overwrites });
 
   mkdirSync(targetRoot, { recursive: true });
   writePlannedEntries(targetRoot, plan.entries);
@@ -516,7 +539,13 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
   console.log("");
   console.log(`Harness init: installed ${plan.entries.length} artifact(s)`);
   const doctor = runDoctor({ cwd: targetRoot });
-  return { ok: doctor.ok, targetRoot, errors: doctor.diagnostics.errors };
+  return {
+    ok: doctor.ok,
+    targetRoot,
+    errors: doctor.diagnostics.errors,
+    warnings: doctor.diagnostics.warnings,
+    overwrites,
+  };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

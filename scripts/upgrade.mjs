@@ -663,9 +663,9 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
       notes.push("version source is package; using executing package version");
     }
   } else if (versionSource.type === "local-checkout") {
-    notes.push("version source is local-checkout; external package discovery is deferred");
+    notes.push("version source is local-checkout for this source repo; package-installed targets use npm registry discovery");
   } else {
-    notes.push(`version source is ${versionSource.type}; external package discovery is deferred`);
+    notes.push(`version source is ${versionSource.type}; package registry discovery applies only to package-installed targets`);
   }
   addOperation(operations, {
     code: "deferred/apply-not-implemented",

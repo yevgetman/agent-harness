@@ -816,11 +816,10 @@ build_strategy:
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
   current_depth_pass:
-    id: distribution-guarded-publish-workflow
+    id: distribution-named-real-repo-smoke
     breadth_unit: >
-      Deepen Phase 5 Distribution Readiness with a guarded npm publish workflow
-      and public registry access policy while keeping publish confirmation
-      blocked until release blockers are cleared.
+      Close Phase 5 Distribution Readiness for v1 by validating the packed
+      package against a named real repo and keeping npm publication deferred.
     status: complete
     completed_on: 2026-05-16
     ready_for_next_breadth: true
@@ -828,34 +827,36 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness distribution publish --plan reports the guarded publish workflow without publishing.
-          - harness distribution publish --confirm runs release preflight before attempting npm publish.
-          - npm run distribution:publish-plan exposes publish planning locally.
-          - The release plan records public npm registry access policy.
+          - harness distribution smoke supports --force for forced init inside copied smoke targets.
+          - harness init warns and refuses when planned artifacts already exist without --force.
+          - harness init --force definitively overwrites planned harness artifacts.
+          - The packed package installs and validates against the named /Users/julie/code/meetingly target.
       - id: validation
         status: satisfied
         evidence:
-          - Publish confirmation refuses blocked release plans.
-          - Release planning blocks public registry publication while package.json private is true.
-          - Release planning blocks public registry publication while package.json license is UNLICENSED.
-          - The publish workflow reuses package contents validation and npm publish dry-run metadata validation.
+          - External smoke still copies targets before init and leaves the original target unmodified.
+          - The meetingly source repo had a clean git status after smoke validation.
+          - Minimal-profile meetingly smoke reported package version source, 4 managed files, and 8 commands.
+          - Dogfood-profile meetingly smoke reported package version source, 10 managed files, and 21 commands.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers guarded publish planning.
-          - npm test covers blocked publish confirmation.
-          - npm test covers public access policy reporting.
-          - npm test covers the UNLICENSED public publication blocker.
+          - npm test covers init collision warnings.
+          - npm test covers init --force overwriting an existing AGENTS.md process file.
+          - npm test covers external-target smoke with --force.
+          - npm test verifies external smoke does not mutate the source target.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-distribution-readiness-design.md defines the guarded publish workflow.
-          - decisions/0020-adopt-guarded-npm-publish-workflow.md records the publish workflow and access-policy decision.
-          - docs/install.md documents distribution publish planning and confirmation.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the guarded publish behavior.
+          - decisions/0021-adopt-forceable-external-smoke-init.md records the force init overwrite contract.
+          - decisions/0022-close-phase-5-with-local-tarball-distribution.md records Phase 5 closeout with npm publication deferred.
+          - design/v1-distribution-readiness-design.md defines forceable external smoke and named real-repo evidence.
+          - docs/install.md documents --force for disposable smoke copies.
+          - status.md, state/CONTEXT.md, plans/current.yaml, and index.yaml describe Phase 5 closeout state.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run distribution:publish-plan has been run against the dogfood repo.
-          - plans/current.yaml records Phase 5 guarded publish workflow as active current work.
-          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:publish-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
+          - node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force passed.
+          - node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile dogfood --force passed.
+          - plans/current.yaml records v1 closeout hardening as active after Phase 5 completion.
+          - npm publication remains deferred while private/license blockers remain.

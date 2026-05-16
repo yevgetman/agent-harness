@@ -72,6 +72,8 @@ reading_order:
   - decision-0018
   - decision-0019
   - decision-0020
+  - decision-0021
+  - decision-0022
   - decision-template
   - package
   - harness-cli
@@ -128,7 +130,7 @@ documents:
     title: "Formal Product Spec: V1 Portable Agent Harness"
     kind: formal-product-spec
     status: active
-    summary: Directional v1 product intent, success criteria, roadmap phases, sequencing rules, and relationship to depth-gated incremental development.
+    summary: Directional v1 product intent, success criteria, roadmap phases, Phase 5 closeout state, sequencing rules, and relationship to depth-gated incremental development.
     depends_on:
       - agnostic-harness-shape
       - portability-model
@@ -248,7 +250,7 @@ documents:
     title: "Formal Design: V1 Distribution Readiness"
     kind: formal-design
     status: active
-    summary: "Accepted baseline for Phase 5 packed-package smoke validation, explicit package contents validation, package boundary, release preflight, registry-aware package upgrade version-source reporting, copied external-target smoke, and guarded public npm publish workflow."
+    summary: "Accepted baseline for Phase 5 packed-package smoke validation, explicit package contents validation, package boundary, release preflight, registry-aware package upgrade version-source reporting, copied external-target smoke, guarded public npm publish workflow, forceable smoke init, and named real-repo smoke evidence."
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-upgrade-operation-contract
@@ -626,6 +628,29 @@ documents:
       - v1-distribution-readiness-design
       - distribution-cli
       - package
+
+  - doc_id: decision-0021
+    file: decisions/0021-adopt-forceable-external-smoke-init.md
+    title: Adopt Explicit Force Init Overwrite Contract
+    kind: decision
+    status: active
+    summary: Decision record making init collision warnings explicit, defining force init overwrite behavior, and adding forceable external smoke.
+    depends_on:
+      - v1-distribution-readiness-design
+      - v1-module-profile-installation-design
+      - init
+      - distribution-cli
+
+  - doc_id: decision-0022
+    file: decisions/0022-close-phase-5-with-local-tarball-distribution.md
+    title: Close Phase 5 With Local Tarball Distribution
+    kind: decision
+    status: active
+    summary: Decision record closing Phase 5 for v1 with local packed npm tarball distribution while public npm publication remains deferred.
+    depends_on:
+      - v1-distribution-readiness-design
+      - decision-0021
+      - distribution-cli
 
   - doc_id: decision-template
     file: templates/decision.md
