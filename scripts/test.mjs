@@ -833,8 +833,16 @@ withTempDir((root) => {
 });
 
 {
+  const check = quiet(() => runDistribution({ args: ["check"] }));
+  assert.equal(check.ok, true, "distribution check should validate package contents");
+  assert.equal(check.files.includes("scripts/harness.mjs"), true, "distribution package should include the harness binary");
+  assert.equal(check.files.includes("scripts/test.mjs"), false, "distribution package should exclude repo-local tests");
+  assert.equal(check.files.includes("status.md"), false, "distribution package should exclude dogfood status");
+  assert.equal(check.errors.length, 0, "distribution check should not report package boundary errors");
+
   const smoke = quiet(() => runDistribution({ args: ["smoke", "--profile", "minimal"] }));
   assert.equal(smoke.ok, true, "distribution smoke should pass for the minimal profile");
+  assert.equal(smoke.package_check.ok, true, "distribution smoke should validate package contents before install");
   assert.equal(smoke.profiles.length, 1, "distribution smoke should run the requested profile");
   assert.equal(smoke.profiles[0].version_source.type, "package", "package-installed upgrade plan should report package version source");
   assert.equal(smoke.profiles[0].managed_files, 4, "minimal distribution smoke should validate managed files");

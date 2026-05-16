@@ -22,11 +22,27 @@ plans_status:
 
     - id: phase-5-distribution-smoke
       title: Prove packed-package distribution smoke
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
       summary: Phase 5 now validates that target repos can use the harness from a packed npm package instead of the source checkout.
-      next_action: Decide whether to deepen distribution smoke or move to release packaging.
+      canonical_state_id: product-spec
+      tags:
+        - phase-5
+        - distribution
+        - complete
+      references:
+        - design/v1-product-spec-and-roadmap.md
+        - design/v1-distribution-readiness-design.md
+        - scripts/distribution.mjs
+
+    - id: phase-5-package-boundary
+      title: Harden npm package boundary
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Phase 5 now has explicit npm package contents, package-boundary validation, and local tarball install docs.
+      next_action: Decide whether to implement registry version discovery, release publish workflow, or external-target smoke next.
       canonical_state_id: product-spec
       tags:
         - phase-5
@@ -35,4 +51,6 @@ plans_status:
       references:
         - design/v1-product-spec-and-roadmap.md
         - design/v1-distribution-readiness-design.md
+        - docs/install.md
         - scripts/distribution.mjs
+        - package.json

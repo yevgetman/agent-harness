@@ -114,6 +114,16 @@ canonical_state:
       depends_on:
         - product-spec
 
+    - id: install-docs
+      path: docs/install.md
+      metadata_id: install-docs
+      state_role: source
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - distribution-readiness-design
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       metadata_id: metadata-artifacts

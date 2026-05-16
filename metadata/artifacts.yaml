@@ -182,6 +182,19 @@ metadata:
       depends_on:
         - product-spec
 
+    - id: install-docs
+      path: docs/install.md
+      kind: install-guide
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - install
+        - docs
+      depends_on:
+        - distribution-readiness-design
+        - package
+
     - id: depth-gate
       path: build/depth-gate.yaml
       kind: build-state
@@ -424,3 +437,16 @@ metadata:
         - decision
       depends_on:
         - distribution-readiness-design
+
+    - id: package-boundary-decision
+      path: decisions/0016-adopt-explicit-npm-package-boundary.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - package
+        - decision
+      depends_on:
+        - distribution-readiness-design
+        - package

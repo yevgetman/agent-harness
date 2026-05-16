@@ -149,6 +149,7 @@ Current commands:
 - `harness plans list`
 - `harness plans check`
 - `harness plans report`
+- `harness distribution check`
 - `harness distribution smoke`
 - `harness lock refresh`
 - `harness lock check`
@@ -340,8 +341,8 @@ dogfooding requires an external target sooner.
 
 ### Phase 5: Distribution Readiness
 
-Status: active; local packed-package smoke validation is implemented and
-dogfooded.
+Status: active; local packed-package smoke validation and explicit package
+boundary validation are implemented and dogfooded.
 
 Purpose:
 
@@ -357,15 +358,22 @@ Candidate work:
 
 Initial behavior:
 
+- `harness distribution check` runs `npm pack --dry-run --json` and verifies
+  that the npm package includes required runtime files and excludes repo-local
+  dogfood/build artifacts.
 - `harness distribution smoke` runs `npm pack` against the source repo,
-  installs the packed tarball into temporary target repos, runs the installed
-  `harness` binary, initializes profiles, runs `harness doctor`, and verifies
-  `harness upgrade --plan --json`.
+  validates package contents, installs the packed tarball into temporary target
+  repos, runs the installed `harness` binary, initializes profiles, runs
+  `harness doctor`, and verifies `harness upgrade --plan --json`.
 - Packed-package smoke validation covers the `minimal` and `dogfood` profiles
   by default.
 - Upgrade planning reports `version_source.type: package` when a target was
   initialized from the installed package and `local-checkout` for this dogfood
   repo.
+- The package manifest has an explicit runtime-oriented `files` list plus
+  repository, license, keyword, and engine metadata.
+- `docs/install.md` documents local tarball installation and records registry
+  publication as deferred.
 
 Exit signal:
 
@@ -401,5 +409,7 @@ When choosing the next increment:
   provenance behavior.
 - `design/v1-upgrade-operation-contract.md` defines Phase 3 upgrade-plan and
   apply safety behavior.
+- `design/v1-distribution-readiness-design.md` defines Phase 5 package
+  boundary, package smoke, and distribution-readiness behavior.
 - `spec/` contains exploratory source material and does not override formal
   product or design documents.

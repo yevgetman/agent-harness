@@ -173,6 +173,9 @@ plan-referenced artifacts.
 
 ## Distribution Readiness Discipline
 
+Use `npm run distribution:check` after changing package contents or package
+metadata.
+
 Use `npm run distribution:smoke` after changing package contents, CLI entry
 points, profile installation, or distribution/version-source behavior.
 

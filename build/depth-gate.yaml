@@ -605,12 +605,53 @@ build_strategy:
             - plans/current.yaml captures current dogfood work state.
             - npm run plans:check, npm run plans:report, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: distribution-package-smoke
+      breadth_unit: >
+        Start Phase 5 Distribution Readiness with a packed-package smoke command
+        that validates the installed harness binary in temporary target repos and
+        makes upgrade planning report package-based version source state.
+      status: complete
+      completed_on: 2026-05-16
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness distribution smoke runs npm pack against the source repo.
+            - The smoke command installs the packed tarball into temporary git target repos.
+            - The smoke command runs the installed node_modules/.bin/harness binary, not the source checkout script.
+            - The smoke command initializes the minimal and dogfood profiles by default.
+            - The smoke command runs harness doctor and harness upgrade --plan --json in the package-installed targets.
+        - id: validation
+          status: satisfied
+          evidence:
+            - The smoke command fails on doctor warnings, doctor blockers, upgrade warnings, or upgrade blockers.
+            - The smoke command requires upgrade plan version_source.type to be package.
+            - The upgrade planner reports local-checkout for local source installs and package for package installs.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers the distribution smoke command with the minimal profile.
+            - npm test covers package-installed upgrade plans reporting package version source.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-distribution-readiness-design.md defines the first Distribution Readiness increment.
+            - decisions/0015-adopt-distribution-readiness-smoke-test.md records the decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the installed behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run distribution:smoke has been run against the dogfood repo.
+            - plans/current.yaml records Phase 5 distribution smoke as active current work.
+            - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: distribution-package-smoke
+    id: distribution-package-boundary
     breadth_unit: >
-      Start Phase 5 Distribution Readiness with a packed-package smoke command
-      that validates the installed harness binary in temporary target repos and
-      makes upgrade planning report package-based version source state.
+      Deepen Phase 5 Distribution Readiness by making the npm package boundary
+      explicit, validating package contents before smoke tests, documenting the
+      local tarball install path, and keeping release publication deferred.
     status: complete
     completed_on: 2026-05-16
     ready_for_next_breadth: true
@@ -618,31 +659,32 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness distribution smoke runs npm pack against the source repo.
-          - The smoke command installs the packed tarball into temporary git target repos.
-          - The smoke command runs the installed node_modules/.bin/harness binary, not the source checkout script.
-          - The smoke command initializes the minimal and dogfood profiles by default.
-          - The smoke command runs harness doctor and harness upgrade --plan --json in the package-installed targets.
+          - package.json has an explicit runtime-oriented files list.
+          - harness distribution check validates package contents with npm pack --dry-run --json.
+          - harness distribution smoke validates package contents before installing the tarball into temporary target repos.
+          - docs/install.md documents local tarball installation for target repos.
       - id: validation
         status: satisfied
         evidence:
-          - The smoke command fails on doctor warnings, doctor blockers, upgrade warnings, or upgrade blockers.
-          - The smoke command requires upgrade plan version_source.type to be package.
-          - The upgrade planner reports local-checkout for local source installs and package for package installs.
+          - The package check fails when required CLI, module, profile, docs, or design files are missing.
+          - The package check fails when repo-local dogfood/build paths leak into the package.
+          - The package manifest records repository, license, keyword, engine, bin, and file-boundary metadata.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers the distribution smoke command with the minimal profile.
-          - npm test covers package-installed upgrade plans reporting package version source.
+          - npm test covers distribution package contents validation.
+          - npm test covers package contents validation before minimal distribution smoke.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-distribution-readiness-design.md defines the first Distribution Readiness increment.
-          - decisions/0015-adopt-distribution-readiness-smoke-test.md records the decision.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the installed behavior.
+          - design/v1-distribution-readiness-design.md defines the explicit package boundary.
+          - decisions/0016-adopt-explicit-npm-package-boundary.md records the boundary decision.
+          - docs/install.md documents the local tarball install path and registry-install deferral.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the package-boundary behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run distribution:smoke has been run against the dogfood repo.
-          - plans/current.yaml records Phase 5 distribution smoke as active current work.
+          - npm run distribution:check has been run against the dogfood repo.
+          - npm run distribution:smoke has been run against the dogfood repo after adding the explicit package boundary.
+          - plans/current.yaml records Phase 5 package boundary as active current work.
           - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, and npm test pass against the dogfood repo.

@@ -4,9 +4,45 @@
   "private": true,
   "type": "module",
   "description": "Portable agent harness infrastructure",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/yevgetman/agent-harness.git"
+  },
+  "keywords": [
+    "agent",
+    "harness",
+    "cli",
+    "workflow",
+    "metadata"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "bin": {
     "harness": "./scripts/harness.mjs"
   },
+  "files": [
+    "scripts/decisions.mjs",
+    "scripts/distribution.mjs",
+    "scripts/doctor.mjs",
+    "scripts/harness.mjs",
+    "scripts/init.mjs",
+    "scripts/invariants.mjs",
+    "scripts/lock.mjs",
+    "scripts/metadata.mjs",
+    "scripts/modules.mjs",
+    "scripts/plans.mjs",
+    "scripts/profiles.mjs",
+    "scripts/questions.mjs",
+    "scripts/state.mjs",
+    "scripts/upgrade.mjs",
+    "modules/",
+    "profiles/",
+    "docs/install.md",
+    "docs/minimal-profile.md",
+    "design/v1-distribution-readiness-design.md"
+  ],
   "scripts": {
     "doctor": "node scripts/harness.mjs doctor",
     "init": "node scripts/harness.mjs init",
@@ -26,6 +62,7 @@
     "plans:list": "node scripts/harness.mjs plans list",
     "plans:check": "node scripts/harness.mjs plans check",
     "plans:report": "node scripts/harness.mjs plans report",
+    "distribution:check": "node scripts/harness.mjs distribution check",
     "distribution:smoke": "node scripts/harness.mjs distribution smoke",
     "lock:refresh": "node scripts/harness.mjs lock refresh",
     "lock:check": "node scripts/harness.mjs lock check",

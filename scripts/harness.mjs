@@ -37,6 +37,7 @@ Usage:
   harness plans list
   harness plans check
   harness plans report
+  harness distribution check
   harness distribution smoke
   harness lock refresh
   harness lock check
