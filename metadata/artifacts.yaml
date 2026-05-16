@@ -502,3 +502,17 @@ metadata:
       depends_on:
         - distribution-readiness-design
         - distribution-cli
+
+    - id: guarded-publish-decision
+      path: decisions/0020-adopt-guarded-npm-publish-workflow.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - publish
+        - decision
+      depends_on:
+        - distribution-readiness-design
+        - distribution-cli
+        - package

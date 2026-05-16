@@ -942,11 +942,37 @@ withTempDir((root) => {
   const release = quiet(() => runDistribution({ args: ["release", "--plan"] }));
   assert.equal(release.ok, true, "distribution release plan should run");
   assert.equal(release.ready, false, "distribution release plan should stay blocked while package is private");
+  assert.equal(release.access, "public", "distribution release plan should record public npm access policy");
   assert.equal(release.publish_dry_run.ok, true, "distribution release plan should run npm publish dry-run");
   assert.equal(
     release.blockers.includes("package.json private is true; registry publication is intentionally blocked"),
     true,
     "distribution release plan should block registry publication while package is private",
+  );
+  assert.equal(
+    release.blockers.includes("package.json license is UNLICENSED; public registry publication requires a release license decision"),
+    true,
+    "distribution release plan should block public registry publication while license is UNLICENSED",
+  );
+
+  const publishPlan = quiet(() => runDistribution({ args: ["publish", "--plan"] }));
+  assert.equal(publishPlan.ok, true, "distribution publish plan should run");
+  assert.equal(publishPlan.ready, false, "distribution publish plan should stay blocked while release plan is blocked");
+  assert.equal(publishPlan.published, false, "distribution publish plan should not publish");
+  assert.equal(publishPlan.access, "public", "distribution publish plan should record public npm access policy");
+  assert.equal(
+    publishPlan.blockers.includes("package.json private is true; registry publication is intentionally blocked"),
+    true,
+    "distribution publish plan should carry release blockers",
+  );
+
+  const publishConfirm = quiet(() => runDistribution({ args: ["publish", "--confirm"] }));
+  assert.equal(publishConfirm.ok, false, "distribution publish confirm should refuse blocked release plans");
+  assert.equal(publishConfirm.published, false, "blocked distribution publish confirm should not publish");
+  assert.equal(
+    publishConfirm.blockers.includes("package.json private is true; registry publication is intentionally blocked"),
+    true,
+    "distribution publish confirm should report release blockers",
   );
 
   const smoke = quiet(() => withRegistryDiscoverySkip(() =>

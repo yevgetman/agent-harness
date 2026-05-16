@@ -179,6 +179,10 @@ metadata.
 Use `npm run distribution:release-plan` after changing publish metadata or
 release-readiness behavior.
 
+Use `npm run distribution:publish-plan` after changing publish workflow,
+registry access policy, or release blockers. Do not use publish confirmation
+until release readiness is unblocked by a decision record.
+
 Use `npm run distribution:smoke` after changing package contents, CLI entry
 points, profile installation, or distribution/version-source behavior.
 

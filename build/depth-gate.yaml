@@ -771,12 +771,56 @@ build_strategy:
             - plans/current.yaml records Phase 5 registry discovery as active current work.
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
+    - id: distribution-external-target-smoke
+      breadth_unit: >
+        Deepen Phase 5 Distribution Readiness with copied external-target smoke
+        so caller-supplied git target repo shapes can validate the packed package
+        without mutating the original target.
+      status: complete
+      completed_on: 2026-05-16
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness distribution smoke accepts repeated --target paths.
+            - External target smoke copies target repos into the temporary smoke workspace.
+            - External target smoke installs the packed tarball and runs init, doctor, and upgrade plan checks in the copy.
+            - External target smoke leaves the original target repo unchanged.
+        - id: validation
+          status: satisfied
+          evidence:
+            - External target smoke requires target paths to exist.
+            - External target smoke requires target paths to be directories.
+            - External target smoke requires target paths to contain .git.
+            - The copied target excludes .git and node_modules before installing the packed package.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers successful external-target smoke.
+            - npm test covers missing-target external smoke failure.
+            - npm test verifies external smoke does not write harness files or package metadata into the original source target.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-distribution-readiness-design.md defines external-target smoke.
+            - decisions/0019-adopt-external-target-distribution-smoke.md records the external-target smoke decision.
+            - docs/install.md documents the --target smoke command.
+            - design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the external-target smoke behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm test runs external-target smoke against a copied temp git target.
+            - npm run distribution:smoke has been run against the dogfood repo after adding external-target support.
+            - plans/current.yaml records Phase 5 external-target smoke as active current work.
+            - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: distribution-external-target-smoke
+    id: distribution-guarded-publish-workflow
     breadth_unit: >
-      Deepen Phase 5 Distribution Readiness with copied external-target smoke
-      so caller-supplied git target repo shapes can validate the packed package
-      without mutating the original target.
+      Deepen Phase 5 Distribution Readiness with a guarded npm publish workflow
+      and public registry access policy while keeping publish confirmation
+      blocked until release blockers are cleared.
     status: complete
     completed_on: 2026-05-16
     ready_for_next_breadth: true
@@ -784,34 +828,34 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness distribution smoke accepts repeated --target paths.
-          - External target smoke copies target repos into the temporary smoke workspace.
-          - External target smoke installs the packed tarball and runs init, doctor, and upgrade plan checks in the copy.
-          - External target smoke leaves the original target repo unchanged.
+          - harness distribution publish --plan reports the guarded publish workflow without publishing.
+          - harness distribution publish --confirm runs release preflight before attempting npm publish.
+          - npm run distribution:publish-plan exposes publish planning locally.
+          - The release plan records public npm registry access policy.
       - id: validation
         status: satisfied
         evidence:
-          - External target smoke requires target paths to exist.
-          - External target smoke requires target paths to be directories.
-          - External target smoke requires target paths to contain .git.
-          - The copied target excludes .git and node_modules before installing the packed package.
+          - Publish confirmation refuses blocked release plans.
+          - Release planning blocks public registry publication while package.json private is true.
+          - Release planning blocks public registry publication while package.json license is UNLICENSED.
+          - The publish workflow reuses package contents validation and npm publish dry-run metadata validation.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers successful external-target smoke.
-          - npm test covers missing-target external smoke failure.
-          - npm test verifies external smoke does not write harness files or package metadata into the original source target.
+          - npm test covers guarded publish planning.
+          - npm test covers blocked publish confirmation.
+          - npm test covers public access policy reporting.
+          - npm test covers the UNLICENSED public publication blocker.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-distribution-readiness-design.md defines external-target smoke.
-          - decisions/0019-adopt-external-target-distribution-smoke.md records the external-target smoke decision.
-          - docs/install.md documents the --target smoke command.
-          - design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the external-target smoke behavior.
+          - design/v1-distribution-readiness-design.md defines the guarded publish workflow.
+          - decisions/0020-adopt-guarded-npm-publish-workflow.md records the publish workflow and access-policy decision.
+          - docs/install.md documents distribution publish planning and confirmation.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the guarded publish behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm test runs external-target smoke against a copied temp git target.
-          - npm run distribution:smoke has been run against the dogfood repo after adding external-target support.
-          - plans/current.yaml records Phase 5 external-target smoke as active current work.
-          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
+          - npm run distribution:publish-plan has been run against the dogfood repo.
+          - plans/current.yaml records Phase 5 guarded publish workflow as active current work.
+          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:publish-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.

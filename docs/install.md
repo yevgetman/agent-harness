@@ -10,6 +10,7 @@ From the harness source repo:
 ```bash
 npm run distribution:check
 npm run distribution:release-plan
+npm run distribution:publish-plan
 npm run distribution:smoke
 npm pack --pack-destination /tmp/harness-pack
 ```
@@ -52,18 +53,29 @@ the harness checks there.
 
 ## Registry Install
 
-Registry installation is deferred until the package name, access policy, and
-release workflow are decided.
+Registry installation is deferred until release blockers are cleared. The first
+npm access policy is public for `portable-harness`; the package remains
+unpublished while `private: true` and `UNLICENSED` are present.
 
-Run the release preflight before any registry publish attempt:
+Run the release and publish plans before any registry publish attempt:
 
 ```bash
 npm run distribution:release-plan
+npm run distribution:publish-plan
 ```
 
 The current expected result is blocked because `package.json` has
-`private: true`. Treat that as intentional until a release decision records the
-package name, access policy, and publish workflow.
+`private: true` and `license: UNLICENSED`. Treat that as intentional until a
+release decision clears those blockers.
+
+Publish confirmation is guarded:
+
+```bash
+node scripts/harness.mjs distribution publish --confirm
+```
+
+It runs the release preflight first and refuses to publish unless the plan is
+ready.
 
 Package-installed upgrade plans query npm registry state for the configured
 dist tag. Until the package is published, `harness upgrade --plan` should report

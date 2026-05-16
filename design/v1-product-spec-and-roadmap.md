@@ -344,7 +344,8 @@ dogfooding requires an external target sooner.
 
 Status: active; local packed-package smoke validation, explicit package
 boundary validation, release preflight planning, registry version discovery,
-and external-target smoke are implemented and dogfooded.
+external-target smoke, and guarded npm publish planning are implemented and
+dogfooded.
 
 Purpose:
 
@@ -367,6 +368,9 @@ Initial behavior:
   `npm publish --dry-run --json`, reports release blockers separately from
   command success, and keeps registry publication blocked while the package is
   private.
+- `harness distribution publish --plan` reports the guarded npm publish path,
+  and `harness distribution publish --confirm` refuses to publish unless release
+  readiness has no blockers.
 - `harness distribution smoke` runs `npm pack` against the source repo,
   validates package contents, installs the packed tarball into temporary target
   repos, runs the installed `harness` binary, initializes profiles, runs
@@ -385,6 +389,8 @@ Initial behavior:
   registry version is available.
 - The package manifest has an explicit runtime-oriented `files` list plus
   repository, license, keyword, and engine metadata.
+- The first npm registry access policy is public; publication remains blocked
+  while `private: true`, `UNLICENSED`, or any release preflight blocker remains.
 - `docs/install.md` documents local tarball installation and records registry
   publication as deferred.
 

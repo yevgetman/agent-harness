@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
 const DEFAULT_PROFILES = ["minimal", "dogfood"];
+const REGISTRY_ACCESS = "public";
 const REQUIRED_PACKAGE_FILES = [
   "package.json",
   "scripts/harness.mjs",
@@ -102,11 +103,14 @@ function printHelp() {
 Usage:
   harness distribution check [--json]
   harness distribution release --plan [--json]
+  harness distribution publish --plan [--json]
+  harness distribution publish --confirm [--json]
   harness distribution smoke [--profile <profile>] [--target <path>] [--json] [--keep]
 
 Commands:
   check    Validate explicit npm package contents without writing a tarball.
   release  Plan release readiness without publishing.
+  publish  Run the guarded npm publish workflow. Requires --plan or --confirm.
   smoke    Pack the local npm package and validate installed target repos.
 
 Options:
@@ -209,6 +213,15 @@ function readPackageJson() {
   return JSON.parse(readFileSync(join(SOURCE_ROOT, "package.json"), "utf8"));
 }
 
+function publishCommandArgs(packageJson, { dryRun = false } = {}) {
+  const args = ["publish", "--json"];
+  if (dryRun) args.push("--dry-run");
+  if (REGISTRY_ACCESS === "public" && packageJson.name?.startsWith("@")) {
+    args.push("--access", "public");
+  }
+  return args;
+}
+
 function npmWarnings(stderr) {
   return stderr
     .split(/\r?\n/)
@@ -216,32 +229,63 @@ function npmWarnings(stderr) {
     .filter((line) => line.startsWith("npm warn"));
 }
 
-function publishDryRun() {
-  const result = runCaptured("npm", ["publish", "--dry-run", "--json"], { cwd: SOURCE_ROOT });
+function parsePublishOutput(stdout, label) {
   let publish = null;
   const errors = [];
+
+  if (stdout.trim()) {
+    try {
+      publish = JSON.parse(stdout);
+    } catch (parseError) {
+      errors.push(`${label} JSON parse error: ${parseError.message}`);
+    }
+  } else {
+    errors.push(`${label} did not emit JSON output`);
+  }
+
+  return { publish, errors };
+}
+
+function publishDryRun(packageJson = readPackageJson()) {
+  const args = publishCommandArgs(packageJson, { dryRun: true });
+  const result = runCaptured("npm", args, { cwd: SOURCE_ROOT });
+  const { publish, errors } = parsePublishOutput(result.stdout, "npm publish --dry-run");
 
   if (result.error) {
     errors.push(result.error);
   }
 
-  if (result.stdout.trim()) {
-    try {
-      publish = JSON.parse(result.stdout);
-    } catch (parseError) {
-      errors.push(`npm publish --dry-run JSON parse error: ${parseError.message}`);
-    }
-  } else {
-    errors.push("npm publish --dry-run did not emit JSON output");
+  return {
+    ok: result.ok && errors.length === 0,
+    status: result.status,
+    command: ["npm", ...args],
+    access: REGISTRY_ACCESS,
+    package_name: publish?.name ?? "unknown",
+    package_version: publish?.version ?? "unknown",
+    file_count: publish?.entryCount ?? 0,
+    files: (publish?.files ?? []).map((file) => file.path).sort(),
+    warnings: npmWarnings(result.stderr),
+    errors,
+  };
+}
+
+function publishActual(packageJson = readPackageJson()) {
+  const args = publishCommandArgs(packageJson);
+  const result = runCaptured("npm", args, { cwd: SOURCE_ROOT });
+  const { publish, errors } = parsePublishOutput(result.stdout, "npm publish");
+
+  if (result.error) {
+    errors.push(result.error);
   }
 
   return {
     ok: result.ok && errors.length === 0,
     status: result.status,
-    package_name: publish?.name ?? "unknown",
-    package_version: publish?.version ?? "unknown",
+    command: ["npm", ...args],
+    access: REGISTRY_ACCESS,
+    package_name: publish?.name ?? packageJson.name ?? "unknown",
+    package_version: publish?.version ?? packageJson.version ?? "unknown",
     file_count: publish?.entryCount ?? 0,
-    files: (publish?.files ?? []).map((file) => file.path).sort(),
     warnings: npmWarnings(result.stderr),
     errors,
   };
@@ -398,10 +442,40 @@ function printReleasePlan(result) {
   console.log("Harness distribution release plan");
   console.log(`status: ${result.ready ? "ready" : "blocked"}`);
   console.log(`package: ${result.package_name}@${result.package_version}`);
+  console.log(`registry_access: ${result.access}`);
   console.log(`private: ${result.private}`);
   console.log(`package_check: ${result.package_check.ok ? "ok" : "error"}`);
   console.log(`publish_dry_run: ${result.publish_dry_run.ok ? "ok" : "error"}`);
   console.log(`tarball_entries: ${result.file_count}`);
+  console.log("blockers:");
+  if (result.blockers.length === 0) {
+    console.log("  none");
+  } else {
+    for (const blocker of result.blockers) {
+      console.log(`  ${blocker}`);
+    }
+  }
+  console.log("warnings:");
+  if (result.warnings.length === 0) {
+    console.log("  none");
+  } else {
+    for (const warning of result.warnings) {
+      console.log(`  ${warning}`);
+    }
+  }
+  console.log("next_actions:");
+  for (const action of result.next_actions) {
+    console.log(`  ${action}`);
+  }
+}
+
+function printPublishResult(result) {
+  console.log("Harness distribution publish");
+  console.log(`mode: ${result.mode}`);
+  console.log(`status: ${result.ready ? "ready" : "blocked"}`);
+  console.log(`package: ${result.package_name}@${result.package_version}`);
+  console.log(`registry_access: ${result.access}`);
+  console.log(`published: ${result.published ? "yes" : "no"}`);
   console.log("blockers:");
   if (result.blockers.length === 0) {
     console.log("  none");
@@ -458,7 +532,7 @@ function runCheck() {
 function runReleasePlan() {
   const packageJson = readPackageJson();
   const check = runCheck();
-  const publish = publishDryRun();
+  const publish = publishDryRun(packageJson);
   const blockers = [];
   const warnings = [];
 
@@ -472,6 +546,10 @@ function runReleasePlan() {
 
   if (packageJson.private === true) {
     blockers.push("package.json private is true; registry publication is intentionally blocked");
+  }
+
+  if (REGISTRY_ACCESS === "public" && packageJson.license === "UNLICENSED") {
+    blockers.push("package.json license is UNLICENSED; public registry publication requires a release license decision");
   }
 
   if (!packageJson.repository?.url) {
@@ -498,6 +576,7 @@ function runReleasePlan() {
     ready: blockers.length === 0,
     package_name: check.package_name,
     package_version: check.package_version,
+    access: REGISTRY_ACCESS,
     private: packageJson.private === true,
     file_count: check.file_count,
     package_check: check.package_check,
@@ -505,10 +584,72 @@ function runReleasePlan() {
     blockers,
     warnings,
     next_actions: [
-      "choose npm package access policy and publish target",
+      "keep npm registry access public unless package scope or release policy changes",
+      "choose a release license before public registry publication",
       "set package.json private to false only after a release decision",
       "rerun npm run distribution:release-plan before any publish attempt",
     ],
+  };
+}
+
+function runPublish(args) {
+  const wantsPlan = args.includes("--plan");
+  const wantsConfirm = args.includes("--confirm");
+
+  if (wantsPlan === wantsConfirm) {
+    return {
+      ok: false,
+      mode: wantsConfirm ? "invalid" : "missing",
+      ready: false,
+      package_name: "unknown",
+      package_version: "unknown",
+      access: REGISTRY_ACCESS,
+      published: false,
+      release_plan: null,
+      publish: null,
+      blockers: ["distribution publish requires exactly one of --plan or --confirm"],
+      warnings: [],
+      next_actions: ["rerun with --plan to inspect readiness or --confirm to publish a ready release"],
+    };
+  }
+
+  const releasePlan = runReleasePlan();
+  const result = {
+    ok: wantsPlan ? releasePlan.ok : false,
+    mode: wantsConfirm ? "confirm" : "plan",
+    ready: releasePlan.ready,
+    package_name: releasePlan.package_name,
+    package_version: releasePlan.package_version,
+    access: releasePlan.access,
+    published: false,
+    release_plan: releasePlan,
+    publish: null,
+    blockers: [...releasePlan.blockers],
+    warnings: [...releasePlan.warnings],
+    next_actions: releasePlan.ready
+      ? ["rerun harness distribution publish --confirm to publish this ready release"]
+      : releasePlan.next_actions,
+  };
+
+  if (wantsPlan) {
+    return result;
+  }
+
+  if (!releasePlan.ready) {
+    return result;
+  }
+
+  const publish = publishActual(readPackageJson());
+  return {
+    ...result,
+    ok: publish.ok,
+    published: publish.ok,
+    publish,
+    blockers: publish.ok ? [] : publish.errors,
+    warnings: [...result.warnings, ...publish.warnings],
+    next_actions: publish.ok
+      ? ["verify registry version discovery reports the published version"]
+      : ["resolve npm publish errors and rerun harness distribution publish --plan"],
   };
 }
 
@@ -633,6 +774,16 @@ export function runDistribution({ args = [] } = {}) {
       console.log(JSON.stringify(result, null, 2));
     } else {
       printReleasePlan(result);
+    }
+    return result;
+  }
+
+  if (subcommand === "publish") {
+    const result = runPublish(rest);
+    if (rest.includes("--json")) {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      printPublishResult(result);
     }
     return result;
   }

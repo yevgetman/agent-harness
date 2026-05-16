@@ -64,6 +64,7 @@
     "plans:report": "node scripts/harness.mjs plans report",
     "distribution:check": "node scripts/harness.mjs distribution check",
     "distribution:release-plan": "node scripts/harness.mjs distribution release --plan",
+    "distribution:publish-plan": "node scripts/harness.mjs distribution publish --plan",
     "distribution:smoke": "node scripts/harness.mjs distribution smoke",
     "lock:refresh": "node scripts/harness.mjs lock refresh",
     "lock:check": "node scripts/harness.mjs lock check",

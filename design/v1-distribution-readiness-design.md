@@ -3,7 +3,8 @@
 **Status:** accepted baseline
 **Date:** 2026-05-16
 **Scope:** Phase 5 packed-package smoke validation, package boundary, release
-preflight, registry version discovery, and external-target smoke
+preflight, registry version discovery, external-target smoke, and guarded npm
+publish workflow
 
 This is a formal design document. It defines the first Distribution Readiness
 increments after the Phase 4 Plans And Status breadth pass.
@@ -33,11 +34,17 @@ The fifth increment adds caller-supplied external-target smoke. This validates
 the packed package against a copied target repo shape before registry
 publication exists.
 
+The sixth increment adds a guarded npm publish workflow. It defines public npm
+registry access as the first publish policy, exposes publish planning, and
+refuses publish confirmation while release blockers remain.
+
 ## Command
 
 ```bash
 harness distribution check
 harness distribution release --plan
+harness distribution publish --plan
+harness distribution publish --confirm
 harness distribution smoke
 ```
 
@@ -46,6 +53,7 @@ Local package script:
 ```bash
 npm run distribution:check
 npm run distribution:release-plan
+npm run distribution:publish-plan
 npm run distribution:smoke
 ```
 
@@ -64,6 +72,13 @@ command success:
 The release plan must block when npm dry-run publish auto-corrects package
 metadata, because that means the repository's package metadata is not the same
 as what npm would publish.
+
+`harness distribution publish --plan` runs the release preflight and reports
+whether publish confirmation would be allowed. `harness distribution publish
+--confirm` runs the same release preflight first and refuses to publish unless
+the plan is ready. The first npm registry access policy is `public`; scoped
+package names should publish with `--access public`, while the current unscoped
+package uses npm's public default.
 
 `harness distribution smoke`:
 
@@ -208,14 +223,15 @@ without `--dry-run`.
 Current blockers:
 
 - `package.json private` is true.
-- Registry package access policy is undecided.
-- The first publish workflow is undecided.
+- `package.json license` is `UNLICENSED`.
 
 Current release preflight evidence:
 
 - package contents validation passes.
 - `npm publish --dry-run --json` emits publish metadata.
 - npm publish dry-run does not auto-correct package metadata.
+- `harness distribution publish --plan` reports the same blockers without
+  publishing.
 
 ## Doctor And Test Relationship
 
@@ -231,6 +247,7 @@ release-plan, and smoke commands.
 
 - The package remains private and unpublished.
 - Release preflight is blocked by design while `private: true`.
+- Publish confirmation is blocked while release preflight has blockers.
 - No Homebrew, standalone binary, or Bun distribution exists.
 - Registry discovery is npm-only, and unpublished/private or unavailable
   registry state still falls back to the package currently executing.

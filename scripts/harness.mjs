@@ -39,6 +39,7 @@ Usage:
   harness plans report
   harness distribution check
   harness distribution release --plan
+  harness distribution publish --plan
   harness distribution smoke
   harness lock refresh
   harness lock check

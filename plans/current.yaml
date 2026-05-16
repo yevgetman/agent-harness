@@ -92,11 +92,30 @@ plans_status:
 
     - id: phase-5-external-target-smoke
       title: Add external target smoke
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
       summary: Phase 5 distribution smoke can now copy caller-supplied git target repos into the smoke workspace, install the packed tarball there, and validate init, doctor, and upgrade behavior without mutating the original target.
-      next_action: Decide whether to implement actual publish workflow, registry access policy, or a named real-repo dogfood smoke target next.
+      canonical_state_id: product-spec
+      tags:
+        - phase-5
+        - distribution
+        - complete
+      references:
+        - design/v1-product-spec-and-roadmap.md
+        - design/v1-distribution-readiness-design.md
+        - decisions/0019-adopt-external-target-distribution-smoke.md
+        - docs/install.md
+        - scripts/distribution.mjs
+        - scripts/test.mjs
+
+    - id: phase-5-guarded-publish-workflow
+      title: Add guarded npm publish workflow
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Phase 5 now has public npm access policy plus guarded publish planning and confirmation; publish confirmation remains blocked while private/license release blockers remain.
+      next_action: Decide whether to clear release blockers, choose a public release license, or run a named real-repo dogfood smoke target next.
       canonical_state_id: product-spec
       tags:
         - phase-5
@@ -105,7 +124,8 @@ plans_status:
       references:
         - design/v1-product-spec-and-roadmap.md
         - design/v1-distribution-readiness-design.md
-        - decisions/0019-adopt-external-target-distribution-smoke.md
+        - decisions/0020-adopt-guarded-npm-publish-workflow.md
         - docs/install.md
+        - package.json
         - scripts/distribution.mjs
         - scripts/test.mjs

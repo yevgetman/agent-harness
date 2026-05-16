@@ -146,8 +146,10 @@ Current dogfood state:
   with doctor, and confirms package-based upgrade version source plus npm
   registry status reporting. It can also copy a caller-supplied git target into
   the smoke workspace with `--target <path>` and validate the packed package
-  without mutating the original target. `docs/install.md` documents local
-  tarball installation.
+  without mutating the original target. It now exposes guarded public npm
+  publish planning through `npm run distribution:publish-plan`, while publish
+  confirmation remains blocked by private/license release blockers.
+  `docs/install.md` documents local tarball installation.
 
 ## Orientation rule
 
@@ -165,8 +167,8 @@ Then open the relevant formal design or exploratory spec for the task.
 ## Near-term work
 
 The current useful step is to decide whether Distribution Readiness should be
-deepened next toward an actual publish workflow, registry access policy, or a
-named real-repo dogfood smoke target.
+deepened next toward clearing release blockers, choosing a public release
+license, or running a named real-repo dogfood smoke target.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -188,7 +190,8 @@ named real-repo dogfood smoke target.
 - Distribution Readiness now has explicit package contents validation, release
   preflight planning, registry discovery, local tarball install docs,
   packed-package smoke validation for package install/init/doctor/upgrade plan,
-  and copied external-target smoke.
-- Candidate next Distribution depth: actual publish workflow, registry access
-  policy, or named real-repo dogfood smoke.
+  copied external-target smoke, public npm access policy, and guarded publish
+  planning.
+- Candidate next Distribution depth: release blocker cleanup, public release
+  license decision, or named real-repo dogfood smoke.
 - Keep `status.md` current after significant choices.
