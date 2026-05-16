@@ -26,6 +26,7 @@
     "plans:list": "node scripts/harness.mjs plans list",
     "plans:check": "node scripts/harness.mjs plans check",
     "plans:report": "node scripts/harness.mjs plans report",
+    "distribution:smoke": "node scripts/harness.mjs distribution smoke",
     "lock:refresh": "node scripts/harness.mjs lock refresh",
     "lock:check": "node scripts/harness.mjs lock check",
     "upgrade:plan": "node scripts/harness.mjs upgrade --plan",

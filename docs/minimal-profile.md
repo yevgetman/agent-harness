@@ -115,6 +115,10 @@ and `harness metadata report`. `canonical-state` adds
 `plans-and-status` adds `plans/current.yaml`, `harness plans list`,
 `harness plans check`, and `harness plans report`.
 
+Distribution readiness is checked from the source repo with
+`npm run distribution:smoke`, which packs the local npm package and validates
+the installed `harness` binary in temporary target repos.
+
 ## Current Limits
 
 - The profile does not install Decisions And Open Questions by default.

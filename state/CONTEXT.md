@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-15
+generated_on: 2026-05-16
 generated_from:
   - design/v1-product-spec-and-roadmap.md
   - design/v1-process-domain-design.md
@@ -14,6 +14,7 @@ generated_from:
   - design/v1-canonical-state-design.md
   - design/v1-invariants-golden-principles-design.md
   - design/v1-plans-status-design.md
+  - design/v1-distribution-readiness-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
 harness:
@@ -108,11 +109,12 @@ Current dogfood state:
   exposed locally as `npm run init`; it now reads `profiles/*.yaml` and has
   dry-run, non-git safety, and installed metadata.
 - The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
-  uses a `local-checkout` version source, reads `.harness/lock.yaml`, and
-  reports no blockers or warnings for this dogfood repo. It now emits typed
-  operation records plus operation summary counts so future apply behavior has
-  an explicit safety model. `harness upgrade --plan --json` is the stable
-  machine-readable plan output.
+  uses a `local-checkout` version source in the dogfood repo, reads
+  `.harness/lock.yaml`, and reports no blockers or warnings for this dogfood
+  repo. It reports `package` as the version source for package-installed
+  targets. It now emits typed operation records plus operation summary counts
+  so future apply behavior has an explicit safety model.
+  `harness upgrade --plan --json` is the stable machine-readable plan output.
 - The first apply scaffold exists as `npm run upgrade:apply`; it only permits
   safe/noop, safe/refresh-lock, and deterministic safe/repair-command
   operations and refuses blocked or review-required plans.
@@ -134,6 +136,11 @@ Current dogfood state:
   `open-questions.yaml`, `templates/decision.md`, and
   `npm run decisions:new -- "<title>"`, `npm run decisions:list`, and
   `npm run questions:list`.
+- Distribution Readiness exists in first dogfood form via
+  `npm run distribution:smoke`, which packs the local npm package, installs it
+  into temporary target repos, runs the installed `harness` binary, validates
+  initialized profiles with doctor, and confirms package-based upgrade version
+  source reporting.
 
 ## Orientation rule
 
@@ -150,8 +157,9 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is to decide whether Plans And Status needs a depth pass
-before Phase 5 Distribution Readiness.
+The current useful step is to decide whether Distribution Readiness should be
+deepened toward release packaging or whether the packed-package smoke path is
+enough for the next v1 closeout move.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -170,7 +178,8 @@ before Phase 5 Distribution Readiness.
 - Plans And Status now has list/report queries, status/owner/priority
   filtering, JSON output, status-projection validation, plan-reference
   validation, and report summaries.
-- Candidate next Plans depth, if needed: `harness plans new`, status freshness
-  checks, or generated current-work reports.
-- Candidate next roadmap phase: Phase 5 Distribution Readiness.
+- Distribution Readiness now has packed-package smoke validation for package
+  install, init, doctor, and upgrade plan.
+- Candidate next Distribution depth: package contents pruning, install docs,
+  registry version discovery, or release packaging.
 - Keep `status.md` current after significant choices.

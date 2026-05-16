@@ -1,7 +1,7 @@
 # Harness managed file: canonical-state
 canonical_state:
   version: 1
-  updated: 2026-05-15
+  updated: 2026-05-16
   scope: harness-source-repo
   entries:
     - id: agents
@@ -103,6 +103,16 @@ canonical_state:
       depends_on:
         - process-domain-design
         - canonical-state-design
+
+    - id: distribution-readiness-design
+      path: design/v1-distribution-readiness-design.md
+      metadata_id: distribution-readiness-design
+      state_role: source
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - product-spec
 
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
@@ -253,3 +263,13 @@ canonical_state:
       depends_on:
         - plans-status-module
         - plans-current
+
+    - id: distribution-cli
+      path: scripts/distribution.mjs
+      metadata_id: distribution-cli
+      state_role: source
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - distribution-readiness-design

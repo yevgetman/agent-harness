@@ -12,6 +12,7 @@ import { runMetadata } from "./metadata.mjs";
 import { runState } from "./state.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runPlans } from "./plans.mjs";
+import { runDistribution } from "./distribution.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -36,6 +37,7 @@ Usage:
   harness plans list
   harness plans check
   harness plans report
+  harness distribution smoke
   harness lock refresh
   harness lock check
   harness upgrade --plan
@@ -103,6 +105,11 @@ if (command === "invariants") {
 
 if (command === "plans") {
   const result = runPlans({ cwd: process.cwd(), args });
+  process.exit(result.ok ? 0 : 2);
+}
+
+if (command === "distribution") {
+  const result = runDistribution({ args });
   process.exit(result.ok ? 0 : 2);
 }
 

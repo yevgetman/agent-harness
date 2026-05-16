@@ -560,48 +560,89 @@ build_strategy:
             - invariants/golden-principles.yaml captures current dogfood rules.
             - npm run invariants:check, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
 
+    - id: plans-and-status-module
+      breadth_unit: >
+        Add Plans And Status as the fourth Phase 4 process-domain module with a
+        structured plans/status registry, list/check/report commands,
+        status-projection validation, plan-reference validation, doctor
+        validation, profile wiring, and dogfood installation.
+      completed_on: 2026-05-15
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness plans check validates plans/current.yaml.
+            - harness plans list supports status, owner-domain, priority, and JSON filters.
+            - harness plans report emits status, priority, and owner-domain summaries.
+            - plans-and-status is installable through modules add.
+            - The dogfood profile includes plans-and-status.
+        - id: validation
+          status: satisfied
+          evidence:
+            - Plans validation checks version, status projection, required fields, unique IDs, allowed statuses, allowed priorities, tags, and references.
+            - Plans validation requires next_action for active and blocked plans.
+            - Plans validation checks canonical_state_id references when Canonical State is available.
+            - harness doctor consumes Plans validation through validatePlansStatus.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers plans-and-status module installation.
+            - npm test covers plans check, list filters, report summaries, and JSON output.
+            - npm test covers invalid plan status validation failure.
+            - npm test covers missing plan reference validation failure.
+            - npm test covers dogfood profile installation with plans-and-status.
+        - id: docs
+          status: satisfied
+          evidence:
+            - design/v1-plans-status-design.md defines the Plans And Status domain baseline.
+            - decisions/0014-adopt-plans-and-status-module.md records the decision.
+            - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - plans-and-status is installed in .harness/manifest.yaml.
+            - plans/current.yaml captures current dogfood work state.
+            - npm run plans:check, npm run plans:report, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: plans-and-status-module
+    id: distribution-package-smoke
     breadth_unit: >
-      Add Plans And Status as the fourth Phase 4 process-domain module with a
-      structured plans/status registry, list/check/report commands,
-      status-projection validation, plan-reference validation, doctor
-      validation, profile wiring, and dogfood installation.
+      Start Phase 5 Distribution Readiness with a packed-package smoke command
+      that validates the installed harness binary in temporary target repos and
+      makes upgrade planning report package-based version source state.
     status: complete
+    completed_on: 2026-05-16
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness plans check validates plans/current.yaml.
-          - harness plans list supports status, owner-domain, priority, and JSON filters.
-          - harness plans report emits status, priority, and owner-domain summaries.
-          - plans-and-status is installable through modules add.
-          - The dogfood profile includes plans-and-status.
+          - harness distribution smoke runs npm pack against the source repo.
+          - The smoke command installs the packed tarball into temporary git target repos.
+          - The smoke command runs the installed node_modules/.bin/harness binary, not the source checkout script.
+          - The smoke command initializes the minimal and dogfood profiles by default.
+          - The smoke command runs harness doctor and harness upgrade --plan --json in the package-installed targets.
       - id: validation
         status: satisfied
         evidence:
-          - Plans validation checks version, status projection, required fields, unique IDs, allowed statuses, allowed priorities, tags, and references.
-          - Plans validation requires next_action for active and blocked plans.
-          - Plans validation checks canonical_state_id references when Canonical State is available.
-          - harness doctor consumes Plans validation through validatePlansStatus.
+          - The smoke command fails on doctor warnings, doctor blockers, upgrade warnings, or upgrade blockers.
+          - The smoke command requires upgrade plan version_source.type to be package.
+          - The upgrade planner reports local-checkout for local source installs and package for package installs.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers plans-and-status module installation.
-          - npm test covers plans check, list filters, report summaries, and JSON output.
-          - npm test covers invalid plan status validation failure.
-          - npm test covers missing plan reference validation failure.
-          - npm test covers dogfood profile installation with plans-and-status.
+          - npm test covers the distribution smoke command with the minimal profile.
+          - npm test covers package-installed upgrade plans reporting package version source.
       - id: docs
         status: satisfied
         evidence:
-          - design/v1-plans-status-design.md defines the Plans And Status domain baseline.
-          - decisions/0014-adopt-plans-and-status-module.md records the decision.
-          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, and index.yaml describe the installed domain.
+          - design/v1-distribution-readiness-design.md defines the first Distribution Readiness increment.
+          - decisions/0015-adopt-distribution-readiness-smoke-test.md records the decision.
+          - AGENTS.md, design/v1-product-spec-and-roadmap.md, state/CONTEXT.md, status.md, plans/current.yaml, and index.yaml describe the installed behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - plans-and-status is installed in .harness/manifest.yaml.
-          - plans/current.yaml captures current dogfood work state.
-          - npm run plans:check, npm run plans:report, npm run state:check, npm run metadata:check, npm run doctor, npm run upgrade:plan, npm run lock:check, and npm test pass against the dogfood repo.
+          - npm run distribution:smoke has been run against the dogfood repo.
+          - plans/current.yaml records Phase 5 distribution smoke as active current work.
+          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, and npm test pass against the dogfood repo.

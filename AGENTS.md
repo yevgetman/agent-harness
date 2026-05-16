@@ -171,6 +171,11 @@ work changes.
 Use `npm run plans:check` after changing `status.md`, current plans, or
 plan-referenced artifacts.
 
+## Distribution Readiness Discipline
+
+Use `npm run distribution:smoke` after changing package contents, CLI entry
+points, profile installation, or distribution/version-source behavior.
+
 ## Current Design Vocabulary
 
 - **Harness process domain** is the canonical term for a conceptual operating

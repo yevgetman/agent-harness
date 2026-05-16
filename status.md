@@ -1,26 +1,19 @@
 # Harness Status
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Current Phase
 
-Phase 4 Additional Process Domains breadth pass. Structured Metadata,
-Canonical State, Invariants And Golden Principles, and Plans And Status are
-installed in the dogfood repo. Structured Metadata has metadata commands,
-filtered and JSON queries, report summaries, dependency validation, doctor
-validation, and `metadata/artifacts.yaml`. Canonical State has
-`state/canonical-state.yaml`, `harness state list`, `harness state check`,
-`harness state report`, role/status/owner-domain filters, JSON output,
-metadata-reference validation, dependency-reference validation, and doctor
-validation. Invariants And Golden Principles has
-`invariants/golden-principles.yaml`, `harness invariants check`, simple file
-existence/content checks, canonical-state reference validation, and doctor
-validation. Plans And Status has `plans/current.yaml`, `harness plans list`,
-`harness plans check`, `harness plans report`, status-projection validation,
-plan reference validation, canonical-state reference validation, and doctor
-validation.
+Phase 5 Distribution Readiness is active. The first packed-package smoke
+increment is implemented through `harness distribution smoke` and
+`npm run distribution:smoke`; it runs `npm pack`, installs the packed tarball
+into temporary target repos, runs the installed `harness` binary, initializes
+profiles, runs doctor, and verifies package-based upgrade version-source
+reporting. Phase 4 Additional Process Domains has Structured Metadata,
+Canonical State, Invariants And Golden Principles, and Plans And Status
+installed in the dogfood repo.
 
-The repo currently has exploratory specs, twelve formal v1 documents, a root
+The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
 lock file, seven active module definitions, a runnable `harness doctor`
@@ -36,8 +29,9 @@ command, and doctor validation. Baseline installed-file provenance exists via
 `.harness/lock.yaml`, `harness lock refresh`, `harness lock check`, lock-aware
 doctor checks, semantic lock metadata, lock-aware upgrade planning with typed
 operation records, JSON plans, operation summaries, and a limited safe
-`harness upgrade apply` scaffold. No general file/template upgrade apply,
-profile switching, or full external CLI distribution exists yet.
+`harness upgrade apply` scaffold. Local packed-package distribution smoke
+exists, but no published package, general file/template upgrade apply, profile
+switching, or non-npm distribution exists yet.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -51,7 +45,10 @@ package scripts for local dogfood use, and doctor validation when
 `invariants-golden-principles` is installed. Plans And Status exists via
 `plans/current.yaml`, `harness plans list`, `harness plans check`,
 `harness plans report`, local package scripts, and doctor validation when
-`plans-and-status` is installed.
+`plans-and-status` is installed. Distribution Readiness exists via
+`harness distribution smoke`, `npm run distribution:smoke`, package-based
+upgrade version-source reporting, and packed-package smoke validation for the
+`minimal` and `dogfood` profiles.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -67,9 +64,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Phase 3 Lock And Provenance is active; the closeout implementation includes
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
-- Phase 4 Additional Process Domains is active; Structured Metadata, Canonical
-  State, Invariants And Golden Principles, and Plans And Status are installed
-  breadth units.
+- Phase 4 Additional Process Domains has Structured Metadata, Canonical State,
+  Invariants And Golden Principles, and Plans And Status installed as breadth
+  units.
+- Phase 5 Distribution Readiness is active; packed-package smoke validation is
+  the first breadth/depth increment.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -134,7 +133,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   managed-file consistency.
 - `npm run upgrade:plan` reports installed harness state without applying
   changes.
-- The upgrade planner uses the explicit v1 version source `local-checkout`.
+- The upgrade planner uses the explicit v1 version source `local-checkout` for
+  the dogfood repo and reports `package` for package-installed targets.
 - The upgrade planner reports plan schema, operation contract version, modules,
   registry-available modules, managed files, lock state, command wiring, typed
   operations, operation summaries, actions, warnings, blockers, and notes.
@@ -178,6 +178,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run plans:check` validates `plans/current.yaml`.
 - `npm run plans:report` summarizes plans by status, priority, and owner
   domain.
+- `npm run distribution:smoke` packs the local npm package and validates the
+  installed harness binary in temporary target repos.
 - `npm run modules:list` lists registry modules with installed/installable
   state.
 - `node scripts/harness.mjs modules add <module-id> --target <path>` installs
@@ -188,8 +190,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   install, doctor after install, and upgrade plan after install.
 - Profile-backed init tests cover profile listing, minimal profile init, and
   dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `plans-and-status-module` as the current
-  complete depth pass for the fourth Phase 4 breadth unit.
+- `build/depth-gate.yaml` records `distribution-package-smoke` as the current
+  complete depth pass for the first Phase 5 breadth unit.
 
 ## Active Artifacts
 
@@ -216,6 +218,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `design/v1-invariants-golden-principles-design.md` — formal Invariants And
   Golden Principles design.
 - `design/v1-plans-status-design.md` — formal Plans And Status design.
+- `design/v1-distribution-readiness-design.md` — formal Distribution
+  Readiness design.
 - `build/depth-gate.yaml` — repo-local depth gate for the current build
   methodology.
 - `docs/minimal-profile.md` — reference for the current minimal install
@@ -262,6 +266,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   module.
 - `decisions/0014-adopt-plans-and-status-module.md` — decision record for
   adopting Plans And Status as a Phase 4 module.
+- `decisions/0015-adopt-distribution-readiness-smoke-test.md` — decision
+  record for adopting packed-package distribution smoke validation.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -270,15 +276,15 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
   `scripts/profiles.mjs` / `scripts/metadata.mjs` / `scripts/lock.mjs` /
   `scripts/state.mjs` / `scripts/invariants.mjs` / `scripts/plans.mjs` /
-  `scripts/doctor.mjs` —
+  `scripts/distribution.mjs` / `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
   metadata commands, canonical state validation, invariants validation, plans
-  validation and reporting, lock command/helpers, upgrade planner, and doctor
-  command.
+  validation and reporting, distribution smoke validation, lock
+  command/helpers, upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, structured metadata, canonical state, invariants, plans/status,
-  semantic lock provenance, upgrade planning/apply behavior, depth-gate
-  validation, and doctor fixtures.
+  distribution smoke, semantic lock provenance, upgrade planning/apply
+  behavior, depth-gate validation, and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
@@ -287,9 +293,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Decide whether Plans And Status needs a depth pass before Phase 5
-  Distribution Readiness. Candidate depth includes `harness plans new`,
-  status freshness checks, or generated current-work reports.
+- Decide whether Distribution Readiness should deepen toward package contents
+  pruning, install docs, registry version discovery, or release packaging.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 

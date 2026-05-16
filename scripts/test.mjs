@@ -16,6 +16,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDecisions } from "./decisions.mjs";
+import { runDistribution } from "./distribution.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runInit } from "./init.mjs";
@@ -236,7 +237,7 @@ withTempDir((root) => {
     1,
     "upgrade plan should expose an operation contract version",
   );
-  assert.equal(upgrade.plan.version_source.type, "local-checkout", "upgrade plan should report local version source");
+  assert.equal(upgrade.plan.version_source.type, "package", "upgrade plan should report package version source for initialized targets");
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
   assert.equal(upgrade.plan.commands.length, 8, "upgrade plan should include command states");
   assert.equal(upgrade.plan.operation_summary.by_status.safe > 0, true, "upgrade plan should summarize safe operations");
@@ -830,6 +831,14 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "dogfood profile upgrade plan should have no blockers");
   assert.equal(upgrade.plan.warnings.length, 0, "dogfood profile upgrade plan should have no warnings");
 });
+
+{
+  const smoke = quiet(() => runDistribution({ args: ["smoke", "--profile", "minimal"] }));
+  assert.equal(smoke.ok, true, "distribution smoke should pass for the minimal profile");
+  assert.equal(smoke.profiles.length, 1, "distribution smoke should run the requested profile");
+  assert.equal(smoke.profiles[0].version_source.type, "package", "package-installed upgrade plan should report package version source");
+  assert.equal(smoke.profiles[0].managed_files, 4, "minimal distribution smoke should validate managed files");
+}
 
 withTempDir((root) => {
   const target = join(root, "target");

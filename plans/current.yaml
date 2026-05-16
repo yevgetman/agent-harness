@@ -1,36 +1,38 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-05-15
+  updated: 2026-05-16
   scope: harness-source-repo
   status_projection: status.md
   plans:
     - id: phase-4-plans-status-closeout
-      title: Decide Plans And Status depth or Phase 5
-      status: active
+      title: Plans And Status closeout
+      status: complete
       priority: high
       owner_domain: plans-and-status
       summary: Plans And Status is installed as the fourth Phase 4 process-domain module.
-      next_action: Decide whether to deepen Plans And Status or move to Phase 5 distribution readiness.
       canonical_state_id: status
       tags:
         - phase-4
-        - current
+        - complete
       references:
         - status.md
         - build/depth-gate.yaml
         - design/v1-product-spec-and-roadmap.md
 
-    - id: phase-5-distribution-readiness
-      title: Prepare external distribution readiness
-      status: planned
+    - id: phase-5-distribution-smoke
+      title: Prove packed-package distribution smoke
+      status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: Phase 5 should make target repos usable without depending on the local harness checkout.
-      next_action: Choose the first distribution path and add external-target smoke validation.
+      summary: Phase 5 now validates that target repos can use the harness from a packed npm package instead of the source checkout.
+      next_action: Decide whether to deepen distribution smoke or move to release packaging.
       canonical_state_id: product-spec
       tags:
         - phase-5
         - distribution
+        - current
       references:
         - design/v1-product-spec-and-roadmap.md
+        - design/v1-distribution-readiness-design.md
+        - scripts/distribution.mjs

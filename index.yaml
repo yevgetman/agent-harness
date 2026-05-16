@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-15
+updated: 2026-05-16
 harness:
   package: portable-harness
   version: 0.1.0
@@ -33,6 +33,7 @@ reading_order:
   - v1-canonical-state-design
   - v1-invariants-golden-principles-design
   - v1-plans-status-design
+  - v1-distribution-readiness-design
   - installed-manifest
   - installed-lock
   - metadata-artifacts
@@ -65,6 +66,7 @@ reading_order:
   - decision-0012
   - decision-0013
   - decision-0014
+  - decision-0015
   - decision-template
   - package
   - harness-cli
@@ -76,6 +78,7 @@ reading_order:
   - state-cli
   - invariants-cli
   - plans-cli
+  - distribution-cli
   - lock-cli
   - decisions-cli
   - questions-cli
@@ -233,6 +236,16 @@ documents:
     depends_on:
       - v1-process-domain-design
       - v1-canonical-state-design
+
+  - doc_id: v1-distribution-readiness-design
+    file: design/v1-distribution-readiness-design.md
+    title: "Formal Design: V1 Distribution Readiness"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the first Phase 5 increment: packed-package smoke validation and package-based upgrade version-source reporting."
+    depends_on:
+      - v1-product-spec-and-roadmap
+      - v1-upgrade-operation-contract
 
   - doc_id: installed-manifest
     file: .harness/manifest.yaml
@@ -547,6 +560,16 @@ documents:
       - v1-plans-status-design
       - v1-product-spec-and-roadmap
 
+  - doc_id: decision-0015
+    file: decisions/0015-adopt-distribution-readiness-smoke-test.md
+    title: Adopt Distribution Readiness Smoke Test
+    kind: decision
+    status: active
+    summary: Decision record adopting packed-package distribution smoke validation as the first Phase 5 increment.
+    depends_on:
+      - v1-distribution-readiness-design
+      - v1-product-spec-and-roadmap
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -561,7 +584,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
+    summary: Node package wiring for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution smoke, lock maintenance, upgrade planning/apply scaffolding, doctor, and test commands.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -571,7 +594,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, lock maintenance, upgrade planning/apply scaffolding, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution smoke, lock maintenance, upgrade planning/apply scaffolding, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -660,6 +683,16 @@ documents:
       - v1-plans-status-design
       - plans-current
 
+  - doc_id: distribution-cli
+    file: scripts/distribution.mjs
+    title: Harness Distribution CLI
+    kind: cli
+    status: active
+    summary: Distribution smoke command that packs the local npm package, installs it into temporary target repos, runs the installed harness binary, and verifies doctor and package-based upgrade plans.
+    depends_on:
+      - v1-distribution-readiness-design
+      - package
+
   - doc_id: lock-cli
     file: scripts/lock.mjs
     title: Harness Lock CLI
@@ -717,7 +750,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, plans/status, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, plans/status, distribution smoke, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
@@ -725,6 +758,7 @@ documents:
       - state-cli
       - invariants-cli
       - plans-cli
+      - distribution-cli
       - lock-cli
       - decisions-cli
       - questions-cli

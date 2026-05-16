@@ -149,6 +149,7 @@ Current commands:
 - `harness plans list`
 - `harness plans check`
 - `harness plans report`
+- `harness distribution smoke`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
@@ -339,7 +340,8 @@ dogfooding requires an external target sooner.
 
 ### Phase 5: Distribution Readiness
 
-Status: deferred.
+Status: active; local packed-package smoke validation is implemented and
+dogfooded.
 
 Purpose:
 
@@ -352,6 +354,18 @@ Candidate work:
 - release packaging
 - install docs
 - smoke tests against external target repos
+
+Initial behavior:
+
+- `harness distribution smoke` runs `npm pack` against the source repo,
+  installs the packed tarball into temporary target repos, runs the installed
+  `harness` binary, initializes profiles, runs `harness doctor`, and verifies
+  `harness upgrade --plan --json`.
+- Packed-package smoke validation covers the `minimal` and `dogfood` profiles
+  by default.
+- Upgrade planning reports `version_source.type: package` when a target was
+  initialized from the installed package and `local-checkout` for this dogfood
+  repo.
 
 Exit signal:
 

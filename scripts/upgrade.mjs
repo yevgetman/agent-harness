@@ -22,6 +22,38 @@ function readSourcePackageScripts() {
   return readJsonFile(join(SOURCE_ROOT, "package.json")).scripts ?? {};
 }
 
+function versionSourceFor(harness) {
+  const sourceType = harness.source?.type;
+  if (sourceType === "package") {
+    return {
+      type: "package",
+      package: harness.source.package ?? readJsonFile(join(SOURCE_ROOT, "package.json")).name,
+      channel: harness.source.channel ?? "unknown",
+      harness_package: "package.json",
+      module_registry: "modules/registry.yaml",
+      modules: "modules/<id>/module.yaml",
+    };
+  }
+
+  if (sourceType === "local") {
+    return {
+      type: "local-checkout",
+      path: harness.source.path ?? SOURCE_ROOT,
+      channel: harness.source.channel ?? "unknown",
+      harness_package: "package.json",
+      module_registry: "modules/registry.yaml",
+      modules: "modules/<id>/module.yaml",
+    };
+  }
+
+  return {
+    type: sourceType ?? "unknown",
+    harness_package: "package.json",
+    module_registry: "modules/registry.yaml",
+    modules: "modules/<id>/module.yaml",
+  };
+}
+
 function readYamlFile(path) {
   return parseYaml(readFileSync(path, "utf8"));
 }
@@ -298,6 +330,7 @@ function buildPlan({ root }) {
   const availableRegistryModules = collectAvailableRegistryModules();
   const loadedLock = readLock(root);
   const lockByPath = loadedLock.lock ? lockFileMap(loadedLock.lock) : new Map();
+  const versionSource = versionSourceFor(harness);
   const lock = {
     status: loadedLock.status,
     files: loadedLock.lock?.files?.length ?? 0,
@@ -506,7 +539,13 @@ function buildPlan({ root }) {
   }
 
   notes.push("apply is limited to safe/noop, safe/refresh-lock, and safe/repair-command operations");
-  notes.push("version source is local-checkout; external package discovery is deferred");
+  if (versionSource.type === "package") {
+    notes.push("version source is package; available version is read from the executing installed package");
+  } else if (versionSource.type === "local-checkout") {
+    notes.push("version source is local-checkout; external package discovery is deferred");
+  } else {
+    notes.push(`version source is ${versionSource.type}; external package discovery is deferred`);
+  }
   addOperation(operations, {
     code: "deferred/apply-not-implemented",
     subject_type: "upgrade-apply",
@@ -525,12 +564,7 @@ function buildPlan({ root }) {
       available_harness_version: availableVersion,
       profile: harness.profile ?? "unknown",
       source: harness.source ?? {},
-      version_source: {
-        type: "local-checkout",
-        harness_package: "package.json",
-        module_registry: "modules/registry.yaml",
-        modules: "modules/<id>/module.yaml",
-      },
+      version_source: versionSource,
       lock,
       modules,
       managed_files: managedFiles,

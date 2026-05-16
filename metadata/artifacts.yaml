@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-15
+  updated: 2026-05-16
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -115,6 +115,17 @@ metadata:
         - process-domain-design
         - canonical-state-design
 
+    - id: distribution-readiness-design
+      path: design/v1-distribution-readiness-design.md
+      kind: formal-design
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - phase-5
+      depends_on:
+        - product-spec
+
     - id: metadata-artifacts
       path: metadata/artifacts.yaml
       kind: metadata-registry
@@ -158,6 +169,18 @@ metadata:
         - registry
       depends_on:
         - installed-manifest
+
+    - id: package
+      path: package.json
+      kind: package-manifest
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - package
+        - distribution
+        - cli
+      depends_on:
+        - product-spec
 
     - id: depth-gate
       path: build/depth-gate.yaml
@@ -311,6 +334,19 @@ metadata:
         - plans-status-module
         - plans-current
 
+    - id: distribution-cli
+      path: scripts/distribution.mjs
+      kind: cli
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - cli
+        - validation
+      depends_on:
+        - distribution-readiness-design
+        - package
+
     - id: structured-metadata-decision
       path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
       kind: decision
@@ -377,3 +413,14 @@ metadata:
         - decision
       depends_on:
         - plans-status-design
+
+    - id: distribution-smoke-decision
+      path: decisions/0015-adopt-distribution-readiness-smoke-test.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - distribution
+        - decision
+      depends_on:
+        - distribution-readiness-design
