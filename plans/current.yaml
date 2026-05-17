@@ -239,16 +239,48 @@ plans_status:
 
     - id: post-v1-next-after-profile-inspection
       title: Choose next post-v1 increment
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Profile inspection is implemented; the next increment should be selected from profile switching, broader file/template upgrade planning, publication/license work, or more named real-repo smoke.
-      next_action: Choose and scope the next post-v1 increment.
+      summary: Profile inspection is implemented; v1.1 private fleet roadmap was selected as the next product direction.
       canonical_state_id: product-spec
       tags:
         - post-v1
-        - current
+        - complete
       references:
         - docs/v1-validation.md
         - status.md
         - design/v1-product-spec-and-roadmap.md
+
+    - id: v1.1-roadmap-reset
+      title: Adopt v1.1 private fleet roadmap
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Current direction now prioritizes private target-repo durability, cascading upgrades, remaining process-domain baselines, dogfood robustness, and real-repo evidence over public distribution.
+      canonical_state_id: v1.1-private-fleet-roadmap
+      tags:
+        - v1.1
+        - roadmap
+        - complete
+      references:
+        - design/v1.1-private-fleet-roadmap.md
+        - decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md
+        - status.md
+
+    - id: v1.1-private-target-registry
+      title: Add private target registry
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Add a durable registry of private target repos plus read-only target list/check/inspect commands before profile switching and cascade upgrade planning.
+      next_action: Design and implement the first target registry increment with this harness repo and meetingly as named targets.
+      canonical_state_id: v1.1-private-fleet-roadmap
+      tags:
+        - v1.1
+        - targets
+        - current
+      references:
+        - design/v1.1-private-fleet-roadmap.md
+        - status.md
+        - state/CONTEXT.md

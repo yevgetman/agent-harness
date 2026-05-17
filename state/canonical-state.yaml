@@ -1,7 +1,7 @@
 # Harness managed file: canonical-state
 canonical_state:
   version: 1
-  updated: 2026-05-16
+  updated: 2026-05-17
   scope: harness-source-repo
   entries:
     - id: agents
@@ -51,6 +51,18 @@ canonical_state:
       status: active
       owner_domain: harness-lifecycle
       refresh: manual
+
+    - id: v1.1-private-fleet-roadmap
+      path: design/v1.1-private-fleet-roadmap.md
+      metadata_id: v1.1-private-fleet-roadmap
+      state_role: source
+      status: active
+      owner_domain: harness-lifecycle
+      refresh: manual
+      depends_on:
+        - product-spec
+        - process-domain-design
+        - v1-validation
 
     - id: process-domain-design
       path: design/v1-process-domain-design.md

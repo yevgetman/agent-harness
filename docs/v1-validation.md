@@ -128,11 +128,18 @@ not-inspected without writing files.
 
 ## Next Work After V1
 
-The strongest post-v1 candidates are:
+Current post-v1 direction lives in
+`design/v1.1-private-fleet-roadmap.md`. V1.1 prioritizes private target-repo
+durability and cascading upgrades over public distribution.
 
-1. Add profile switching.
-2. Broaden human-facing file/template upgrade planning while preserving review
+The strongest v1.1 candidates are:
+
+1. Add a private target registry and target inspection commands.
+2. Add profile switching.
+3. Broaden human-facing file/template upgrade planning while preserving review
    boundaries.
-3. Resume publication work by choosing a release license, clearing
-   `private: true`, and running release/publish planning again.
-4. Add more named real-repo smoke targets to broaden compatibility evidence.
+4. Add fleet-wide cascade upgrade planning and safe apply.
+5. Add remaining process-domain baselines.
+
+Public publication remains deferred unless a new decision intentionally resumes
+release work.

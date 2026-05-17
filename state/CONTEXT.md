@@ -2,6 +2,7 @@
 title: Harness Context Briefing
 generated_on: 2026-05-17
 generated_from:
+  - design/v1.1-private-fleet-roadmap.md
   - design/v1-product-spec-and-roadmap.md
   - design/v1-process-domain-design.md
   - design/v1-installed-manifest-design.md
@@ -34,15 +35,20 @@ state, business state, research corpora, or other agent-operable systems.
 
 ## Current design baseline
 
-The product-level baseline is `design/v1-product-spec-and-roadmap.md`.
+The current product-level baseline is
+`design/v1.1-private-fleet-roadmap.md`.
+
+The v1 closeout baseline remains
+`design/v1-product-spec-and-roadmap.md` plus `docs/v1-validation.md`.
 
 The process-domain baseline is `design/v1-process-domain-design.md`.
 
-The product spec preserves the broad vision for this codebase: a portable,
-agnostic, manifest/module-driven harness that acts partly like a CLI, partly
-like an installable scaffold, and partly like an agent operating manual. It
-should support docs, code, mixed repos, personal scope, business scope, research
-corpora, and other durable agent-operable workspaces.
+The v1.1 roadmap reorients current work away from public distribution and
+toward a practical private harness for Julie's repos. The harness should remain
+portable, but the active goal is private target-repo durability: register real
+targets, inspect installed harness state, switch/sync profiles safely, cascade
+core improvements into initialized repos, and add the remaining process-domain
+baselines through executable behavior.
 
 V1 defines 15 formal **harness process domains**:
 
@@ -65,13 +71,13 @@ V1 defines 15 formal **harness process domains**:
 The exploratory specs under `spec/` remain source material and capability
 inventory. They are not binding when they conflict with a formal design.
 
-The product spec is directional, not a canonical build plan. The build strategy
-is `design/v1-incremental-build-strategy.md`: every process domain integration
-should force concrete tooling, and every tooling improvement should serve a
-process domain already dogfooded here. The current second layer is breadth,
-then depth to the maximum prudent extent, before adding more breadth. This
-strategy is local to building this repo, not a portable process domain. The
-repo-local gate state is `build/depth-gate.yaml`.
+The v1.1 roadmap and v1 product spec are directional, not canonical sprint
+plans. The build strategy is `design/v1-incremental-build-strategy.md`: every
+process domain integration should force concrete tooling, and every tooling
+improvement should serve a process domain already dogfooded here. The current
+second layer is breadth, then depth to the maximum prudent extent, before
+adding more breadth. This strategy is local to building this repo, not a
+portable process domain. The repo-local gate state is `build/depth-gate.yaml`.
 
 ## Dogfood posture
 
@@ -178,16 +184,19 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is choosing the next post-v1 increment after the
-profile inspection pass. Npm publication remains deferred.
+The current useful step is starting v1.1 with a private target registry.
+
+Npm publication remains deferred. Distribution smoke remains useful validation
+machinery, but public release is not the current product priority.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
 - Expand module definitions only when a command needs the additional metadata.
 - Use `build/depth-gate.yaml` to confirm the lock/provenance pass before
   selecting the next breadth unit.
-- Use `design/v1-product-spec-and-roadmap.md` as the product-level sequencing
-  reference when making that choice.
+- Use `design/v1.1-private-fleet-roadmap.md` as the current product-level
+  sequencing reference. Use `design/v1-product-spec-and-roadmap.md` for the v1
+  closeout baseline.
 - Phase 4 has Structured Metadata, Canonical State, Invariants And Golden
   Principles, and Plans And Status installed as additional process-domain
   modules.
@@ -204,7 +213,7 @@ profile inspection pass. Npm publication remains deferred.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: choose the next post-v1 increment. Strong candidates are profile
-  switching, broader human-facing file/template upgrade planning,
-  publication/license work, or more named real-repo smoke targets.
+- Next work: add `targets/repos.yaml` plus read-only target list/check/inspect
+  commands. Then move to profile switching, cascade upgrade planning, and the
+  remaining process-domain baselines.
 - Keep `status.md` current after significant choices.

@@ -101,6 +101,11 @@ The closeout baseline is `docs/v1-validation.md`. It records the validation
 matrix, rerunnable command set, v1 behavior boundary, and deferred post-v1
 work.
 
+Current post-v1 product direction lives in
+`design/v1.1-private-fleet-roadmap.md`. V1.1 prioritizes private target-repo
+durability, cascading upgrades, remaining process-domain baselines, and
+real-repo dogfood over public distribution.
+
 Current v1 distribution is local tarball based. Public npm publication remains
 deferred until a release-license and publication decision clears the current
 release blockers.

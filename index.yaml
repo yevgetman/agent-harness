@@ -21,6 +21,7 @@ reading_order:
   - agents
   - status
   - context
+  - v1.1-private-fleet-roadmap
   - v1-product-spec-and-roadmap
   - v1-process-domain-design
   - v1-installed-manifest-design
@@ -78,6 +79,7 @@ reading_order:
   - decision-0023
   - decision-0024
   - decision-0025
+  - decision-0026
   - decision-template
   - package
   - harness-cli
@@ -115,7 +117,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, profile-bounded upgrade apply, and next post-v1 sequencing. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 private fleet direction, profile-bounded upgrade apply, and next target-registry work. Not a changelog.
     depends_on:
       - agents
 
@@ -124,10 +126,22 @@ documents:
     title: Harness Context Briefing
     kind: orientation
     status: active
-    summary: Condensed briefing for fresh agents; points to formal design, v1 validation, and specs.
+    summary: Condensed briefing for fresh agents; points to v1.1 direction, formal design, v1 validation, and specs.
+    depends_on:
+      - v1.1-private-fleet-roadmap
+      - v1-product-spec-and-roadmap
+      - v1-process-domain-design
+
+  - doc_id: v1.1-private-fleet-roadmap
+    file: design/v1.1-private-fleet-roadmap.md
+    title: "Formal Product Spec: V1.1 Private Fleet Harness"
+    kind: formal-product-spec
+    status: active
+    summary: "Current post-v1 product direction: private target-repo durability, cascading upgrades, target registry, profile switching, remaining process-domain baselines, and real-repo dogfood."
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
+      - v1-validation
 
   - doc_id: v1-product-spec-and-roadmap
     file: design/v1-product-spec-and-roadmap.md
@@ -699,6 +713,17 @@ documents:
       - v1-module-profile-installation-design
       - profiles-cli
       - decision-0024
+
+  - doc_id: decision-0026
+    file: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md
+    title: Adopt V1.1 Private Fleet Cascade Roadmap
+    kind: decision
+    status: active
+    summary: Decision record adopting the v1.1 private target-registry, cascading-upgrade, process-domain expansion, and real-repo dogfood roadmap.
+    depends_on:
+      - v1.1-private-fleet-roadmap
+      - v1-validation
+      - decision-0025
 
   - doc_id: decision-template
     file: templates/decision.md

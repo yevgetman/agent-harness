@@ -4,40 +4,21 @@ Last updated: 2026-05-17
 
 ## Current Phase
 
-Phase 5 Distribution Readiness is complete for v1 local-tarball distribution.
-Packed-package smoke validation is implemented through
-`harness distribution smoke` and `npm run distribution:smoke`; it runs
-`npm pack`, validates package contents, installs the packed tarball into
-temporary target repos, runs the installed `harness` binary, initializes
-profiles, runs doctor, and verifies package-based upgrade version-source
-reporting. Package boundary validation is implemented through
-`harness distribution check` and `npm run distribution:check`; it uses
-`npm pack --dry-run --json` to verify required runtime files and block
-repo-local dogfood/build artifacts from the package. Phase 4 Additional Process
-Domains has Structured Metadata, Canonical State, Invariants And Golden
-Principles, and Plans And Status installed in the dogfood repo.
-Release preflight planning is implemented through
-`harness distribution release --plan` and
-`npm run distribution:release-plan`; it runs package contents validation,
-`npm publish --dry-run --json`, and reports registry publication as blocked
-while `package.json` remains private. Registry version discovery is implemented
-through `harness upgrade --plan` for package-installed targets; it queries npm
-for the configured dist tag, reports available/unpublished/private/unavailable
-status, and falls back to the executing package version when no registry
-version is available. External-target smoke is implemented through
-`harness distribution smoke --target <path>`; it copies a caller-supplied git
-target into the smoke workspace, installs the packed tarball there, validates
-init/doctor/upgrade behavior, and leaves the source target unchanged. External
-smoke supports `--force` for forced init inside the disposable copied target.
-Guarded npm publish planning is implemented through
-`harness distribution publish --plan` and `npm run distribution:publish-plan`;
-the first registry access policy is public, and publish confirmation remains
-blocked while
-`private: true`, `UNLICENSED`, or any release preflight blocker remains. Actual
-npm publication is deferred for now. Named real-repo smoke has passed against
-`~/code/meetingly` for both `minimal` and `dogfood` profiles using the packed
-package and forced init in the copied target. The v1 closeout validation matrix
-and deferred-scope baseline live in `docs/v1-validation.md`.
+V1 is complete for local-tarball distribution. The active product direction is
+now **v1.1 private fleet harness**: a practical, durable, portable harness for
+Julie's own repos, with the core repo as the improvement source and installed
+target repos able to inspect, plan, and safely receive cascading improvements.
+The v1.1 baseline lives in `design/v1.1-private-fleet-roadmap.md`; the v1
+closeout validation matrix and deferred-scope baseline remain in
+`docs/v1-validation.md`.
+
+Distribution is supporting validation machinery for v1.1, not the product
+priority. Packed-package smoke, package-boundary validation, release preflight
+planning, registry version discovery, external-target smoke, forceable
+external-smoke init, guarded publish planning, and named `meetingly` smoke all
+exist. Public npm publication and the release-license decision remain deferred.
+The next v1.1 build step is a private target registry so real installed repos
+are durable, inspectable targets rather than ad hoc smoke command history.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -68,9 +49,11 @@ package-boundary validation, release preflight planning, registry version
 discovery, external-target smoke, forceable external-smoke init, guarded
 publish planning, and named real-repo smoke exist. Npm publication and the
 release-license decision are intentionally deferred. General human-facing
-file/template upgrade apply, profile switching, and non-npm distribution do
-not exist yet. The current v1 baseline and post-v1 extensions are documented
-in `docs/v1-validation.md`.
+file/template upgrade apply, profile switching, target registry, fleet-wide
+cascade upgrade planning, and non-npm distribution do not exist yet. The
+current v1 baseline and post-v1 extensions are documented in
+`docs/v1-validation.md`; current v1.1 direction is documented in
+`design/v1.1-private-fleet-roadmap.md`.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -119,15 +102,21 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   implemented. Actual npm publication is deferred for now.
 - `docs/v1-validation.md` is the v1 closeout validation and deferred-scope
   baseline; the first post-v1 upgrade-apply increment is now implemented.
+- `design/v1.1-private-fleet-roadmap.md` is the current product direction:
+  private target-repo durability, cascading upgrades, profile switching,
+  remaining process-domain baselines, dogfood robustness, and real-repo
+  evidence. Public publication is not the active priority.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
-  for v1. It guides sequencing and tradeoffs but does not supersede
-  depth-gated incremental development.
+  for v1 closeout. It remains relevant context but no longer drives current
+  post-v1 sequencing.
 - The 37-item shape catalog remains supporting vocabulary and capability
   inventory.
 - Canonical term: **harness process domain**. Casual shorthand: **process
   domain**.
 - `~/code/harness` is both the harness source repo and the first dogfood target.
 - `~/code/me` is deferred until the harness is more mature.
+- `~/code/meetingly` remains the first named real-repo smoke target; v1.1
+  should promote named real repos into a durable target registry.
 - `status.md` is a current-state projection, not a changelog; agents should edit
   it in place after significant changes.
 - Completed feature, process-domain, doc, validation, and tooling changes
@@ -268,14 +257,17 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `~/code/meetingly` has passed distribution smoke for both `minimal` and
   `dogfood` profiles with forced init in a copied target; the original repo was
   not mutated.
-- `plans/current.yaml` records profile inspection complete and next
-  post-v1 sequencing active while npm publication remains deferred.
+- `plans/current.yaml` records profile inspection complete, v1.1 roadmap
+  adoption complete, and private target-registry work active while npm
+  publication remains deferred.
 
 ## Active Artifacts
 
 - `AGENTS.md` — current agent operating contract for this repo.
 - `index.yaml` — current orientation manifest and reading order.
 - `state/CONTEXT.md` — condensed context briefing for fresh agents.
+- `design/v1.1-private-fleet-roadmap.md` — current v1.1 product spec and
+  roadmap for private target-repo durability and cascading upgrades.
 - `design/v1-product-spec-and-roadmap.md` — formal directional v1 product spec
   and roadmap.
 - `design/v1-process-domain-design.md` — formal v1 process-domain design
@@ -373,6 +365,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0025-adopt-profile-inspection-before-profile-switching.md` —
   decision record for adding read-only profile inspection before profile
   switching.
+- `decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md` — decision
+  record for adopting the v1.1 private fleet and cascading-upgrade roadmap.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -400,11 +394,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Choose the next post-v1 increment after profile inspection. Strong
-  candidates are profile switching, broader human-facing file/template upgrade
-  planning, publication/license work, or more named real-repo smoke targets.
+- Start v1.1 with a private target registry: add `targets/repos.yaml`, target
+  list/check/inspect commands, doctor validation, tests, and first entries for
+  this harness repo and `~/code/meetingly`.
+- After target registry depth is complete, proceed to profile switching,
+  fleet-wide cascade upgrade planning, and remaining process-domain baselines.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
-  until the release-license and publication decision is intentionally resumed.
+  unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,
   then deepen it before adding more breadth.
 
