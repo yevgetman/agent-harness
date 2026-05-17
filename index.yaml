@@ -21,7 +21,7 @@ reading_order:
   - agents
   - status
   - context
-  - v1.1-private-fleet-roadmap
+  - v1.1-installed-instance-roadmap
   - v1-product-spec-and-roadmap
   - v1-process-domain-design
   - v1-installed-manifest-design
@@ -80,6 +80,7 @@ reading_order:
   - decision-0024
   - decision-0025
   - decision-0026
+  - decision-0027
   - decision-template
   - package
   - harness-cli
@@ -117,7 +118,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 private fleet direction, profile-bounded upgrade apply, and next target-registry work. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, profile-bounded upgrade apply, and next upgrade-contract work. Not a changelog.
     depends_on:
       - agents
 
@@ -128,16 +129,16 @@ documents:
     status: active
     summary: Condensed briefing for fresh agents; points to v1.1 direction, formal design, v1 validation, and specs.
     depends_on:
-      - v1.1-private-fleet-roadmap
+      - v1.1-installed-instance-roadmap
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
 
-  - doc_id: v1.1-private-fleet-roadmap
-    file: design/v1.1-private-fleet-roadmap.md
-    title: "Formal Product Spec: V1.1 Private Fleet Harness"
+  - doc_id: v1.1-installed-instance-roadmap
+    file: design/v1.1-installed-instance-roadmap.md
+    title: "Formal Product Spec: V1.1 Installed Instance Harness"
     kind: formal-product-spec
     status: active
-    summary: "Current post-v1 product direction: private target-repo durability, cascading upgrades, target registry, profile switching, remaining process-domain baselines, and real-repo dogfood."
+    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, profile switching, remaining process-domain baselines, and real-repo dogfood."
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
@@ -718,12 +719,22 @@ documents:
     file: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md
     title: Adopt V1.1 Private Fleet Cascade Roadmap
     kind: decision
-    status: active
-    summary: Decision record adopting the v1.1 private target-registry, cascading-upgrade, process-domain expansion, and real-repo dogfood roadmap.
+    status: superseded
+    summary: Superseded decision record that incorrectly adopted a source-owned target-registry roadmap.
     depends_on:
-      - v1.1-private-fleet-roadmap
       - v1-validation
       - decision-0025
+
+  - doc_id: decision-0027
+    file: decisions/0027-adopt-standalone-installed-instance-upgrade-model.md
+    title: Adopt Standalone Installed Instance Upgrade Model
+    kind: decision
+    status: active
+    summary: Decision record adopting the v1.1 standalone installed-instance upgrade model and rejecting source-owned target registry behavior.
+    depends_on:
+      - v1.1-installed-instance-roadmap
+      - v1-validation
+      - decision-0026
 
   - doc_id: decision-template
     file: templates/decision.md

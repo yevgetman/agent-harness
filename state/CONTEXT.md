@@ -2,7 +2,7 @@
 title: Harness Context Briefing
 generated_on: 2026-05-17
 generated_from:
-  - design/v1.1-private-fleet-roadmap.md
+  - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
   - design/v1-process-domain-design.md
   - design/v1-installed-manifest-design.md
@@ -36,7 +36,7 @@ state, business state, research corpora, or other agent-operable systems.
 ## Current design baseline
 
 The current product-level baseline is
-`design/v1.1-private-fleet-roadmap.md`.
+`design/v1.1-installed-instance-roadmap.md`.
 
 The v1 closeout baseline remains
 `design/v1-product-spec-and-roadmap.md` plus `docs/v1-validation.md`.
@@ -44,11 +44,10 @@ The v1 closeout baseline remains
 The process-domain baseline is `design/v1-process-domain-design.md`.
 
 The v1.1 roadmap reorients current work away from public distribution and
-toward a practical private harness for Julie's repos. The harness should remain
-portable, but the active goal is private target-repo durability: register real
-targets, inspect installed harness state, switch/sync profiles safely, cascade
-core improvements into initialized repos, and add the remaining process-domain
-baselines through executable behavior.
+toward practical installed-instance behavior for Julie's repos. The harness
+source repo defines the tool; it does not track where the tool is installed.
+Each target repo owns its local harness state and can inspect, plan, and apply
+compatible upgrades by running the current harness tool inside that repo.
 
 V1 defines 15 formal **harness process domains**:
 
@@ -184,7 +183,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is starting v1.1 with a private target registry.
+The current useful step is starting v1.1 with the installed-instance upgrade
+contract.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -194,7 +194,7 @@ machinery, but public release is not the current product priority.
 - Expand module definitions only when a command needs the additional metadata.
 - Use `build/depth-gate.yaml` to confirm the lock/provenance pass before
   selecting the next breadth unit.
-- Use `design/v1.1-private-fleet-roadmap.md` as the current product-level
+- Use `design/v1.1-installed-instance-roadmap.md` as the current product-level
   sequencing reference. Use `design/v1-product-spec-and-roadmap.md` for the v1
   closeout baseline.
 - Phase 4 has Structured Metadata, Canonical State, Invariants And Golden
@@ -213,7 +213,9 @@ machinery, but public release is not the current product priority.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: add `targets/repos.yaml` plus read-only target list/check/inspect
-  commands. Then move to profile switching, cascade upgrade planning, and the
-  remaining process-domain baselines.
+- Next work: clarify installed manifest source/channel semantics, make
+  `upgrade --plan` explain installed-instance upgrade source and next operator
+  action, document the per-repo upgrade workflow, and validate it in this repo
+  plus a copied real repo. Then move to profile switching, repo-local cascade
+  upgrade apply, and the remaining process-domain baselines.
 - Keep `status.md` current after significant choices.

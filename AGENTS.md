@@ -25,8 +25,8 @@ On every substantive session:
 2. Read `status.md`.
 3. Read `index.yaml`.
 4. Read `state/CONTEXT.md`.
-5. Read `design/v1.1-private-fleet-roadmap.md` when making current product,
-   roadmap, or sequencing decisions. Read
+5. Read `design/v1.1-installed-instance-roadmap.md` when making current
+   product, roadmap, or sequencing decisions. Read
    `design/v1-product-spec-and-roadmap.md` for the v1 closeout baseline.
 6. Read the relevant formal design document under `design/`.
 7. Use `spec/` only as supporting source material unless the task explicitly
@@ -75,7 +75,7 @@ where to go next, not duplicate formal designs or exploratory specs.
 ## Harness Build Strategy
 
 Current product direction lives in
-`design/v1.1-private-fleet-roadmap.md`. The v1 closeout baseline lives in
+`design/v1.1-installed-instance-roadmap.md`. The v1 closeout baseline lives in
 `design/v1-product-spec-and-roadmap.md` and `docs/v1-validation.md`.
 
 This repo currently uses the build-specific strategy in

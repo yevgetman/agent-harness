@@ -242,7 +242,7 @@ plans_status:
       status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Profile inspection is implemented; v1.1 private fleet roadmap was selected as the next product direction.
+      summary: Profile inspection is implemented; v1.1 installed-instance roadmap was selected as the next product direction.
       canonical_state_id: product-spec
       tags:
         - post-v1
@@ -253,34 +253,34 @@ plans_status:
         - design/v1-product-spec-and-roadmap.md
 
     - id: v1.1-roadmap-reset
-      title: Adopt v1.1 private fleet roadmap
+      title: Adopt v1.1 installed-instance roadmap
       status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Current direction now prioritizes private target-repo durability, cascading upgrades, remaining process-domain baselines, dogfood robustness, and real-repo evidence over public distribution.
-      canonical_state_id: v1.1-private-fleet-roadmap
+      summary: Current direction now prioritizes standalone installed-repo upgrade behavior, profile switching, remaining process-domain baselines, dogfood robustness, and real-repo evidence over public distribution or central target tracking.
+      canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - roadmap
         - complete
       references:
-        - design/v1.1-private-fleet-roadmap.md
-        - decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md
+        - design/v1.1-installed-instance-roadmap.md
+        - decisions/0027-adopt-standalone-installed-instance-upgrade-model.md
         - status.md
 
-    - id: v1.1-private-target-registry
-      title: Add private target registry
+    - id: v1.1-installed-instance-upgrade-contract
+      title: Clarify installed-instance upgrade contract
       status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: Add a durable registry of private target repos plus read-only target list/check/inspect commands before profile switching and cascade upgrade planning.
-      next_action: Design and implement the first target registry increment with this harness repo and meetingly as named targets.
-      canonical_state_id: v1.1-private-fleet-roadmap
+      summary: Clarify how each installed repo understands its own source/channel, upgrade path, and next operator action without the source repo tracking installations.
+      next_action: Improve manifest source/channel semantics, upgrade-plan guidance, and private per-repo upgrade docs.
+      canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
-        - targets
+        - upgrade
         - current
       references:
-        - design/v1.1-private-fleet-roadmap.md
+        - design/v1.1-installed-instance-roadmap.md
         - status.md
         - state/CONTEXT.md

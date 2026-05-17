@@ -57,8 +57,8 @@ metadata:
         - roadmap
         - product
 
-    - id: v1.1-private-fleet-roadmap
-      path: design/v1.1-private-fleet-roadmap.md
+    - id: v1.1-installed-instance-roadmap
+      path: design/v1.1-installed-instance-roadmap.md
       kind: formal-product-spec
       status: active
       owner_domain: harness-lifecycle
@@ -66,7 +66,7 @@ metadata:
         - v1.1
         - roadmap
         - product
-        - private-fleet
+        - installed-instance
         - cascade-upgrades
       depends_on:
         - product-spec
@@ -646,10 +646,10 @@ metadata:
         - profile-module-apply-decision
         - profiles-cli
 
-    - id: v1.1-roadmap-decision
+    - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md
       kind: decision
-      status: active
+      status: deprecated
       owner_domain: harness-lifecycle
       tags:
         - v1.1
@@ -657,5 +657,18 @@ metadata:
         - private-fleet
         - decision
       depends_on:
-        - v1.1-private-fleet-roadmap
         - profile-inspection-decision
+
+    - id: v1.1-installed-instance-roadmap-decision
+      path: decisions/0027-adopt-standalone-installed-instance-upgrade-model.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - v1.1
+        - roadmap
+        - installed-instance
+        - decision
+      depends_on:
+        - v1.1-installed-instance-roadmap
+        - v1.1-private-fleet-roadmap-decision

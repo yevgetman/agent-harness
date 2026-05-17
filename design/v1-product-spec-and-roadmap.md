@@ -102,9 +102,10 @@ matrix, rerunnable command set, v1 behavior boundary, and deferred post-v1
 work.
 
 Current post-v1 product direction lives in
-`design/v1.1-private-fleet-roadmap.md`. V1.1 prioritizes private target-repo
-durability, cascading upgrades, remaining process-domain baselines, and
-real-repo dogfood over public distribution.
+`design/v1.1-installed-instance-roadmap.md`. V1.1 prioritizes standalone
+installed-repo upgrade behavior, profile switching, remaining process-domain
+baselines, and real-repo dogfood over public distribution. The source repo
+defines the tool; it does not track where the tool is installed.
 
 Current v1 distribution is local tarball based. Public npm publication remains
 deferred until a release-license and publication decision clears the current

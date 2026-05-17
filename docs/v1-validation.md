@@ -129,16 +129,18 @@ not-inspected without writing files.
 ## Next Work After V1
 
 Current post-v1 direction lives in
-`design/v1.1-private-fleet-roadmap.md`. V1.1 prioritizes private target-repo
-durability and cascading upgrades over public distribution.
+`design/v1.1-installed-instance-roadmap.md`. V1.1 prioritizes standalone
+installed-repo upgrade behavior and process-domain depth over public
+distribution. The source repo defines the tool; it does not track where the
+tool is installed.
 
 The strongest v1.1 candidates are:
 
-1. Add a private target registry and target inspection commands.
+1. Clarify the installed-instance upgrade contract.
 2. Add profile switching.
 3. Broaden human-facing file/template upgrade planning while preserving review
    boundaries.
-4. Add fleet-wide cascade upgrade planning and safe apply.
+4. Add stronger repo-local cascade upgrade planning and safe apply.
 5. Add remaining process-domain baselines.
 
 Public publication remains deferred unless a new decision intentionally resumes

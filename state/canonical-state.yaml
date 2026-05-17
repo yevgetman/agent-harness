@@ -52,9 +52,9 @@ canonical_state:
       owner_domain: harness-lifecycle
       refresh: manual
 
-    - id: v1.1-private-fleet-roadmap
-      path: design/v1.1-private-fleet-roadmap.md
-      metadata_id: v1.1-private-fleet-roadmap
+    - id: v1.1-installed-instance-roadmap
+      path: design/v1.1-installed-instance-roadmap.md
+      metadata_id: v1.1-installed-instance-roadmap
       state_role: source
       status: active
       owner_domain: harness-lifecycle
