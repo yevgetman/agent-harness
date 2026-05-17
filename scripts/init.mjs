@@ -193,6 +193,7 @@ function commandsFor(modules) {
     "modules-list": "harness modules list",
     "modules-add": "harness modules add",
     "profiles-list": "harness profiles list",
+    "profiles-inspect": "harness profiles inspect",
     "lock-refresh": "harness lock refresh",
     "lock-check": "harness lock check",
     "upgrade-plan": "harness upgrade --plan",

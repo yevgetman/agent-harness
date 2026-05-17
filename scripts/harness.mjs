@@ -27,6 +27,7 @@ Usage:
   harness modules list
   harness modules add <module-id>
   harness profiles list
+  harness profiles inspect <profile>
   harness metadata list
   harness metadata check
   harness metadata report
@@ -87,7 +88,7 @@ if (command === "modules") {
 }
 
 if (command === "profiles") {
-  const result = runProfiles({ args });
+  const result = runProfiles({ cwd: process.cwd(), args });
   process.exit(result.ok ? 0 : 2);
 }
 

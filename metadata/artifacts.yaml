@@ -170,6 +170,28 @@ metadata:
       depends_on:
         - installed-manifest
 
+    - id: profile-minimal
+      path: profiles/minimal.yaml
+      kind: profile-definition
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profile
+        - minimal
+      depends_on:
+        - module-registry
+
+    - id: profile-dogfood
+      path: profiles/dogfood.yaml
+      kind: profile-definition
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profile
+        - dogfood
+      depends_on:
+        - module-registry
+
     - id: package
       path: package.json
       kind: package-manifest
@@ -320,6 +342,19 @@ metadata:
         - plans-status-design
         - status
         - canonical-state-registry
+
+    - id: profiles-cli
+      path: scripts/profiles.mjs
+      kind: cli
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profiles
+        - cli
+      depends_on:
+        - profile-minimal
+        - profile-dogfood
+        - module-registry
 
     - id: state-cli
       path: scripts/state.mjs
@@ -582,3 +617,15 @@ metadata:
       depends_on:
         - upgrade-cli
         - v1-validation-decision
+
+    - id: profile-inspection-decision
+      path: decisions/0025-adopt-profile-inspection-before-profile-switching.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profiles
+        - decision
+      depends_on:
+        - profile-module-apply-decision
+        - profiles-cli

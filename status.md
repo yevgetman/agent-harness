@@ -47,7 +47,8 @@ command, a profile-backed `harness init --profile <profile>` installer, a
 repo-local depth gate, and a read-only `harness upgrade --plan` command. The
 first module/profile installation surface exists through `modules/registry.yaml`,
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
-`harness profiles list`, and profile-backed
+`harness profiles list`, `harness profiles inspect <profile>`, and
+profile-backed
 `harness init --profile <profile>`, with broad temp-target tests. Decisions And
 Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
@@ -59,14 +60,17 @@ operation records, JSON plans, operation summaries, and a limited safe
 implemented: upgrade plans now emit operation contract version 2 and
 profile-bounded `safe/install-module` operations for clean missing active
 profile modules, while optional registry modules remain deferred and
-collisions remain review-required. Local packed-package distribution smoke,
-explicit npm package-boundary validation, release preflight planning, registry
-version discovery, external-target smoke, forceable external-smoke init,
-guarded publish planning, and named real-repo smoke exist. Npm publication and
-the release-license decision are intentionally deferred. General human-facing
+collisions remain review-required. The second post-v1 increment adds
+`harness profiles inspect <profile> [--target <path>] [--json]` for read-only
+profile module, target-state, and module-install preflight inspection before
+profile switching. Local packed-package distribution smoke, explicit npm
+package-boundary validation, release preflight planning, registry version
+discovery, external-target smoke, forceable external-smoke init, guarded
+publish planning, and named real-repo smoke exist. Npm publication and the
+release-license decision are intentionally deferred. General human-facing
 file/template upgrade apply, profile switching, and non-npm distribution do
-not exist yet. The current v1 baseline and post-v1 extension are documented in
-`docs/v1-validation.md`.
+not exist yet. The current v1 baseline and post-v1 extensions are documented
+in `docs/v1-validation.md`.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -100,8 +104,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - The top-level v1 workflow model is **15 formal harness process domains**, not
   the full 37-item exploratory shape catalog.
 - Phase 2 Module And Profile Installation is substantially complete for the v1
-  install/list lifecycle; profile switching and profile inspection are deferred
-  follow-ons rather than blockers.
+  install/list lifecycle; profile inspection is implemented as a read-only
+  post-v1 follow-on, and profile switching remains deferred.
 - Phase 3 Lock And Provenance is active; the closeout implementation includes
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
@@ -149,6 +153,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - Profiles now exist under `profiles/` for `minimal` and `dogfood`.
 - `npm run profiles:list` lists available source profiles and their module
   bundles.
+- `npm run profiles:inspect -- <profile>` inspects source profile modules and,
+  with `--target <path>`, classifies target module state as installed,
+  clean-install, review-required, blocked, or not-inspected.
 - `npm run doctor` is the first Mechanical Validation surface; it validates
   installed harness health plus Decisions And Open Questions shape when that
   module is installed.
@@ -157,8 +164,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   `status.md`, `index.yaml`, `state/CONTEXT.md`, `.harness/manifest.yaml`, and
   the two initial module definitions.
 - `npm test` covers minimal init, doctor success, overwrite refusal,
-  `--force`, unsupported profile failure, decisions/questions, upgrade-plan
-  scenarios, and module list/add scenarios.
+  `--force`, unsupported profile failure, profile inspection, decisions/questions,
+  upgrade-plan scenarios, and module list/add scenarios.
 - `npm run decisions:new -- "<title>"` creates the next decision record under
   `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
@@ -253,15 +260,16 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   unknown module failure, bootstrap module no-op, missing source template
   preflight, structured metadata, canonical state, invariants install, plans
   install, doctor after install, and upgrade plan after install.
-- Profile-backed init tests cover profile listing, minimal profile init, and
-  dogfood profile init into real temp git targets.
-- `build/depth-gate.yaml` records `v1-closeout-validation-baseline` as the
-  current complete depth pass for the v1 closeout increment.
+- Profile tests cover profile listing, source-only inspect, target inspect,
+  JSON inspect, unsupported profile failure, collision classification, minimal
+  profile init, and dogfood profile init into real temp git targets.
+- `build/depth-gate.yaml` records `post-v1-profile-inspection` as the current
+  complete depth pass.
 - `~/code/meetingly` has passed distribution smoke for both `minimal` and
   `dogfood` profiles with forced init in a copied target; the original repo was
   not mutated.
-- `plans/current.yaml` records v1 closeout hardening as the active follow-on
-  while npm publication remains deferred.
+- `plans/current.yaml` records profile inspection complete and next
+  post-v1 sequencing active while npm publication remains deferred.
 
 ## Active Artifacts
 
@@ -362,6 +370,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0024-adopt-profile-bounded-safe-module-install-apply.md` —
   decision record for operation contract version 2 and clean active-profile
   module installs through `harness upgrade apply`.
+- `decisions/0025-adopt-profile-inspection-before-profile-switching.md` —
+  decision record for adding read-only profile inspection before profile
+  switching.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -389,10 +400,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Choose the next post-v1 increment after profile-bounded module apply. Strong
-  candidates are profile inspection/switching, broader human-facing
-  file/template upgrade planning, publication/license work, or more named
-  real-repo smoke targets.
+- Choose the next post-v1 increment after profile inspection. Strong
+  candidates are profile switching, broader human-facing file/template upgrade
+  planning, publication/license work, or more named real-repo smoke targets.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   until the release-license and publication decision is intentionally resumed.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

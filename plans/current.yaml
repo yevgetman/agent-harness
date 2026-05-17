@@ -206,10 +206,43 @@ plans_status:
 
     - id: post-v1-next-increment
       title: Choose next post-v1 increment
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Profile-bounded upgrade apply is implemented; profile inspection was selected as the next read-only increment before profile switching.
+      canonical_state_id: product-spec
+      tags:
+        - post-v1
+        - complete
+      references:
+        - docs/v1-validation.md
+        - status.md
+        - design/v1-product-spec-and-roadmap.md
+
+    - id: post-v1-profile-inspection
+      title: Add profile inspection
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: The profile inspect command now reports source profile module metadata and target install state, with JSON output and module-add preflight classification.
+      canonical_state_id: product-spec
+      tags:
+        - post-v1
+        - profiles
+        - complete
+      references:
+        - decisions/0025-adopt-profile-inspection-before-profile-switching.md
+        - design/v1-module-profile-installation-design.md
+        - scripts/profiles.mjs
+        - scripts/test.mjs
+        - docs/v1-validation.md
+
+    - id: post-v1-next-after-profile-inspection
+      title: Choose next post-v1 increment
       status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: Profile-bounded upgrade apply is implemented; the next increment should be selected from profile inspection/switching, broader file/template upgrade planning, publication/license work, or more named real-repo smoke.
+      summary: Profile inspection is implemented; the next increment should be selected from profile switching, broader file/template upgrade planning, publication/license work, or more named real-repo smoke.
       next_action: Choose and scope the next post-v1 increment.
       canonical_state_id: product-spec
       tags:

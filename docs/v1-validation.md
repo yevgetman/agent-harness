@@ -27,7 +27,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
 | Minimal profile install | `harness init --profile minimal` installs operating contract, status, index, context, manifest, lock, and bootstrap module definitions. | `npm test` covers fresh git-target init, doctor, upgrade plan, dry-run collisions, and force overwrite. |
 | Force init contract | Normal init warns/refuses when planned artifacts exist; `--force` definitively overwrites planned harness artifacts. | `npm test` covers warnings, collision reporting, and overwrite of an existing `AGENTS.md`. |
-| Module/profile lifecycle | Source profiles are listable; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, and `npm run modules:list`. |
+| Module/profile lifecycle | Source profiles are listable and inspectable; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- dogfood`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, and JSON-capable. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
@@ -46,10 +46,13 @@ Run this set before claiming the v1 baseline is still healthy:
 ```bash
 node --check scripts/init.mjs
 node --check scripts/modules.mjs
+node --check scripts/profiles.mjs
 node --check scripts/distribution.mjs
 node --check scripts/upgrade.mjs
 node --check scripts/test.mjs
 npm test
+npm run profiles:list
+npm run profiles:inspect -- dogfood
 npm run metadata:check
 npm run state:check
 npm run invariants:check
@@ -95,12 +98,12 @@ V1 does not include:
 - Clearing `private: true`.
 - Homebrew, Bun, standalone binary, or other distribution channels.
 - Full automated file/template upgrade application for human-facing files.
-- Profile switching or profile inspection commands.
+- Profile switching commands.
 - Full semantic drift detection across arbitrary corpora.
 - Deep implementation of every v1 process domain.
 - UI, dashboard, or LLM-provider-specific integration.
 
-## Post-V1 Extension
+## Post-V1 Extensions
 
 The first post-v1 upgrade-apply increment is implemented.
 
@@ -115,11 +118,19 @@ profile, remain `deferred/installable-module-available`. Existing artifact or
 command collisions are `review/install-module-collision`, and apply refuses
 the whole plan before mutating.
 
+The second post-v1 module/profile lifecycle increment is implemented.
+
+`harness profiles inspect <profile> [--target <path>] [--json]` reports source
+profile modules, module metadata, managed files, commands, artifacts, and
+installability. When a target manifest is available, it classifies each
+profile module as installed, clean-install, review-required, blocked, or
+not-inspected without writing files.
+
 ## Next Work After V1
 
 The strongest post-v1 candidates are:
 
-1. Add profile inspection and profile switching.
+1. Add profile switching.
 2. Broaden human-facing file/template upgrade planning while preserving review
    boundaries.
 3. Resume publication work by choosing a release license, clearing

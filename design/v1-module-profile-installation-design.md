@@ -22,6 +22,7 @@ Initial commands:
 harness modules list
 harness modules add <module-id>
 harness profiles list
+harness profiles inspect <profile>
 ```
 
 This is intentionally narrower than a complete package manager. The goal is to
@@ -120,6 +121,17 @@ Initial artifact types:
 2. Report profile ID, status, and module bundle.
 3. Fail when profile records cannot be parsed.
 
+`harness profiles inspect <profile> [--target <path>] [--json]` should:
+
+1. Read the requested source profile from `profiles/`.
+2. Resolve each profile module through `modules/registry.yaml`.
+3. Report source module metadata, installability, managed files, commands, and
+   install artifacts.
+4. When a target manifest is available, classify each profile module as
+   installed, clean-install, review-required, blocked, or not-inspected.
+5. Reuse module-add preflight for missing target modules without writing files.
+6. Emit JSON when `--json` is passed.
+
 `harness init --profile <profile>` should:
 
 1. Read the requested profile from `profiles/`.
@@ -189,6 +201,7 @@ making any changes.
 - `modules add` does not update `index.yaml` yet.
 - `modules add` does not merge human-authored files.
 - Profile switching is not implemented.
+- Profile inspection is read-only; it does not apply missing modules.
 - Profile removal is not implemented.
 - Module removal is not implemented.
 - Module dependency solving is not implemented.

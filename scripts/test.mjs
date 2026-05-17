@@ -352,7 +352,7 @@ withTempDir((root) => {
     "available registry version changes should be review-required operations",
   );
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 8, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 9, "upgrade plan should include command states");
   assert.equal(upgrade.plan.operation_summary.by_status.safe > 0, true, "upgrade plan should summarize safe operations");
   assert.equal(
     upgrade.plan.operation_summary.by_code["deferred/apply-not-implemented"],
@@ -439,6 +439,58 @@ withTempDir((root) => {
     ["agent-operating-contract", "progressive-orientation"],
     "profiles list should expose minimal profile modules",
   );
+
+  const sourceInspect = quiet(() => runProfiles({ cwd: root, args: ["inspect", "minimal"] }));
+  assert.equal(sourceInspect.ok, true, "profiles inspect should pass without a target manifest");
+  assert.equal(sourceInspect.target.inspected, false, "profiles inspect should be source-only without a target manifest");
+  assert.equal(sourceInspect.summary.not_inspected, 2, "source-only inspect should not classify target state");
+
+  const targetInspect = quiet(() => runProfiles({
+    cwd: root,
+    args: ["inspect", "dogfood", "--target", gitTarget],
+  }));
+  assert.equal(targetInspect.ok, true, "profiles inspect should pass against an initialized target");
+  assert.equal(targetInspect.target.inspected, true, "profiles inspect should load explicit target manifests");
+  assert.equal(targetInspect.target.profile, "minimal", "profiles inspect should report the target's active profile");
+  assert.equal(targetInspect.summary.installed, 2, "minimal target should have two dogfood profile modules installed");
+  assert.equal(targetInspect.summary.clean_install, 5, "dogfood inspect should identify five clean missing modules");
+  assert.equal(
+    targetInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
+    "clean-install",
+    "profiles inspect should classify clean missing target modules",
+  );
+  assert.equal(
+    targetInspect.modules.find((module) => module.id === "agent-operating-contract")?.target_status,
+    "installed",
+    "profiles inspect should classify installed target modules",
+  );
+
+  const jsonInspect = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "inspect", "dogfood", "--target", gitTarget, "--json"],
+    { cwd: root, encoding: "utf8" },
+  ));
+  assert.equal(jsonInspect.profile.id, "dogfood", "profiles inspect --json should emit the inspected profile");
+  assert.equal(jsonInspect.summary.clean_install, 5, "profiles inspect --json should emit target summary counts");
+
+  const badInspect = quiet(() => runProfiles({ cwd: root, args: ["inspect", "unknown"] }));
+  assert.equal(badInspect.ok, false, "profiles inspect should fail unsupported profiles");
+
+  const missingTargetInspect = quiet(() => runProfiles({ cwd: root, args: ["inspect", "minimal", "--target"] }));
+  assert.equal(missingTargetInspect.ok, false, "profiles inspect should fail when --target has no path");
+
+  writeFileSync(join(gitTarget, "open-questions.yaml"), "# existing local file\n");
+  const collisionInspect = quiet(() => runProfiles({
+    cwd: root,
+    args: ["inspect", "dogfood", "--target", gitTarget],
+  }));
+  assert.equal(
+    collisionInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
+    "review-required",
+    "profiles inspect should classify module artifact collisions as review-required",
+  );
+  assert.equal(collisionInspect.summary.review_required, 1, "profiles inspect should summarize review-required modules");
+  assertNotExists(gitTarget, "modules/decisions-open-questions/module.yaml");
 });
 
 withTempDir((root) => {
@@ -599,7 +651,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after structured metadata install");
   assert.equal(upgrade.plan.managed_files.length, 5, "structured metadata should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 11, "structured metadata should add three command records");
+  assert.equal(upgrade.plan.commands.length, 12, "structured metadata should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "structured-metadata")?.status,
     "unchanged",
@@ -719,7 +771,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after canonical-state install");
   assert.equal(upgrade.plan.managed_files.length, 6, "canonical-state should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 14, "canonical-state should add three command records");
+  assert.equal(upgrade.plan.commands.length, 15, "canonical-state should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "canonical-state")?.status,
     "unchanged",
@@ -808,7 +860,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after invariants install");
   assert.equal(upgrade.plan.managed_files.length, 6, "invariants should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 12, "invariants should add one command record");
+  assert.equal(upgrade.plan.commands.length, 13, "invariants should add one command record");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "invariants-golden-principles")?.status,
     "unchanged",
@@ -913,7 +965,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after plans install");
   assert.equal(upgrade.plan.managed_files.length, 6, "plans should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 14, "plans should add three command records");
+  assert.equal(upgrade.plan.commands.length, 15, "plans should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "plans-and-status")?.status,
     "unchanged",
@@ -1228,7 +1280,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
   assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
-  assert.equal(upgrade.plan.commands.length, 11, "module add should extend command state");
+  assert.equal(upgrade.plan.commands.length, 12, "module add should extend command state");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
     "unchanged",

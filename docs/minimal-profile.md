@@ -30,8 +30,10 @@ minimal` reads that profile record rather than using a hardcoded module bundle.
 harness init --profile minimal --target <repo>
 ```
 
-Use `harness profiles list` to inspect available source profiles before
-choosing the init profile.
+Use `harness profiles list` to list available source profiles before choosing
+the init profile. Use `harness profiles inspect <profile>` to inspect a
+profile's modules and, when run with `--target <repo>`, classify target module
+state before applying missing modules or designing a profile switch.
 
 By default, `harness init` expects the target to be a git repository. Use
 `--allow-non-git` only for tests, fixtures, or intentional non-repo targets.
@@ -106,6 +108,7 @@ the generated manifest:
 ```bash
 harness modules list
 harness modules add <module-id>
+harness profiles inspect <profile>
 ```
 
 The first mechanically installable follow-on module is

@@ -144,7 +144,9 @@ install an available module into another harness target. The first module add
 surface is collision-averse and does not merge human-authored files.
 
 Use `npm run profiles:list` to inspect available install profiles before
-changing profile-backed init behavior.
+changing profile-backed init behavior. Use
+`npm run profiles:inspect -- <profile>` to inspect a profile's module bundle
+and target install state before changing profile switching or upgrade behavior.
 
 ## Structured Metadata Discipline
 

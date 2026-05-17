@@ -32,7 +32,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: f15083d1d0879d1f4d6dbd764c8ffe6aebb5510b98255c897785f2f519b88fb0
+      sha256: 757dc439fd5c06050e0e4199b10b1712abadbdfcf4c034b2443d54d260e407a4
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -42,7 +42,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 35427fd033454b881ab4096c685a80842e96a5710221cc05a077586969627d6f
+      sha256: a701d2b66ef2da163475defc606dbd37dc0b122ef2c2716d1eac6f367e426e0d
     - path: index.yaml
       owner: progressive-orientation
       owner_type: module
@@ -52,7 +52,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 7e5f9491b72095a9bca9b14b912726823bcc98c08cde0a1b46a0f6513274ba7b
+      sha256: 4d167f77dc8dd627434fc1e53af9bc82f1e0a50ffc59eb0654a9c9c970539684
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -76,7 +76,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: d2d065a3f6dcd2afc228a24bb322739aa716ffc398c91021b3f3d2631802294f
+      sha256: 8a5cef033f4572f56fa3128e1feda46e55cea8b95fc2662a6941f8065e3910e6
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -184,7 +184,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: 1582201ec41433e2166749aae286db4161b623ada67d404a9ab8e67b657272f8
+      sha256: 57aa33b1bfe28f347c9703093597e3d6cd9194fe431fc9b053b9c7844eb32c24
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -206,7 +206,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 36dcb135ef33a6d25a9a75d0b24eba2c0cfeeac76ede30f39698e1b591cbf4eb
+      sha256: 780c9a5a0ea9a2bd453bcc66e1fea8323d7dc009e6bb1a0fc75c3af2a21316da
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -216,7 +216,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 0b836d077caa48fde7fa02f6135de925ac6e244107ecf6b0d465f36a433d221b
+      sha256: d714abdcae3d072e882d9c2daf1553cabee693b074db8619df711d3d7c4b505c
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

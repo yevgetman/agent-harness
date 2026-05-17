@@ -816,10 +816,9 @@ build_strategy:
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
   current_depth_pass:
-    id: post-v1-profile-module-apply
+    id: post-v1-profile-inspection
     breadth_unit: >
-      Deepen upgrade apply with profile-bounded module installation for clean
-      missing active-profile modules.
+      Add read-only profile inspection before profile switching.
     status: complete
     completed_on: 2026-05-17
     ready_for_next_breadth: true
@@ -827,32 +826,34 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness upgrade --plan emits operation contract version 2.
-          - Missing active-profile modules with clean module-add preflight are classified as safe/install-module.
-          - harness upgrade apply installs safe/install-module operations through the existing module-add installer.
-          - Optional registry modules that are not in the active profile remain deferred/installable-module-available.
+          - harness profiles inspect reports source profile module metadata.
+          - harness profiles inspect --target reports target module state.
+          - harness profiles inspect --json emits machine-readable inspection output.
+          - Generated target manifests expose profiles-inspect.
       - id: validation
         status: satisfied
         evidence:
-          - Module install collisions are classified as review/install-module-collision.
-          - upgrade apply refuses review-required module install plans before mutating.
-          - Missing source artifacts are reserved for blocked/install-module-unavailable.
+          - Missing target modules reuse module-add preflight without writing files.
+          - Clean missing modules are classified as clean-install.
+          - Artifact and command collisions are classified as review-required.
+          - Unsupported profiles fail before target inspection.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers clean profile-bounded module apply.
-          - npm test covers collision refusal for profile-bounded module apply.
-          - npm test continues to cover modified managed-file refusal and blocked plan refusal.
+          - npm test covers source-only profile inspect.
+          - npm test covers target profile inspect.
+          - npm test covers profile inspect JSON output.
+          - npm test covers unsupported profile failure and collision classification.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0024-adopt-profile-bounded-safe-module-install-apply.md records the post-v1 apply decision.
-          - design/v1-upgrade-operation-contract.md defines safe/install-module and refusal boundaries.
-          - docs/v1-validation.md records the first post-v1 upgrade-apply extension.
+          - decisions/0025-adopt-profile-inspection-before-profile-switching.md records the inspection decision.
+          - design/v1-module-profile-installation-design.md defines profile inspect behavior.
+          - docs/minimal-profile.md and docs/v1-validation.md describe profile inspection.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood repo has all dogfood-profile modules installed, so its upgrade plan remains clean.
-          - The temp-target test suite dogfoods the profile gap by changing a minimal target to dogfood and applying missing modules.
+          - The dogfood repo exposes profiles-inspect in .harness/manifest.yaml.
+          - The temp-target test suite dogfoods inspect against minimal and dogfood profile states.
           - npm publication remains deferred while private/license blockers remain.

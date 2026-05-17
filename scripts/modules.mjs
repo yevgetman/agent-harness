@@ -56,7 +56,7 @@ function loadRegistry(sourceRoot = SOURCE_ROOT) {
   }
 }
 
-function loadSourceModule(moduleId, sourceRoot = SOURCE_ROOT) {
+export function loadSourceModule(moduleId, sourceRoot = SOURCE_ROOT) {
   const registry = loadRegistry(sourceRoot);
   if (registry.error) return { error: registry.error };
 

@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-16
+generated_on: 2026-05-17
 generated_from:
   - design/v1-product-spec-and-roadmap.md
   - design/v1-process-domain-design.md
@@ -129,6 +129,11 @@ Current dogfood state:
 - Profiles are now executable install inputs: `npm run profiles:list` lists
   source profiles, and `harness init --profile <profile>` reads
   `profiles/*.yaml` instead of a hardcoded minimal bundle.
+- Profile inspection exists via `npm run profiles:inspect -- <profile>` and
+  `harness profiles inspect <profile> [--target <path>] [--json]`. It reports
+  source profile modules and, for target repos, classifies modules as
+  installed, clean-install, review-required, blocked, or not-inspected without
+  writing files.
 - `decisions-open-questions` is mechanically installable from the registry into
   a minimal target, and the broad temp-git test matrix now covers clean install,
   collisions, force install, missing source artifacts, doctor, and upgrade
@@ -174,8 +179,7 @@ Then open the relevant formal design or exploratory spec for the task.
 ## Near-term work
 
 The current useful step is choosing the next post-v1 increment after the
-profile-bounded upgrade-apply module install pass. Npm publication remains
-deferred.
+profile inspection pass. Npm publication remains deferred.
 
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
@@ -201,6 +205,6 @@ deferred.
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
 - Next work: choose the next post-v1 increment. Strong candidates are profile
-  inspection/switching, broader human-facing file/template upgrade planning,
+  switching, broader human-facing file/template upgrade planning,
   publication/license work, or more named real-repo smoke targets.
 - Keep `status.md` current after significant choices.
