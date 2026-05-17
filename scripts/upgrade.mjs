@@ -4,12 +4,19 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { createLockFromManifest, hashFile, lockFileMap, readLock, writeLock } from "./lock.mjs";
+import { installModule, planModuleInstall } from "./modules.mjs";
+import { loadProfile } from "./profiles.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
 const PLAN_SCHEMA_VERSION = 1;
-const OPERATION_CONTRACT_VERSION = 1;
-const SAFE_APPLY_CODES = new Set(["safe/noop", "safe/refresh-lock", "safe/repair-command"]);
+const OPERATION_CONTRACT_VERSION = 2;
+const SAFE_APPLY_CODES = new Set([
+  "safe/noop",
+  "safe/refresh-lock",
+  "safe/repair-command",
+  "safe/install-module",
+]);
 
 function readJsonFile(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -171,9 +178,10 @@ Usage:
   harness upgrade plan
   harness upgrade apply
 
-The apply command is currently limited to safe/noop and safe/refresh-lock
-operations plus deterministic safe/repair-command package-script repairs. It
-refuses blocked and review-required plans.
+The apply command is currently limited to safe/noop, safe/refresh-lock,
+deterministic safe/repair-command package-script repairs, and clean
+safe/install-module profile-module installs. It refuses blocked and
+review-required plans.
 `);
 }
 
@@ -385,6 +393,22 @@ function collectAvailableRegistryModules() {
   return Array.from(byId.values());
 }
 
+function activeProfileModuleIds(profileId) {
+  const loaded = loadProfile(profileId, SOURCE_ROOT);
+  if (loaded.error) {
+    return { ids: new Set(), error: loaded.error };
+  }
+
+  return { ids: new Set(loaded.profile.modules), error: null };
+}
+
+function installPreflightStatus(error) {
+  if (/already exists|command '.*' already exists/.test(error)) {
+    return "review";
+  }
+  return "blocked";
+}
+
 function addOperation(operations, { code, subject_type: subjectType, subject, detail, ...extra }) {
   const [status] = code.split("/");
   operations.push({
@@ -432,6 +456,7 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
   const scripts = loadPackageScripts(root);
   const installedIds = uniqueInstalledModuleIds(harness.modules);
   const availableRegistryModules = collectAvailableRegistryModules();
+  const activeProfile = activeProfileModuleIds(harness.profile);
   const loadedLock = readLock(root);
   const lockByPath = loadedLock.lock ? lockFileMap(loadedLock.lock) : new Map();
   const versionSource = versionSourceFor(harness);
@@ -549,23 +574,79 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
     if (installedIds.has(registryEntry.id)) continue;
 
     const loadedModule = loadSourceModuleDefinition(registryEntry);
+    const isActiveProfileModule = activeProfile.ids.has(registryEntry.id);
     modules.push({
       id: registryEntry.id,
       installed_version: "not-installed",
       available_version: loadedModule.module?.version ?? "unknown",
-      status: "available-not-installed",
+      status: isActiveProfileModule ? "profile-module-missing" : "available-not-installed",
       detail: loadedModule.module
-        ? "module is available from the source registry but is not installed"
+        ? isActiveProfileModule
+          ? "module is required by the active profile but is not installed"
+          : "module is available from the source registry but is not installed"
         : `source module definition ${registryEntry.path ?? "unknown"} is ${loadedModule.error}`,
     });
-    addOperation(operations, {
-      code: "deferred/installable-module-available",
-      subject_type: "module",
-      subject: registryEntry.id,
-      detail: loadedModule.module
-        ? "module is available from the source registry but is not installed"
-        : `source module definition ${registryEntry.path ?? "unknown"} is ${loadedModule.error}`,
-    });
+
+    if (!isActiveProfileModule) {
+      addOperation(operations, {
+        code: "deferred/installable-module-available",
+        subject_type: "module",
+        subject: registryEntry.id,
+        detail: loadedModule.module
+          ? "module is available from the source registry but is not installed"
+          : `source module definition ${registryEntry.path ?? "unknown"} is ${loadedModule.error}`,
+      });
+      continue;
+    }
+
+    if (!loadedModule.module) {
+      const detail = `source module definition ${registryEntry.path ?? "unknown"} is ${loadedModule.error}`;
+      blockers.push(`profile module '${registryEntry.id}' cannot be installed: ${detail}`);
+      addOperation(operations, {
+        code: "blocked/install-module-unavailable",
+        subject_type: "module",
+        subject: registryEntry.id,
+        detail,
+      });
+      continue;
+    }
+
+    const preflight = planModuleInstall({ root, moduleId: registryEntry.id, force: false, sourceRoot: SOURCE_ROOT });
+    if (preflight.ok) {
+      actions.push(`applicable: install profile module ${registryEntry.id}`);
+      addOperation(operations, {
+        code: "safe/install-module",
+        subject_type: "module",
+        subject: registryEntry.id,
+        detail: "active profile requires this module and install preflight found no collisions",
+        install: {
+          module_id: registryEntry.id,
+          artifacts: preflight.artifacts,
+        },
+      });
+      continue;
+    }
+
+    for (const error of preflight.errors ?? []) {
+      const status = installPreflightStatus(error);
+      if (status === "review") {
+        warnings.push(`profile module '${registryEntry.id}' needs review before install: ${error}`);
+        addOperation(operations, {
+          code: "review/install-module-collision",
+          subject_type: "module",
+          subject: registryEntry.id,
+          detail: error,
+        });
+      } else {
+        blockers.push(`profile module '${registryEntry.id}' cannot be installed: ${error}`);
+        addOperation(operations, {
+          code: "blocked/install-module-unavailable",
+          subject_type: "module",
+          subject: registryEntry.id,
+          detail: error,
+        });
+      }
+    }
   }
 
   for (const file of harness.managed_files ?? []) {
@@ -649,7 +730,10 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
     }
   }
 
-  notes.push("apply is limited to safe/noop, safe/refresh-lock, and safe/repair-command operations");
+  notes.push("apply is limited to safe/noop, safe/refresh-lock, safe/repair-command, and profile-bounded safe/install-module operations");
+  if (activeProfile.error) {
+    notes.push(`active source profile could not be loaded; profile-bounded module apply is unavailable: ${activeProfile.error}`);
+  }
   if (versionSource.type === "package") {
     if (registryVersion?.status === "available") {
       notes.push(
@@ -671,7 +755,7 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
     code: "deferred/apply-not-implemented",
     subject_type: "upgrade-apply",
     subject: "harness upgrade apply",
-    detail: "full upgrade apply is not implemented; limited safe apply is available",
+    detail: "full file/template upgrade apply is not implemented; limited safe apply is available",
   });
 
   return {
@@ -733,6 +817,42 @@ function applyPlan({ root, plan }) {
   }
 
   const applied = [];
+  const moduleInstalls = plan.operations.filter((operation) => operation.code === "safe/install-module");
+  for (const operation of moduleInstalls) {
+    const moduleId = operation.install?.module_id ?? operation.subject;
+    const preflight = planModuleInstall({ root, moduleId, force: false, sourceRoot: SOURCE_ROOT });
+    if (!preflight.ok) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: (preflight.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
+      };
+    }
+  }
+
+  for (const operation of moduleInstalls) {
+    const moduleId = operation.install?.module_id ?? operation.subject;
+    const installed = installModule({ root, moduleId, force: false, sourceRoot: SOURCE_ROOT });
+    if (!installed.ok) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: (installed.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
+      };
+    }
+    applied.push(installed.noop
+      ? `safe/install-module: ${moduleId} already installed`
+      : `safe/install-module: ${moduleId}`);
+  }
+
   const commandRepairs = plan.operations.filter((operation) => operation.code === "safe/repair-command");
   for (const operation of commandRepairs) {
     const repair = operation.repair;

@@ -115,9 +115,10 @@ Current dogfood state:
   targets. It now emits typed operation records plus operation summary counts
   so future apply behavior has an explicit safety model.
   `harness upgrade --plan --json` is the stable machine-readable plan output.
-- The first apply scaffold exists as `npm run upgrade:apply`; it only permits
-  safe/noop, safe/refresh-lock, and deterministic safe/repair-command
-  operations and refuses blocked or review-required plans.
+- The first post-v1 apply expansion exists as `npm run upgrade:apply`; it
+  permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, and
+  clean profile-bounded safe/install-module operations. Optional registry
+  modules remain deferred, and blocked or review-required plans are refused.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
   add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
@@ -172,7 +173,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is post-v1 sequencing while npm publication remains
+The current useful step is choosing the next post-v1 increment after the
+profile-bounded upgrade-apply module install pass. Npm publication remains
 deferred.
 
 - Keep `harness doctor` focused on installed harness health plus active module
@@ -198,7 +200,7 @@ deferred.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: choose a post-v1 increment. Strong candidates are broader
-  `harness upgrade apply`, profile inspection/switching, publication/license
-  work, or more named real-repo smoke targets.
+- Next work: choose the next post-v1 increment. Strong candidates are profile
+  inspection/switching, broader human-facing file/template upgrade planning,
+  publication/license work, or more named real-repo smoke targets.
 - Keep `status.md` current after significant choices.

@@ -203,7 +203,7 @@ function upsertCommands(harness, commands = {}) {
   }
 }
 
-function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT }) {
+function prepareModuleInstall({ root, moduleId, force = false, sourceRoot = SOURCE_ROOT }) {
   const source = loadSourceModule(moduleId, sourceRoot);
   if (source.error) return { ok: false, errors: [source.error] };
 
@@ -211,7 +211,6 @@ function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT }) {
   if (target.error) return { ok: false, errors: [target.error] };
 
   if (installedIds(target.harness).has(moduleId)) {
-    console.log(`module '${moduleId}' already installed`);
     return { ok: true, moduleId, installed: false, noop: true };
   }
 
@@ -229,6 +228,46 @@ function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT }) {
   if (errors.length > 0) {
     return { ok: false, errors };
   }
+
+  return {
+    ok: true,
+    moduleId,
+    source,
+    target,
+    artifacts,
+    installed: true,
+  };
+}
+
+export function planModuleInstall({ root, moduleId, force = false, sourceRoot = SOURCE_ROOT }) {
+  const prepared = prepareModuleInstall({ root, moduleId, force, sourceRoot });
+  if (!prepared.ok) {
+    return { ok: false, moduleId, errors: prepared.errors };
+  }
+
+  return {
+    ok: true,
+    moduleId,
+    installed: prepared.installed,
+    noop: prepared.noop ?? false,
+    artifacts: (prepared.artifacts ?? []).map((artifact) => ({
+      path: artifact.path,
+      type: artifact.type,
+      ...(artifact.source ? { source: artifact.source } : {}),
+    })),
+  };
+}
+
+export function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT }) {
+  const prepared = prepareModuleInstall({ root, moduleId, force, sourceRoot });
+  if (!prepared.ok) return { ok: false, errors: prepared.errors };
+
+  if (prepared.noop) {
+    console.log(`module '${moduleId}' already installed`);
+    return { ok: true, moduleId, installed: false, noop: true };
+  }
+
+  const { source, target, artifacts } = prepared;
 
   for (const artifact of artifacts) {
     writeArtifact(root, artifact, sourceRoot);

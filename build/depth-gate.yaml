@@ -816,45 +816,43 @@ build_strategy:
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
   current_depth_pass:
-    id: v1-closeout-validation-baseline
+    id: post-v1-profile-module-apply
     breadth_unit: >
-      Close v1 with a durable validation matrix, closeout command set, behavior
-      boundary, and deferred-scope baseline.
+      Deepen upgrade apply with profile-bounded module installation for clean
+      missing active-profile modules.
     status: complete
-    completed_on: 2026-05-16
+    completed_on: 2026-05-17
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - docs/v1-validation.md records the v1 validation matrix.
-          - docs/v1-validation.md records the closeout command set.
-          - docs/v1-validation.md records v1-supported behavior and deferred post-v1 work.
-          - docs/install.md points readers to the v1 closeout baseline.
+          - harness upgrade --plan emits operation contract version 2.
+          - Missing active-profile modules with clean module-add preflight are classified as safe/install-module.
+          - harness upgrade apply installs safe/install-module operations through the existing module-add installer.
+          - Optional registry modules that are not in the active profile remain deferred/installable-module-available.
       - id: validation
         status: satisfied
         evidence:
-          - metadata/artifacts.yaml includes the v1 validation artifact.
-          - index.yaml includes docs/v1-validation.md in the orientation graph.
-          - plans/current.yaml marks v1 closeout hardening complete and records post-v1 sequencing as active.
-          - status.md and state/CONTEXT.md point future agents to the closeout baseline.
+          - Module install collisions are classified as review/install-module-collision.
+          - upgrade apply refuses review-required module install plans before mutating.
+          - Missing source artifacts are reserved for blocked/install-module-unavailable.
       - id: tests
         status: satisfied
         evidence:
-          - npm test passes after adding the closeout baseline.
-          - npm run metadata:check validates the artifact registry.
-          - npm run plans:check validates the current plan transition.
-          - npm run doctor validates the orientation graph and decision record.
+          - npm test covers clean profile-bounded module apply.
+          - npm test covers collision refusal for profile-bounded module apply.
+          - npm test continues to cover modified managed-file refusal and blocked plan refusal.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md records the closeout baseline decision.
-          - design/v1-product-spec-and-roadmap.md points to docs/v1-validation.md.
-          - docs/v1-validation.md distinguishes v1 behavior from deferred work.
-          - status.md, state/CONTEXT.md, and plans/current.yaml describe post-v1 sequencing as next.
+          - decisions/0024-adopt-profile-bounded-safe-module-install-apply.md records the post-v1 apply decision.
+          - design/v1-upgrade-operation-contract.md defines safe/install-module and refusal boundaries.
+          - docs/v1-validation.md records the first post-v1 upgrade-apply extension.
+          - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The harness repo dogfoods the closeout baseline through status, context, plans, metadata, index, and doctor validation.
+          - The dogfood repo has all dogfood-profile modules installed, so its upgrade plan remains clean.
+          - The temp-target test suite dogfoods the profile gap by changing a minimal target to dogfood and applying missing modules.
           - npm publication remains deferred while private/license blockers remain.
-          - post-v1 sequencing is now the active plan item.

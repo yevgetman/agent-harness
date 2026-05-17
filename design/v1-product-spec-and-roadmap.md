@@ -278,8 +278,9 @@ Initial behavior:
   blocked, and deferred operations.
 - `harness upgrade --plan --json` emits a stable machine-readable plan with
   `plan_schema_version` and `operation_contract_version`.
-- `harness upgrade apply` is scaffolded for safe/noop and safe/refresh-lock
-  operations plus deterministic package-script command repair.
+- `harness upgrade apply` handles safe/noop, safe/refresh-lock,
+  deterministic package-script command repair, and post-v1 clean
+  active-profile module installs.
 - `.harness/lock.yaml` records semantic file provenance such as artifact role,
   owner type, module id, merge strategy, source kind, source path, and source
   fingerprint.

@@ -114,9 +114,10 @@ upgrade-related behavior. The command is read-only; it does not apply changes.
 Use `node scripts/harness.mjs upgrade --plan --json` when stable
 machine-readable plan output matters.
 
-`npm run upgrade:apply` exists only as a safe scaffold. It may apply no-op and
-lock-refresh-safe operations plus deterministic command repairs, and must
-refuse blocked or review-required plans.
+`npm run upgrade:apply` exists only for explicitly safe operations. It may
+apply no-op and lock-refresh-safe operations, deterministic command repairs,
+and clean profile-bounded module installs. It must refuse blocked or
+review-required plans.
 
 ## Lock And Provenance Discipline
 

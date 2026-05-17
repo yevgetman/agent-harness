@@ -1,7 +1,7 @@
 # Formal Design: V1 Upgrade Operation Contract
 
 **Status:** accepted baseline  
-**Date:** 2026-05-14  
+**Date:** 2026-05-14; amended 2026-05-17
 **Scope:** upgrade-plan schema, operation classes, apply safety, and narrow
 repair behavior
 
@@ -84,7 +84,7 @@ example, `safe/repair-command` includes a `repair` payload.
   apply surface.
 - Apply reports deferred operations as skipped.
 
-## Initial Operation Codes
+## Operation Codes
 
 Apply-enabled:
 
@@ -95,6 +95,9 @@ Apply-enabled:
   manifest references an `npm run <script>` command, the script is missing,
   the source package defines the expected script, and local prerequisites such
   as `scripts/harness.mjs` exist.
+- `safe/install-module`: install a missing module required by the target's
+  active source profile when module-add preflight finds no artifact or command
+  collisions.
 
 Review-only:
 
@@ -105,6 +108,7 @@ Review-only:
 - `review/unmarked-managed-file`
 - `review/missing-lock`
 - `review/unchecked-command`
+- `review/install-module-collision`
 
 Blocked:
 
@@ -113,6 +117,7 @@ Blocked:
 - `blocked/invalid-lock`
 - `blocked/unsupported-upgrade-policy`
 - `blocked/unrunnable-command`
+- `blocked/install-module-unavailable`
 
 Deferred:
 
@@ -150,6 +155,30 @@ does not overwrite existing script values.
 This keeps command repair useful for dogfood/source-style repos without
 pretending every installed target has local harness source files.
 
+## Safe Profile Module Install
+
+`safe/install-module` is profile-bounded.
+
+It can install a module only when all of the following are true:
+
+- the module is listed by the target's active source profile;
+- the module is available and installable from the source registry;
+- the module is absent from the target manifest; and
+- the same artifact and command collision checks used by
+  `harness modules add` pass without `--force`.
+
+Registry modules that are available but not part of the active profile remain
+`deferred/installable-module-available`. This preserves the difference between
+"available capability" and "chosen profile behavior".
+
+When an active-profile module install would collide with an existing file or
+command, the planner emits `review/install-module-collision` and apply refuses
+the whole plan. When required source artifacts or module definitions are
+unavailable, the planner emits `blocked/install-module-unavailable`.
+
+Apply reuses the existing module-add installer rather than introducing a
+second module installation implementation.
+
 ## Semantic Provenance
 
 The lock file now records semantic file metadata in addition to hashes:
@@ -174,7 +203,8 @@ This contract does not yet define:
 - template merge application.
 - module profile switching.
 - remote package discovery.
-- automatic installation of available modules.
+- automatic installation of registry modules that are not in the active
+  profile.
 - conflict resolution for modified managed files.
 
 Those require additional design and tests before they should become

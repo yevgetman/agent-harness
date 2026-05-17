@@ -168,23 +168,29 @@ Upgrade plans also include typed operation records. Operation records are the
 bridge between state detection and future mutation. They do not apply changes;
 they classify what a later `harness upgrade apply` might do or refuse to do.
 
-Initial operation codes:
+Operation codes include:
 
 - `safe/noop` — current state already matches the available baseline.
 - `safe/refresh-lock` — refreshing lock fingerprints is mechanically safe after
   review accepts current file contents as baseline.
+- `safe/install-module` — a missing active-profile module can be installed
+  cleanly through the module-add installer.
 - `review/modified-managed-file` — a managed file differs from its lock
   fingerprint and requires human/agent review before mutation.
 - `review/unlocked-managed-file` — a managed file exists but has no lock entry.
 - `review/missing-lock` — lock provenance is absent and current files need
   review before accepting them as baseline.
+- `review/install-module-collision` — a missing active-profile module would
+  collide with an existing file or command.
 - `blocked/missing-managed-file` — a managed file is missing.
 - `blocked/invalid-lock` — lock state is malformed.
 - `blocked/unrunnable-command` — a manifest command is not runnable.
+- `blocked/install-module-unavailable` — a missing active-profile module cannot
+  be installed from available source artifacts.
 - `deferred/installable-module-available` — a registry module is available but
   not installed.
-- `deferred/apply-not-implemented` — full upgrade application is not
-  implemented beyond the safe scaffold.
+- `deferred/apply-not-implemented` — full file/template upgrade application is
+  not implemented beyond the explicitly safe apply operations.
 
 Plans include `operation_summary` with total counts by operation status and by
 operation code. The summary is for quick scanability; individual operation
@@ -210,6 +216,8 @@ It may apply:
 - `safe/refresh-lock` by rebuilding `.harness/lock.yaml`
 - `safe/repair-command` by restoring deterministic missing package scripts
   when local prerequisites exist
+- `safe/install-module` by installing clean missing active-profile modules
+  through the existing module-add installer
 
 It refuses to apply when the plan contains:
 

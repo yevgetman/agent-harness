@@ -1,6 +1,6 @@
 # V1 Validation And Deferred Scope
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 This document is the v1 closeout matrix for the portable harness. It records
 what v1 proves, the commands that validate it, and the work intentionally left
@@ -31,7 +31,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, and JSON-capable. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
-| Safe upgrade apply scaffold | Apply permits only safe/noop, safe/refresh-lock, and deterministic safe/repair-command operations. | `npm test` covers safe apply, blocked plans, and review-required refusal. |
+| Safe upgrade apply | Apply permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, and post-v1 profile-bounded safe/install-module operations. | `npm test` covers safe apply, clean profile module install, blocked plans, and review-required refusal. |
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
 | Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. | `npm run distribution:smoke`. |
 | External target smoke | A caller-supplied git target is copied into the smoke workspace and validated without mutating the source repo. | `npm test` and `node scripts/harness.mjs distribution smoke --target <path> --profile minimal --force`. |
@@ -45,6 +45,7 @@ Run this set before claiming the v1 baseline is still healthy:
 
 ```bash
 node --check scripts/init.mjs
+node --check scripts/modules.mjs
 node --check scripts/distribution.mjs
 node --check scripts/upgrade.mjs
 node --check scripts/test.mjs
@@ -99,13 +100,28 @@ V1 does not include:
 - Deep implementation of every v1 process domain.
 - UI, dashboard, or LLM-provider-specific integration.
 
+## Post-V1 Extension
+
+The first post-v1 upgrade-apply increment is implemented.
+
+`harness upgrade --plan` now emits operation contract version 2. Missing
+modules that are required by the target's active profile and pass the same
+collision preflight as `harness modules add` are classified as
+`safe/install-module`. `harness upgrade apply` installs those modules through
+the existing module-add path.
+
+Registry modules that are merely available, but not part of the active
+profile, remain `deferred/installable-module-available`. Existing artifact or
+command collisions are `review/install-module-collision`, and apply refuses
+the whole plan before mutating.
+
 ## Next Work After V1
 
 The strongest post-v1 candidates are:
 
-1. Broaden `harness upgrade apply` beyond the safe scaffold while preserving
-   review boundaries for human-facing files.
-2. Add profile inspection and profile switching.
+1. Add profile inspection and profile switching.
+2. Broaden human-facing file/template upgrade planning while preserving review
+   boundaries.
 3. Resume publication work by choosing a release license, clearing
    `private: true`, and running release/publish planning again.
 4. Add more named real-repo smoke targets to broaden compatibility evidence.

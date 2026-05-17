@@ -199,9 +199,10 @@ Initial checks:
 - Locked file fingerprints match current files or produce drift warnings.
 - Manifest command records may expose `harness lock refresh` and
   `harness lock check` for installed-file provenance maintenance.
-- Manifest command records may expose `harness upgrade apply`; the initial
-  apply surface only permits safe/noop, safe/refresh-lock, and deterministic
-  safe/repair-command operations.
+- Manifest command records may expose `harness upgrade apply`; the apply
+  surface permits safe/noop, safe/refresh-lock, deterministic
+  safe/repair-command operations, and clean profile-bounded
+  safe/install-module operations.
 - Manifest commands are wired when the target repo exposes local package
   scripts or node entrypoints.
 - `index.yaml` document entries point to real files.

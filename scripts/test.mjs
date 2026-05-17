@@ -73,6 +73,13 @@ function writeLock(root, lock) {
   writeFileSync(join(root, ".harness", "lock.yaml"), stringifyYaml({ lock }));
 }
 
+function setManifestProfile(root, profile) {
+  const manifestPath = join(root, ".harness", "manifest.yaml");
+  const manifest = parseYaml(readFileSync(manifestPath, "utf8"));
+  manifest.harness.profile = profile;
+  writeFileSync(manifestPath, stringifyYaml(manifest));
+}
+
 function hasOperation(plan, code, subject = null) {
   return plan.operations.some((operation) =>
     operation.code === code && (subject == null || operation.subject === subject),
@@ -305,7 +312,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.plan_schema_version, 1, "upgrade plan should expose a schema version");
   assert.equal(
     upgrade.plan.operation_contract_version,
-    1,
+    2,
     "upgrade plan should expose an operation contract version",
   );
   assert.equal(upgrade.plan.version_source.type, "package", "upgrade plan should report package version source for initialized targets");
@@ -395,6 +402,11 @@ withTempDir((root) => {
     "available-not-installed",
     "upgrade plan should report installable registry modules that are absent",
   );
+  assert.equal(
+    hasOperation(upgrade.plan, "deferred/installable-module-available", "decisions-open-questions"),
+    true,
+    "upgrade plan should leave optional absent registry modules deferred",
+  );
 
   const moduleList = quiet(() => runModules({ cwd: root, args: ["list", "--target", gitTarget] }));
   assert.equal(moduleList.ok, true, "modules list should pass against an initialized target");
@@ -427,6 +439,102 @@ withTempDir((root) => {
     ["agent-operating-contract", "progressive-orientation"],
     "profiles list should expose minimal profile modules",
   );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before profile-bounded upgrade apply");
+
+  setManifestProfile(target, "dogfood");
+
+  const plan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(plan.ok, true, "upgrade --plan should pass for a clean missing profile module");
+  assert.equal(plan.plan.blockers.length, 0, "clean profile module install plan should have no blockers");
+  assert.equal(plan.plan.warnings.length, 0, "clean profile module install plan should have no warnings");
+  assert.equal(
+    plan.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
+    "profile-module-missing",
+    "upgrade plan should identify missing active-profile modules",
+  );
+  assert.equal(
+    hasOperation(plan.plan, "safe/install-module", "decisions-open-questions"),
+    true,
+    "upgrade plan should classify clean missing profile modules as safe installs",
+  );
+  assert.equal(
+    hasOperation(plan.plan, "safe/install-module", "plans-and-status"),
+    true,
+    "upgrade plan should classify every clean missing active-profile module as safe",
+  );
+
+  const apply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
+  assert.equal(apply.ok, true, "upgrade apply should install clean missing profile modules");
+  assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/install-module: decisions-open-questions")),
+    true,
+    "upgrade apply should report installed profile modules",
+  );
+  assertExists(target, "modules/decisions-open-questions/module.yaml");
+  assertExists(target, "open-questions.yaml");
+  assertExists(target, "metadata/artifacts.yaml");
+  assertExists(target, "state/canonical-state.yaml");
+  assertExists(target, "invariants/golden-principles.yaml");
+  assertExists(target, "plans/current.yaml");
+
+  const after = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(after.ok, true, "upgrade --plan should pass after profile module installs");
+  assert.equal(after.plan.blockers.length, 0, "post-install upgrade plan should have no blockers");
+  assert.equal(after.plan.warnings.length, 0, "post-install upgrade plan should have no warnings");
+  assert.equal(
+    after.plan.modules.find((module) => module.id === "plans-and-status")?.status,
+    "unchanged",
+    "installed profile modules should become unchanged in the next plan",
+  );
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should pass after profile-bounded module apply");
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before profile module collision test");
+
+  setManifestProfile(target, "dogfood");
+  writeFileSync(join(target, "open-questions.yaml"), "# existing local file\n");
+
+  const plan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(plan.ok, true, "upgrade --plan should return review operations for module collisions");
+  assert.equal(
+    plan.plan.warnings.some((item) => item.includes("profile module 'decisions-open-questions' needs review")),
+    true,
+    "upgrade plan should warn about profile module install collisions",
+  );
+  assert.equal(
+    hasOperation(plan.plan, "review/install-module-collision", "decisions-open-questions"),
+    true,
+    "upgrade plan should classify module artifact collisions as review-required",
+  );
+
+  const apply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
+  assert.equal(apply.ok, false, "upgrade apply should refuse module collision plans");
+  assert.equal(
+    apply.apply.errors.some((item) => item.includes("review/install-module-collision")),
+    true,
+    "upgrade apply should report the module collision review operation",
+  );
+  assertNotExists(target, "modules/structured-metadata/module.yaml");
 });
 
 withTempDir((root) => {

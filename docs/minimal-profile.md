@@ -74,9 +74,9 @@ The profile also exposes:
 harness upgrade apply
 ```
 
-The initial apply surface only handles `safe/noop`, `safe/refresh-lock`, and
-deterministic `safe/repair-command` operations. It refuses blocked or
-review-required plans.
+The apply surface handles `safe/noop`, `safe/refresh-lock`, deterministic
+`safe/repair-command` operations, and clean profile-bounded
+`safe/install-module` operations. It refuses blocked or review-required plans.
 
 ## Lock Maintenance
 

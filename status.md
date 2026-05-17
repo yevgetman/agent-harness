@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Current Phase
 
@@ -55,13 +55,18 @@ command, and doctor validation. Baseline installed-file provenance exists via
 `.harness/lock.yaml`, `harness lock refresh`, `harness lock check`, lock-aware
 doctor checks, semantic lock metadata, lock-aware upgrade planning with typed
 operation records, JSON plans, operation summaries, and a limited safe
-`harness upgrade apply` scaffold. Local packed-package distribution smoke,
+`harness upgrade apply` surface. The first post-v1 upgrade-apply increment is
+implemented: upgrade plans now emit operation contract version 2 and
+profile-bounded `safe/install-module` operations for clean missing active
+profile modules, while optional registry modules remain deferred and
+collisions remain review-required. Local packed-package distribution smoke,
 explicit npm package-boundary validation, release preflight planning, registry
 version discovery, external-target smoke, forceable external-smoke init,
 guarded publish planning, and named real-repo smoke exist. Npm publication and
-the release-license decision are intentionally deferred. General file/template
-upgrade apply, profile switching, and non-npm distribution do not exist yet.
-The current v1 baseline is documented in `docs/v1-validation.md`.
+the release-license decision are intentionally deferred. General human-facing
+file/template upgrade apply, profile switching, and non-npm distribution do
+not exist yet. The current v1 baseline and post-v1 extension are documented in
+`docs/v1-validation.md`.
 
 Structured Metadata exists via `metadata/artifacts.yaml`,
 `harness metadata list`, `harness metadata check`, `harness metadata report`,
@@ -109,7 +114,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   planning, forceable external-smoke init, and named real-repo smoke are
   implemented. Actual npm publication is deferred for now.
 - `docs/v1-validation.md` is the v1 closeout validation and deferred-scope
-  baseline; the next useful increment is post-v1 sequencing.
+  baseline; the first post-v1 upgrade-apply increment is now implemented.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1. It guides sequencing and tradeoffs but does not supersede
   depth-gated incremental development.
@@ -198,11 +203,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run upgrade:plan` uses lock fingerprints to distinguish clean, modified,
   unlocked, and missing managed files.
 - `npm run upgrade:plan` now emits operation records such as `safe/noop`,
-  `safe/refresh-lock`, `review/modified-managed-file`,
+  `safe/refresh-lock`, profile-bounded `safe/install-module`,
+  `review/modified-managed-file`, `review/install-module-collision`,
   `blocked/missing-managed-file`, and `deferred/apply-not-implemented`.
-- `npm run upgrade:apply` is a safe scaffold that only permits `safe/noop`,
-  `safe/refresh-lock`, and deterministic `safe/repair-command` operations and
-  refuses blocked or review-required plans.
+- `npm run upgrade:apply` permits `safe/noop`, `safe/refresh-lock`,
+  deterministic `safe/repair-command`, and clean profile-bounded
+  `safe/install-module` operations, while refusing blocked or review-required
+  plans.
 - Lock entries now preserve semantic provenance fields including
   `artifact_role`, `owner_type`, `module_id`, `merge_strategy`, `source_kind`,
   optional `source_path`, and optional `source_sha256`.
@@ -352,6 +359,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md` —
   decision record for adopting the v1 validation matrix and deferred-scope
   baseline.
+- `decisions/0024-adopt-profile-bounded-safe-module-install-apply.md` —
+  decision record for operation contract version 2 and clean active-profile
+  module installs through `harness upgrade apply`.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -379,9 +389,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Choose the next post-v1 increment. Strong candidates are broader
-  `harness upgrade apply`, profile inspection/switching, publication/license
-  work, or more named real-repo smoke targets.
+- Choose the next post-v1 increment after profile-bounded module apply. Strong
+  candidates are profile inspection/switching, broader human-facing
+  file/template upgrade planning, publication/license work, or more named
+  real-repo smoke targets.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   until the release-license and publication decision is intentionally resumed.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

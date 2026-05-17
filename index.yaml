@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-16
+updated: 2026-05-17
 harness:
   package: portable-harness
   version: 0.1.0
@@ -76,6 +76,7 @@ reading_order:
   - decision-0021
   - decision-0022
   - decision-0023
+  - decision-0024
   - decision-template
   - package
   - harness-cli
@@ -113,7 +114,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout and post-v1 sequencing. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, profile-bounded upgrade apply, and next post-v1 sequencing. Not a changelog.
     depends_on:
       - agents
 
@@ -262,7 +263,7 @@ documents:
     title: V1 Validation And Deferred Scope
     kind: validation-baseline
     status: active
-    summary: V1 closeout matrix, rerunnable command set, behavior boundary, deferred-scope summary, and post-v1 candidates.
+    summary: V1 closeout matrix, rerunnable command set, behavior boundary, deferred-scope summary, first post-v1 upgrade-apply extension, and remaining post-v1 candidates.
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-distribution-readiness-design
@@ -676,6 +677,17 @@ documents:
       - v1-product-spec-and-roadmap
       - decision-0022
 
+  - doc_id: decision-0024
+    file: decisions/0024-adopt-profile-bounded-safe-module-install-apply.md
+    title: Adopt Profile Bounded Safe Module Install Apply
+    kind: decision
+    status: active
+    summary: Decision record adopting operation contract version 2 and profile-bounded safe/install-module upgrade apply behavior.
+    depends_on:
+      - v1-upgrade-operation-contract
+      - modules-cli
+      - upgrade-cli
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -690,7 +702,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/external smoke, lock maintenance, registry-aware upgrade planning/apply scaffolding, doctor, and tests.
+    summary: Node package wiring, publish metadata, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -700,7 +712,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply scaffolding, and doctor.
+    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -842,7 +854,7 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Upgrade planner and safe apply scaffold for installed harness state, JSON plans, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, and deterministic command repair.
+    summary: Upgrade planner and safe apply behavior for installed harness state, JSON plans, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, deterministic command repair, and clean active-profile module installs.
     depends_on:
       - v1-installed-manifest-design
       - v1-lock-provenance-design

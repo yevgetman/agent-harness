@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-16
+  updated: 2026-05-17
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -569,3 +569,16 @@ metadata:
       depends_on:
         - v1-validation
         - phase-5-closeout-decision
+
+    - id: profile-module-apply-decision
+      path: decisions/0024-adopt-profile-bounded-safe-module-install-apply.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - upgrade
+        - modules
+        - decision
+      depends_on:
+        - upgrade-cli
+        - v1-validation-decision
