@@ -173,7 +173,7 @@ lock:
       source_kind: module-template
       source_path: modules/decisions-open-questions/templates/open-questions.yaml
       source_sha256: d1ac79ec5a765928dcb54c5fd3a7441311f8361c4d65ebb04433a789ceb06bab
-      sha256: 3d28b91aa7f00c78b4a33c58e5b1b0ba1e3f558eed7d4369ea799dcb63dfa249
+      sha256: be41970178f6c9a0b265fdc3d1ed4125c7a21d74c62728d07d31150602f66f4e
     - path: plans/current.yaml
       owner: plans-and-status
       owner_type: module
@@ -185,7 +185,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: c6f1ad631165880db491c496947c0aa1f44170b160d6e9cc03e6d352d22fe89d
+      sha256: dba8f3d55d4d3638df416e90f5440f0451d9b8aca3775ab185233ee465293a83
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -217,7 +217,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: ae7e4fbdaf238d3731c196e8acd5251c28cf3270764439cfa65b340c887233cf
+      sha256: cd79974643c0b48f3a27c9be6a552a5e144094159d626f29d27dc7cd92ebca86
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

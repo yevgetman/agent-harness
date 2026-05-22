@@ -1,8 +1,9 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse as parseYaml } from "yaml";
-import { loadSourceModule, planModuleInstall } from "./modules.mjs";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
+import { updateLockFromPaths } from "./lock.mjs";
+import { installModule, loadSourceModule, planModuleInstall } from "./modules.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -306,7 +307,8 @@ function buildSwitchPlan({ requestedProfile, target, modules }) {
   const warnings = [];
   const blockers = [];
   const notes = [
-    "profiles switch is currently plan-only; apply is not implemented",
+    "apply installs clean profile modules then updates the manifest profile",
+    "apply refuses plans that contain review-required or blocked operations",
     "modules outside the requested profile are retained by default",
   ];
   const operations = [];
@@ -431,6 +433,168 @@ function buildSwitchPlan({ requestedProfile, target, modules }) {
   };
 }
 
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function applySwitchPlan({ root, plan, sourceRoot }) {
+  const blockers = plan.operations.filter((operation) => operation.status === "blocked");
+  const reviews = plan.operations.filter((operation) => operation.status === "review");
+  const skipped = plan.operations.filter((operation) => operation.status === "deferred");
+
+  if (blockers.length > 0 || reviews.length > 0) {
+    return {
+      ok: false,
+      target: root,
+      applied: [],
+      skipped,
+      blockers,
+      reviews,
+      errors: [
+        ...reviews.map((operation) => `${operation.code}: ${operation.subject}`),
+        ...blockers.map((operation) => `${operation.code}: ${operation.subject}`),
+      ],
+    };
+  }
+
+  const applied = [];
+  const moduleInstalls = plan.operations.filter(
+    (operation) => operation.code === "safe/profile-module-install",
+  );
+
+  for (const operation of moduleInstalls) {
+    const moduleId = operation.install?.module_id ?? operation.subject;
+    const preflight = planModuleInstall({ root, moduleId, force: false, sourceRoot });
+    if (!preflight.ok) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped,
+        blockers,
+        reviews,
+        errors: (preflight.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
+      };
+    }
+  }
+
+  for (const operation of moduleInstalls) {
+    const moduleId = operation.install?.module_id ?? operation.subject;
+    const installed = installModule({ root, moduleId, force: false, sourceRoot });
+    if (!installed.ok) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped,
+        blockers,
+        reviews,
+        errors: (installed.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
+      };
+    }
+    applied.push(installed.noop
+      ? `safe/profile-module-install: ${moduleId} already installed`
+      : `safe/profile-module-install: ${moduleId}`);
+  }
+
+  const presentCount = plan.operations.filter(
+    (operation) => operation.code === "safe/profile-module-present",
+  ).length;
+  if (presentCount > 0) {
+    applied.push(`safe/profile-module-present: ${presentCount} module(s) already installed`);
+  }
+
+  const profileUpdate = plan.operations.find((operation) => operation.code === "safe/profile-update");
+  if (profileUpdate) {
+    const manifestPath = join(root, ".harness", "manifest.yaml");
+    let manifest;
+    try {
+      manifest = parseYaml(readFileSync(manifestPath, "utf8"));
+    } catch (parseError) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped,
+        blockers,
+        reviews,
+        errors: [`safe/profile-update: .harness/manifest.yaml: YAML parse error: ${parseError.message}`],
+      };
+    }
+    if (!manifest?.harness) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped,
+        blockers,
+        reviews,
+        errors: ["safe/profile-update: manifest missing top-level harness key"],
+      };
+    }
+
+    const toProfile = profileUpdate.update?.to;
+    if (!toProfile) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped,
+        blockers,
+        reviews,
+        errors: [`safe/profile-update: ${profileUpdate.subject}: missing update target`],
+      };
+    }
+
+    manifest.harness.profile = toProfile;
+    writeFileSync(manifestPath, stringifyYaml(manifest));
+    updateLockFromPaths({
+      root,
+      harness: manifest.harness,
+      paths: [".harness/manifest.yaml"],
+      generatedAt: todayIso(),
+    });
+    applied.push(`safe/profile-update: ${profileUpdate.subject}`);
+  }
+
+  const noopCount = plan.operations.filter((operation) => operation.code === "safe/profile-noop").length;
+  if (noopCount > 0) {
+    applied.push("safe/profile-noop: target already on requested profile");
+  }
+
+  return {
+    ok: true,
+    target: root,
+    applied,
+    skipped,
+    blockers,
+    reviews,
+    errors: [],
+  };
+}
+
+function printSwitchApply(result) {
+  console.log("Harness profile switch apply");
+  console.log(`target: ${result.target.root}`);
+  console.log(`current_profile: ${result.target.current_profile}`);
+  console.log(`requested_profile: ${result.requested_profile.id}`);
+  console.log(`apply_ok: ${result.apply.ok ? "yes" : "no"}`);
+  printList("applied", result.apply.applied);
+  printList(
+    "skipped",
+    result.apply.skipped.map((operation) => `${operation.code}: ${operation.subject}`),
+  );
+  printList(
+    "reviews",
+    result.apply.reviews.map((operation) => `${operation.code}: ${operation.subject}`),
+  );
+  printList(
+    "blockers",
+    result.apply.blockers.map((operation) => `${operation.code}: ${operation.subject}`),
+  );
+  printList("errors", result.apply.errors);
+}
+
 function printHelp() {
   console.log(`harness profiles
 
@@ -438,6 +602,7 @@ Usage:
   harness profiles list
   harness profiles inspect <profile> [--target <path>] [--json]
   harness profiles switch <profile> --plan [--target <path>] [--json]
+  harness profiles switch <profile> --apply [--target <path>] [--json]
 `);
 }
 
@@ -629,12 +794,12 @@ function runSwitch({ cwd, args, sourceRoot }) {
     return emitFailure({ errors: ["profiles switch --target requires a path"], wantsJson });
   }
 
-  if (wantsApply) {
-    return emitFailure({ errors: ["profiles switch --apply is not implemented; use --plan"], wantsJson });
+  if (!wantsPlan && !wantsApply) {
+    return emitFailure({ errors: ["profiles switch requires --plan or --apply"], wantsJson });
   }
 
-  if (!wantsPlan) {
-    return emitFailure({ errors: ["profiles switch requires --plan"], wantsJson });
+  if (wantsPlan && wantsApply) {
+    return emitFailure({ errors: ["profiles switch cannot use --plan and --apply together"], wantsJson });
   }
 
   const loaded = loadProfile(profileId, sourceRoot);
@@ -664,11 +829,11 @@ function runSwitch({ cwd, args, sourceRoot }) {
     modules,
   });
   const inspectionSummary = summarizeInspection(modules);
-  const result = {
+  const planResult = {
     ok: true,
-    mode: "plan",
+    mode: wantsApply ? "apply" : "plan",
     plan_schema_version: 1,
-    apply_available: false,
+    apply_available: true,
     target: {
       root: target.root,
       current_profile: target.profile,
@@ -690,7 +855,17 @@ function runSwitch({ cwd, args, sourceRoot }) {
     notes: switchPlan.notes,
   };
 
-  return emitResult({ result, wantsJson, print: printSwitchPlan });
+  if (wantsPlan) {
+    return emitResult({ result: planResult, wantsJson, print: printSwitchPlan });
+  }
+
+  const apply = applySwitchPlan({ root: targetRoot, plan: planResult, sourceRoot });
+  const applyResult = {
+    ...planResult,
+    ok: apply.ok,
+    apply,
+  };
+  return emitResult({ result: applyResult, wantsJson, print: printSwitchApply });
 }
 
 export function runProfiles({ cwd = process.cwd(), args = [], sourceRoot = SOURCE_ROOT } = {}) {

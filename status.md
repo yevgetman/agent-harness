@@ -22,9 +22,15 @@ exist. Public npm publication and the release-license decision remain deferred.
 The v1.1 installed-instance upgrade contract now has a narrow baseline:
 manifests record installed-instance source/channel metadata, upgrade plans emit
 `upgrade_guidance`, and install docs describe the private per-repo operator
-flow. The first profile-switching increment now adds
-`harness profiles switch <profile> --plan`; the next v1.1 build step is safe
-profile switch apply for clean plans.
+flow. The first profile-switching increment added
+`harness profiles switch <profile> --plan`; the second adds safe profile switch
+apply for clean plans (`harness profiles switch <profile> --apply`), which
+installs required modules, updates the manifest profile only after installs
+succeed, refreshes lock provenance, retains modules outside the requested
+profile, and refuses review-required or blocked plans. The next v1.1 build
+step is either resolving the lock-check source_sha256 drift for
+template-installed managed files or starting cascade apply for managed-file
+upgrades.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -35,7 +41,8 @@ repo-local depth gate, and a read-only `harness upgrade --plan` command. The
 first module/profile installation surface exists through `modules/registry.yaml`,
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
 `harness profiles list`, `harness profiles inspect <profile>`,
-`harness profiles switch <profile> --plan`, and profile-backed
+`harness profiles switch <profile> --plan`,
+`harness profiles switch <profile> --apply`, and profile-backed
 `harness init --profile <profile>`, with broad temp-target tests. Decisions And
 Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
@@ -55,13 +62,24 @@ profile switching. The first profile-switching increment adds
 read-only switch plans that reuse module-add preflight, classify clean missing
 modules as safe planned installs, hold profile updates behind review-required
 or blocked modules, and retain modules outside a smaller requested profile by
-default. Local packed-package distribution smoke, explicit npm
+default. The second profile-switching increment adds
+`harness profiles switch <profile> --apply [--target <path>] [--json]` for
+clean switch plans: apply re-runs the plan, refuses any review or blocker,
+pre-checks every required install before any write, installs each clean module
+through the existing module-add installer, updates the manifest profile only
+after installs succeed, refreshes lock provenance for the manifest, and
+records retained modules as `deferred/profile-module-retained` skips.
+Local packed-package distribution smoke, explicit npm
 package-boundary validation, release preflight planning, registry version
 discovery, external-target smoke, forceable external-smoke init, guarded
 publish planning, and named real-repo smoke exist. Npm publication and the
 release-license decision are intentionally deferred. General human-facing
-file/template upgrade apply, profile switch apply, deeper installed-instance
-cascade apply, profile sync, and non-npm distribution do not exist yet.
+file/template upgrade apply, deeper installed-instance cascade apply, profile
+sync, profile removal, and non-npm distribution do not exist yet. The
+`lock-source-sha-drift-on-module-install` open question describes a
+pre-existing `lock check` drift for template-installed managed files that
+should be resolved before `lock check` is treated as authoritative for
+installed instances.
 The current v1 baseline and post-v1 extensions are documented in
 `docs/v1-validation.md`; current v1.1 direction is documented in
 `design/v1.1-installed-instance-roadmap.md`.

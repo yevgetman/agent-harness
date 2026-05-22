@@ -545,7 +545,7 @@ withTempDir((root) => {
   }));
   assert.equal(switchPlan.ok, true, "profiles switch --plan should pass against an initialized target");
   assert.equal(switchPlan.mode, "plan", "profiles switch should report plan mode");
-  assert.equal(switchPlan.apply_available, false, "profiles switch should be plan-only in the first increment");
+  assert.equal(switchPlan.apply_available, true, "profiles switch --plan should report that apply is available");
   assert.equal(switchPlan.target.current_profile, "minimal", "profiles switch should report current target profile");
   assert.equal(switchPlan.requested_profile.id, "dogfood", "profiles switch should report requested profile");
   assert.equal(switchPlan.summary.clean_install, 5, "minimal to dogfood switch should plan five clean module installs");
@@ -586,7 +586,7 @@ withTempDir((root) => {
   assert.equal(missingTargetInspect.ok, false, "profiles inspect should fail when --target has no path");
 
   const switchWithoutPlan = quiet(() => runProfiles({ cwd: root, args: ["switch", "dogfood", "--target", gitTarget] }));
-  assert.equal(switchWithoutPlan.ok, false, "profiles switch should require --plan");
+  assert.equal(switchWithoutPlan.ok, false, "profiles switch should require --plan or --apply");
 
   writeFileSync(join(gitTarget, "open-questions.yaml"), "# existing local file\n");
   const collisionInspect = quiet(() => runProfiles({
@@ -1246,6 +1246,193 @@ withTempDir((root) => {
     hasOperation(switchToMinimal, "safe/profile-update", "dogfood -> minimal"),
     true,
     "profiles switch should still plan the profile update when extra modules are retained",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before profile switch apply");
+
+  const beforeManifest = readFileSync(join(target, ".harness", "manifest.yaml"), "utf8");
+  assert.match(beforeManifest, /profile: minimal/, "starting target should be on minimal profile");
+
+  const apply = quiet(() => runProfiles({
+    cwd: root,
+    args: ["switch", "dogfood", "--target", target, "--apply"],
+  }));
+  assert.equal(apply.ok, true, "profiles switch --apply should pass for a clean switch plan");
+  assert.equal(apply.mode, "apply", "profiles switch --apply should report apply mode");
+  assert.equal(apply.apply.ok, true, "clean profile switch apply should succeed");
+  assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-module-install: decisions-open-questions")),
+    true,
+    "profiles switch apply should report installed profile modules",
+  );
+  assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-module-install: plans-and-status")),
+    true,
+    "profiles switch apply should install every clean missing profile module",
+  );
+  assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> dogfood")),
+    true,
+    "profiles switch apply should report the profile update",
+  );
+  assert.equal(apply.apply.errors.length, 0, "clean profile switch apply should not report errors");
+
+  for (const file of [
+    "modules/decisions-open-questions/module.yaml",
+    "modules/structured-metadata/module.yaml",
+    "modules/canonical-state/module.yaml",
+    "modules/invariants-golden-principles/module.yaml",
+    "modules/plans-and-status/module.yaml",
+    "open-questions.yaml",
+    "metadata/artifacts.yaml",
+    "state/canonical-state.yaml",
+    "invariants/golden-principles.yaml",
+    "plans/current.yaml",
+  ]) {
+    assertExists(target, file);
+  }
+
+  assert.match(
+    readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
+    /profile: dogfood/,
+    "profiles switch apply should update the manifest profile after installs succeed",
+  );
+
+  const lock = readLock(target);
+  assert.equal(
+    lock.files.some((entry) => entry.path === "modules/decisions-open-questions/module.yaml"),
+    true,
+    "profiles switch apply should refresh lock provenance for installed modules",
+  );
+  assert.equal(
+    lock.files.some((entry) => entry.path === ".harness/manifest.yaml"),
+    true,
+    "profiles switch apply should keep the manifest entry in lock provenance",
+  );
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should pass after profile switch apply");
+
+  const reapply = quiet(() => runProfiles({
+    cwd: root,
+    args: ["switch", "dogfood", "--target", target, "--apply"],
+  }));
+  assert.equal(reapply.ok, true, "profiles switch --apply should be idempotent for already-installed profile");
+  assert.equal(reapply.apply.ok, true, "re-applying a satisfied profile switch should succeed");
+  assert.equal(
+    reapply.apply.applied.some((item) => item.includes("safe/profile-noop")),
+    true,
+    "re-applying a satisfied profile switch should report a profile noop",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before profile switch apply collision test");
+
+  writeFileSync(join(target, "open-questions.yaml"), "# pre-existing local file\n");
+
+  const apply = quiet(() => runProfiles({
+    cwd: root,
+    args: ["switch", "dogfood", "--target", target, "--apply"],
+  }));
+  assert.equal(apply.ok, false, "profiles switch --apply should refuse review-required plans");
+  assert.equal(apply.apply.ok, false, "profiles switch --apply should report review-required refusal");
+  assert.equal(
+    apply.apply.errors.some((item) => item.includes("review/profile-module-install-collision")),
+    true,
+    "profiles switch --apply should surface the review-required operation in errors",
+  );
+  assert.equal(apply.apply.applied.length, 0, "profiles switch --apply should not install anything when refusing");
+  assert.match(
+    readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
+    /profile: minimal/,
+    "profiles switch --apply should not change the manifest profile when refusing",
+  );
+  assertNotExists(target, "modules/decisions-open-questions/module.yaml");
+  assertNotExists(target, "modules/structured-metadata/module.yaml");
+});
+
+withTempDir((root) => {
+  const target = join(root, "dogfood-target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "dogfood"],
+  }));
+  assert.equal(init.ok, true, "dogfood init should pass before smaller-profile switch apply");
+
+  const apply = quiet(() => runProfiles({
+    cwd: root,
+    args: ["switch", "minimal", "--target", target, "--apply"],
+  }));
+  assert.equal(apply.ok, true, "profiles switch --apply to a smaller profile should pass");
+  assert.equal(apply.apply.ok, true, "smaller-profile switch apply should succeed");
+  assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-update: dogfood -> minimal")),
+    true,
+    "smaller-profile switch apply should update the manifest profile",
+  );
+  assert.equal(
+    apply.apply.skipped.some((operation) =>
+      operation.code === "deferred/profile-module-retained"
+      && operation.subject === "decisions-open-questions",
+    ),
+    true,
+    "smaller-profile switch apply should record retained modules as skipped deferred operations",
+  );
+  assert.equal(
+    apply.apply.applied.every((item) => !item.includes("uninstall") && !item.includes("remove")),
+    true,
+    "smaller-profile switch apply should never uninstall retained modules",
+  );
+
+  assert.match(
+    readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
+    /profile: minimal/,
+    "smaller-profile switch apply should update the manifest profile",
+  );
+  for (const file of [
+    "modules/decisions-open-questions/module.yaml",
+    "modules/structured-metadata/module.yaml",
+    "modules/canonical-state/module.yaml",
+    "modules/invariants-golden-principles/module.yaml",
+    "modules/plans-and-status/module.yaml",
+  ]) {
+    assertExists(target, file);
+  }
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should pass after smaller-profile switch apply");
+
+  const jsonApply = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "switch", "minimal", "--target", target, "--apply", "--json"],
+    { cwd: root, encoding: "utf8" },
+  ));
+  assert.equal(jsonApply.ok, true, "profiles switch --apply --json should emit ok status");
+  assert.equal(jsonApply.mode, "apply", "profiles switch --apply --json should report apply mode");
+  assert.equal(jsonApply.apply.ok, true, "profiles switch --apply --json should emit apply ok");
+  assert.equal(
+    jsonApply.apply.applied.some((item) => item.includes("safe/profile-noop")),
+    true,
+    "idempotent profile switch apply via --json should report a noop",
   );
 });
 

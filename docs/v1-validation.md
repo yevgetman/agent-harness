@@ -27,7 +27,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
 | Minimal profile install | `harness init --profile minimal` installs operating contract, status, index, context, manifest, lock, and bootstrap module definitions. | `npm test` covers fresh git-target init, doctor, upgrade plan, dry-run collisions, and force overwrite. |
 | Force init contract | Normal init warns/refuses when planned artifacts exist; `--force` definitively overwrites planned harness artifacts. | `npm test` covers warnings, collision reporting, and overwrite of an existing `AGENTS.md`. |
-| Module/profile lifecycle | Source profiles are listable, inspectable, and plan-switchable; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- dogfood`, `npm run profiles:switch -- dogfood --plan`, and `npm run modules:list`. |
+| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, and safely apply-switchable for clean plans; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- dogfood`, `npm run profiles:switch -- dogfood --plan`, `npm run profiles:switch -- dogfood --apply`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
@@ -99,7 +99,6 @@ V1 does not include:
 - Clearing `private: true`.
 - Homebrew, Bun, standalone binary, or other distribution channels.
 - Full automated file/template upgrade application for human-facing files.
-- Profile switch apply commands.
 - Full semantic drift detection across arbitrary corpora.
 - Deep implementation of every v1 process domain.
 - UI, dashboard, or LLM-provider-specific integration.
@@ -143,7 +142,18 @@ read-only switch plan from the target manifest and source profile. It reuses
 module-add preflight, reports clean missing profile modules as safe planned
 installs, holds manifest profile updates behind review-required or blocked
 module operations, and retains modules outside a smaller requested profile by
-default. Apply remains intentionally unimplemented.
+default.
+
+The second v1.1 profile-switching increment is implemented.
+
+`harness profiles switch <profile> --apply [--target <path>] [--json]` applies
+clean switch plans. It re-runs the plan internally, refuses any plan that
+contains a review-required or blocked operation, pre-checks every required
+module install before any write, installs each clean missing module through
+the existing module-add installer, then mutates the manifest profile and
+refreshes lock provenance for `.harness/manifest.yaml`. Modules outside the
+requested profile are recorded as `deferred/profile-module-retained` skips and
+never uninstalled. `safe/profile-noop` plans succeed as noops.
 
 ## Next Work After V1
 
@@ -155,7 +165,9 @@ tool is installed.
 
 The strongest remaining v1.1 candidates are:
 
-1. Add profile switch apply for clean plans.
+1. Resolve the `lock-source-sha-drift-on-module-install` open question so
+   `lock check` is authoritative for installed instances after template
+   installs.
 2. Broaden human-facing file/template upgrade planning while preserving review
    boundaries.
 3. Add stronger repo-local cascade upgrade planning and safe apply.

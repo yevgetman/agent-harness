@@ -307,19 +307,37 @@ plans_status:
 
     - id: v1.1-profile-switch-apply
       title: Add profile switch apply
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Apply clean profile switch plans by installing required clean modules, updating the manifest profile only after installs succeed, refreshing lock provenance, and refusing review-required or blocked plans.
-      next_action: Implement `harness profiles switch <profile> --apply` for clean plans.
+      summary: Clean profile switch plans now apply by installing required modules, updating the manifest profile only after installs succeed, refreshing lock provenance, recording retained modules as deferred skips, and refusing review-required or blocked plans.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - profiles
-        - current
+        - complete
       references:
         - design/v1.1-installed-instance-roadmap.md
         - design/v1-module-profile-installation-design.md
         - decisions/0028-adopt-plan-first-profile-switch-planning.md
+        - decisions/0029-adopt-safe-profile-switch-apply.md
         - scripts/profiles.mjs
         - scripts/modules.mjs
+        - scripts/test.mjs
+
+    - id: v1.1-next-after-switch-apply
+      title: Choose next post-switch-apply increment
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Profile switch apply is implemented; the next narrow v1.1 step is either cascade apply for managed-file/template upgrades or resolving the lock-check source_sha256 drift so lock check can be treated as authoritative for installed instances.
+      next_action: Pick between cascade apply (deeper installed-instance upgrade) and lock-check correctness (close `lock-source-sha-drift-on-module-install`), then record the choice as a decision.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - current
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - decisions/0029-adopt-safe-profile-switch-apply.md
+        - open-questions.yaml
+        - status.md
