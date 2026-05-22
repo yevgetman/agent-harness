@@ -33,7 +33,9 @@ harness init --profile minimal --target <repo>
 Use `harness profiles list` to list available source profiles before choosing
 the init profile. Use `harness profiles inspect <profile>` to inspect a
 profile's modules and, when run with `--target <repo>`, classify target module
-state before applying missing modules or designing a profile switch.
+state before applying missing modules or designing a profile switch. Use
+`harness profiles switch <profile> --plan` to get a read-only switch plan for
+an installed target.
 
 By default, `harness init` expects the target to be a git repository. Use
 `--allow-non-git` only for tests, fixtures, or intentional non-repo targets.
@@ -112,6 +114,7 @@ the generated manifest:
 harness modules list
 harness modules add <module-id>
 harness profiles inspect <profile>
+harness profiles switch <profile> --plan
 ```
 
 The first mechanically installable follow-on module is
@@ -139,6 +142,7 @@ See `docs/install.md` for the local tarball install path.
   managed files yet.
 - Module installation is collision-averse and does not merge existing
   human-authored files.
+- Profile switch apply and profile removal are not implemented yet.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
 - Lock refresh rebuilds file fingerprints and semantic provenance, but

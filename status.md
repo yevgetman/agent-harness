@@ -22,7 +22,9 @@ exist. Public npm publication and the release-license decision remain deferred.
 The v1.1 installed-instance upgrade contract now has a narrow baseline:
 manifests record installed-instance source/channel metadata, upgrade plans emit
 `upgrade_guidance`, and install docs describe the private per-repo operator
-flow. The next v1.1 build step is profile switching.
+flow. The first profile-switching increment now adds
+`harness profiles switch <profile> --plan`; the next v1.1 build step is safe
+profile switch apply for clean plans.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -32,8 +34,8 @@ command, a profile-backed `harness init --profile <profile>` installer, a
 repo-local depth gate, and a read-only `harness upgrade --plan` command. The
 first module/profile installation surface exists through `modules/registry.yaml`,
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
-`harness profiles list`, `harness profiles inspect <profile>`, and
-profile-backed
+`harness profiles list`, `harness profiles inspect <profile>`,
+`harness profiles switch <profile> --plan`, and profile-backed
 `harness init --profile <profile>`, with broad temp-target tests. Decisions And
 Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
@@ -48,13 +50,18 @@ profile modules, while optional registry modules remain deferred and
 collisions remain review-required. The second post-v1 increment adds
 `harness profiles inspect <profile> [--target <path>] [--json]` for read-only
 profile module, target-state, and module-install preflight inspection before
-profile switching. Local packed-package distribution smoke, explicit npm
+profile switching. The first profile-switching increment adds
+`harness profiles switch <profile> --plan [--target <path>] [--json]` for
+read-only switch plans that reuse module-add preflight, classify clean missing
+modules as safe planned installs, hold profile updates behind review-required
+or blocked modules, and retain modules outside a smaller requested profile by
+default. Local packed-package distribution smoke, explicit npm
 package-boundary validation, release preflight planning, registry version
 discovery, external-target smoke, forceable external-smoke init, guarded
 publish planning, and named real-repo smoke exist. Npm publication and the
 release-license decision are intentionally deferred. General human-facing
-file/template upgrade apply, profile switching, deeper installed-instance
-cascade apply, and non-npm distribution do not exist yet.
+file/template upgrade apply, profile switch apply, deeper installed-instance
+cascade apply, profile sync, and non-npm distribution do not exist yet.
 The current v1 baseline and post-v1 extensions are documented in
 `docs/v1-validation.md`; current v1.1 direction is documented in
 `design/v1.1-installed-instance-roadmap.md`.
@@ -91,8 +98,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - The top-level v1 workflow model is **15 formal harness process domains**, not
   the full 37-item exploratory shape catalog.
 - Phase 2 Module And Profile Installation is substantially complete for the v1
-  install/list lifecycle; profile inspection is implemented as a read-only
-  post-v1 follow-on, and profile switching remains deferred.
+  install/list lifecycle; profile inspection and profile switch planning are
+  implemented as read-only post-v1 follow-ons, and profile switch apply remains
+  deferred.
 - Phase 3 Lock And Provenance is active; the closeout implementation includes
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
@@ -151,6 +159,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `npm run profiles:inspect -- <profile>` inspects source profile modules and,
   with `--target <path>`, classifies target module state as installed,
   clean-install, review-required, blocked, or not-inspected.
+- `npm run profiles:switch -- <profile> --plan` plans a profile switch for an
+  installed target without writing files.
 - `npm run doctor` is the first Mechanical Validation surface; it validates
   installed harness health plus Decisions And Open Questions shape when that
   module is installed.
@@ -405,10 +415,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Proceed to profile switching: plan-first `profiles switch` behavior should
-  build on installed-instance upgrade guidance and existing
-  `profiles inspect`.
-- After profile switching, proceed to repo-local cascade upgrade apply and
+- Proceed to profile switch apply for clean plans, building on
+  `profiles switch --plan`, existing module install behavior, and lock refresh.
+- After profile switch apply, proceed to repo-local cascade upgrade apply and
   remaining process-domain baselines.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.

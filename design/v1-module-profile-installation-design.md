@@ -23,6 +23,7 @@ harness modules list
 harness modules add <module-id>
 harness profiles list
 harness profiles inspect <profile>
+harness profiles switch <profile> --plan
 ```
 
 This is intentionally narrower than a complete package manager. The goal is to
@@ -132,6 +133,24 @@ Initial artifact types:
 5. Reuse module-add preflight for missing target modules without writing files.
 6. Emit JSON when `--json` is passed.
 
+`harness profiles switch <profile> --plan [--target <path>] [--json]` should:
+
+1. Require an installed target manifest.
+2. Read the requested source profile from `profiles/`.
+3. Reuse profile inspection and module-add preflight for required modules.
+4. Classify already installed modules as safe/present.
+5. Classify clean missing profile modules as safe planned installs.
+6. Classify artifact or command collisions as review-required.
+7. Classify unavailable or non-installable required modules as blocked.
+8. Plan the manifest profile update only after required modules are installed
+   or cleanly installable.
+9. Report modules outside the requested smaller profile as retained by default,
+   not removed.
+10. Emit JSON when `--json` is passed.
+
+The first profile-switching increment is read-only. It does not mutate the
+manifest or install modules.
+
 `harness init --profile <profile>` should:
 
 1. Read the requested profile from `profiles/`.
@@ -200,8 +219,10 @@ making any changes.
 
 - `modules add` does not update `index.yaml` yet.
 - `modules add` does not merge human-authored files.
-- Profile switching is not implemented.
+- Profile switching apply is not implemented.
 - Profile inspection is read-only; it does not apply missing modules.
+- Profile switch planning is read-only; it does not update manifests or apply
+  missing modules.
 - Profile removal is not implemented.
 - Module removal is not implemented.
 - Module dependency solving is not implemented.

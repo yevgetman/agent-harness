@@ -33,7 +33,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: a9a416ff028602492f95bcb843dc9e098b4f258f7e9e1e7a34798c0c620de562
+      sha256: 1d6c698561ed89313626f85ff6af46d62a038c26667edb6d014b201b1f08c145
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -53,7 +53,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: e8546de23b08c5db52bb4075dcc8f3bec3f159a30e1d1e7d51ab2975aa1f0584
+      sha256: f5ffc14e90272b30cea7ef5b87c1e969d155fd5dbb854ba21ff883aea0a7af89
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -77,7 +77,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 1ead00b96d5132c37c2ea536a052c7fc9ad3ca810ed53e66d24becd2c9407f10
+      sha256: a059cfc23d427e729cb0bc3bd332753eae0d2e3f9f20a9c134342c288995f221
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -185,7 +185,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: 767e7addaf7e543ef559a2f3e0961d442f47372b25d854b4ef710df8aaee4f54
+      sha256: c6f1ad631165880db491c496947c0aa1f44170b160d6e9cc03e6d352d22fe89d
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -207,7 +207,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: e9fd74b2ea5585177d6306fc849ef0dca27603715bbf55202bf71ca76209bf1a
+      sha256: 64e6f5a9744261be2ee67c420deaaaed885c8667d02f8a9063c5a89e4ee2bbc6
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -217,7 +217,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 256caf69be6fa27889933b05dcfa59c660f15d62e41985b94098f857b16903e8
+      sha256: ae7e4fbdaf238d3731c196e8acd5251c28cf3270764439cfa65b340c887233cf
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

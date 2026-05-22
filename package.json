@@ -54,6 +54,7 @@
     "modules:add": "node scripts/harness.mjs modules add",
     "profiles:list": "node scripts/harness.mjs profiles list",
     "profiles:inspect": "node scripts/harness.mjs profiles inspect",
+    "profiles:switch": "node scripts/harness.mjs profiles switch",
     "metadata:list": "node scripts/harness.mjs metadata list",
     "metadata:check": "node scripts/harness.mjs metadata check",
     "metadata:report": "node scripts/harness.mjs metadata report",

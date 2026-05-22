@@ -142,6 +142,12 @@ Current dogfood state:
   source profile modules and, for target repos, classifies modules as
   installed, clean-install, review-required, blocked, or not-inspected without
   writing files.
+- Profile switch planning exists via
+  `harness profiles switch <profile> --plan [--target <path>] [--json]`. It is
+  read-only, reuses module-add preflight, plans clean missing requested-profile
+  modules as safe installs, blocks or holds profile updates behind unsafe
+  module states, and retains modules outside a smaller requested profile by
+  default.
 - `decisions-open-questions` is mechanically installable from the registry into
   a minimal target, and the broad temp-git test matrix now covers clean install,
   collisions, force install, missing source artifacts, doctor, and upgrade
@@ -186,8 +192,9 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The first v1.1 installed-instance upgrade-contract increment is implemented.
-The next useful step is profile switching.
+The first v1.1 installed-instance upgrade-contract increment and the first
+profile-switch planning increment are implemented. The next useful step is
+profile switch apply for clean plans.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -216,6 +223,6 @@ machinery, but public release is not the current product priority.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: add plan-first profile switching, then move to repo-local cascade
-  upgrade apply and the remaining process-domain baselines.
+- Next work: add safe profile switch apply for clean plans, then move to
+  repo-local cascade upgrade apply and the remaining process-domain baselines.
 - Keep `status.md` current after significant choices.

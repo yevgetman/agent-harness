@@ -81,6 +81,7 @@ reading_order:
   - decision-0025
   - decision-0026
   - decision-0027
+  - decision-0028
   - decision-template
   - package
   - harness-cli
@@ -199,7 +200,7 @@ documents:
     title: "Formal Design: V1 Module And Profile Installation"
     kind: formal-design
     status: active
-    summary: Accepted baseline for registry-backed module listing, first installable-module commands, profile listing, and profile-backed init.
+    summary: Accepted baseline for registry-backed module listing, installable-module commands, profile listing/inspection/switch planning, and profile-backed init.
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-installed-manifest-design
@@ -736,6 +737,17 @@ documents:
       - v1-validation
       - decision-0026
 
+  - doc_id: decision-0028
+    file: decisions/0028-adopt-plan-first-profile-switch-planning.md
+    title: Adopt Plan First Profile Switch Planning
+    kind: decision
+    status: active
+    summary: Decision record adopting read-only profile switch planning before profile switch apply.
+    depends_on:
+      - v1-module-profile-installation-design
+      - profiles-cli
+      - decision-0025
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -814,7 +826,7 @@ documents:
     title: Harness Profiles CLI
     kind: cli
     status: active
-    summary: Profile listing, read-only profile inspection, and profile-loading helpers used by profile-backed init.
+    summary: Profile listing, read-only profile inspection, read-only profile switch planning, and profile-loading helpers used by profile-backed init.
     depends_on:
       - v1-module-profile-installation-design
       - profile-minimal
@@ -927,7 +939,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, plans/status, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection and switch planning, structured metadata, canonical state, invariants, plans/status, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

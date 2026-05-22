@@ -413,7 +413,7 @@ withTempDir((root) => {
     "available registry version changes should be review-required operations",
   );
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 9, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 10, "upgrade plan should include command states");
   assert.equal(upgrade.plan.operation_summary.by_status.safe > 0, true, "upgrade plan should summarize safe operations");
   assert.equal(
     upgrade.plan.operation_summary.by_code["deferred/apply-not-implemented"],
@@ -539,11 +539,54 @@ withTempDir((root) => {
   assert.equal(jsonInspect.profile.id, "dogfood", "profiles inspect --json should emit the inspected profile");
   assert.equal(jsonInspect.summary.clean_install, 5, "profiles inspect --json should emit target summary counts");
 
+  const switchPlan = quiet(() => runProfiles({
+    cwd: root,
+    args: ["switch", "dogfood", "--target", gitTarget, "--plan"],
+  }));
+  assert.equal(switchPlan.ok, true, "profiles switch --plan should pass against an initialized target");
+  assert.equal(switchPlan.mode, "plan", "profiles switch should report plan mode");
+  assert.equal(switchPlan.apply_available, false, "profiles switch should be plan-only in the first increment");
+  assert.equal(switchPlan.target.current_profile, "minimal", "profiles switch should report current target profile");
+  assert.equal(switchPlan.requested_profile.id, "dogfood", "profiles switch should report requested profile");
+  assert.equal(switchPlan.summary.clean_install, 5, "minimal to dogfood switch should plan five clean module installs");
+  assert.equal(switchPlan.summary.ready, true, "clean switch plans should report readiness");
+  assert.equal(
+    hasOperation(switchPlan, "safe/profile-module-install", "decisions-open-questions"),
+    true,
+    "profiles switch should plan clean missing profile modules as safe installs",
+  );
+  assert.equal(
+    hasOperation(switchPlan, "safe/profile-update", "minimal -> dogfood"),
+    true,
+    "profiles switch should plan a safe profile update after clean module installs",
+  );
+  assert.match(
+    readFileSync(join(gitTarget, ".harness", "manifest.yaml"), "utf8"),
+    /profile: minimal/,
+    "profiles switch --plan should not mutate the target manifest",
+  );
+  assertNotExists(gitTarget, "modules/decisions-open-questions/module.yaml");
+
+  const jsonSwitch = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "switch", "dogfood", "--target", gitTarget, "--plan", "--json"],
+    { cwd: root, encoding: "utf8" },
+  ));
+  assert.equal(jsonSwitch.requested_profile.id, "dogfood", "profiles switch --json should emit requested profile");
+  assert.equal(
+    jsonSwitch.operation_summary.by_code["safe/profile-module-install"],
+    5,
+    "profiles switch --json should summarize safe module installs",
+  );
+
   const badInspect = quiet(() => runProfiles({ cwd: root, args: ["inspect", "unknown"] }));
   assert.equal(badInspect.ok, false, "profiles inspect should fail unsupported profiles");
 
   const missingTargetInspect = quiet(() => runProfiles({ cwd: root, args: ["inspect", "minimal", "--target"] }));
   assert.equal(missingTargetInspect.ok, false, "profiles inspect should fail when --target has no path");
+
+  const switchWithoutPlan = quiet(() => runProfiles({ cwd: root, args: ["switch", "dogfood", "--target", gitTarget] }));
+  assert.equal(switchWithoutPlan.ok, false, "profiles switch should require --plan");
 
   writeFileSync(join(gitTarget, "open-questions.yaml"), "# existing local file\n");
   const collisionInspect = quiet(() => runProfiles({
@@ -556,6 +599,22 @@ withTempDir((root) => {
     "profiles inspect should classify module artifact collisions as review-required",
   );
   assert.equal(collisionInspect.summary.review_required, 1, "profiles inspect should summarize review-required modules");
+  const collisionSwitch = quiet(() => runProfiles({
+    cwd: root,
+    args: ["switch", "dogfood", "--target", gitTarget, "--plan"],
+  }));
+  assert.equal(collisionSwitch.ok, true, "profiles switch should return review operations for collisions");
+  assert.equal(collisionSwitch.summary.ready, false, "review-required switch plans should not be ready");
+  assert.equal(
+    hasOperation(collisionSwitch, "review/profile-module-install-collision", "decisions-open-questions"),
+    true,
+    "profiles switch should classify module artifact collisions as review-required",
+  );
+  assert.equal(
+    hasOperation(collisionSwitch, "review/profile-update", "minimal -> dogfood"),
+    true,
+    "profiles switch should hold profile updates behind review-required operations",
+  );
   assertNotExists(gitTarget, "modules/decisions-open-questions/module.yaml");
 });
 
@@ -717,7 +776,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after structured metadata install");
   assert.equal(upgrade.plan.managed_files.length, 5, "structured metadata should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 12, "structured metadata should add three command records");
+  assert.equal(upgrade.plan.commands.length, 13, "structured metadata should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "structured-metadata")?.status,
     "unchanged",
@@ -837,7 +896,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after canonical-state install");
   assert.equal(upgrade.plan.managed_files.length, 6, "canonical-state should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 15, "canonical-state should add three command records");
+  assert.equal(upgrade.plan.commands.length, 16, "canonical-state should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "canonical-state")?.status,
     "unchanged",
@@ -926,7 +985,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after invariants install");
   assert.equal(upgrade.plan.managed_files.length, 6, "invariants should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 13, "invariants should add one command record");
+  assert.equal(upgrade.plan.commands.length, 14, "invariants should add one command record");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "invariants-golden-principles")?.status,
     "unchanged",
@@ -1031,7 +1090,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after plans install");
   assert.equal(upgrade.plan.managed_files.length, 6, "plans should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 15, "plans should add three command records");
+  assert.equal(upgrade.plan.commands.length, 16, "plans should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "plans-and-status")?.status,
     "unchanged",
@@ -1171,6 +1230,23 @@ withTempDir((root) => {
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");
   assert.equal(upgrade.plan.blockers.length, 0, "dogfood profile upgrade plan should have no blockers");
   assert.equal(upgrade.plan.warnings.length, 0, "dogfood profile upgrade plan should have no warnings");
+
+  const switchToMinimal = quiet(() => runProfiles({
+    cwd: root,
+    args: ["switch", "minimal", "--target", target, "--plan"],
+  }));
+  assert.equal(switchToMinimal.ok, true, "profiles switch --plan should pass from dogfood to minimal");
+  assert.equal(switchToMinimal.summary.retained, 5, "switching to a smaller profile should retain extra modules by default");
+  assert.equal(
+    hasOperation(switchToMinimal, "deferred/profile-module-retained", "decisions-open-questions"),
+    true,
+    "profiles switch should report retained modules instead of removing them",
+  );
+  assert.equal(
+    hasOperation(switchToMinimal, "safe/profile-update", "dogfood -> minimal"),
+    true,
+    "profiles switch should still plan the profile update when extra modules are retained",
+  );
 });
 
 {
@@ -1356,7 +1432,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
   assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
-  assert.equal(upgrade.plan.commands.length, 12, "module add should extend command state");
+  assert.equal(upgrade.plan.commands.length, 13, "module add should extend command state");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
     "unchanged",

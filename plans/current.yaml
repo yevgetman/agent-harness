@@ -288,12 +288,30 @@ plans_status:
         - state/CONTEXT.md
 
     - id: v1.1-profile-switching
-      title: Add profile switching
+      title: Add profile switch planning
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Profile switch planning now builds a read-only switch plan from profile inspection and module-add preflight, including clean installs, review-required collisions, blockers, retained modules, and safe profile update operations.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - profiles
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-module-profile-installation-design.md
+        - decisions/0028-adopt-plan-first-profile-switch-planning.md
+        - scripts/profiles.mjs
+        - scripts/upgrade.mjs
+
+    - id: v1.1-profile-switch-apply
+      title: Add profile switch apply
       status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: Build plan-first profile switching on top of `profiles inspect`, installed-instance upgrade guidance, and safe profile-bounded module install behavior.
-      next_action: Design and implement `harness profiles switch <profile> --plan` before any apply behavior.
+      summary: Apply clean profile switch plans by installing required clean modules, updating the manifest profile only after installs succeed, refreshing lock provenance, and refusing review-required or blocked plans.
+      next_action: Implement `harness profiles switch <profile> --apply` for clean plans.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -302,5 +320,6 @@ plans_status:
       references:
         - design/v1.1-installed-instance-roadmap.md
         - design/v1-module-profile-installation-design.md
+        - decisions/0028-adopt-plan-first-profile-switch-planning.md
         - scripts/profiles.mjs
-        - scripts/upgrade.mjs
+        - scripts/modules.mjs

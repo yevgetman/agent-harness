@@ -69,6 +69,7 @@ metadata:
         - installed-instance
         - cascade-upgrades
         - upgrade-guidance
+        - profile-switch
       depends_on:
         - product-spec
         - process-domain-design
@@ -369,6 +370,7 @@ metadata:
       tags:
         - profiles
         - cli
+        - profile-switch
       depends_on:
         - profile-minimal
         - profile-dogfood
@@ -651,6 +653,19 @@ metadata:
         - decision
       depends_on:
         - profile-module-apply-decision
+        - profiles-cli
+
+    - id: profile-switch-planning-decision
+      path: decisions/0028-adopt-plan-first-profile-switch-planning.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profiles
+        - profile-switch
+        - decision
+      depends_on:
+        - profile-inspection-decision
         - profiles-cli
 
     - id: v1.1-private-fleet-roadmap-decision

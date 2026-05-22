@@ -28,6 +28,7 @@ Usage:
   harness modules add <module-id>
   harness profiles list
   harness profiles inspect <profile>
+  harness profiles switch <profile> --plan
   harness metadata list
   harness metadata check
   harness metadata report
