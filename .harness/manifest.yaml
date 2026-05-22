@@ -7,6 +7,7 @@ harness:
     type: local
     path: ~/code/harness
     channel: dev
+    install_model: installed-instance
   modules:
     - id: agent-operating-contract
       version: 0.1.0
@@ -105,3 +106,4 @@ harness:
     distribution-smoke: npm run distribution:smoke
   upgrade:
     policy: plan-first
+    model: installed-instance

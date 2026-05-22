@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-05-17
+Last updated: 2026-05-22
 
 ## Current Phase
 
@@ -19,9 +19,10 @@ priority. Packed-package smoke, package-boundary validation, release preflight
 planning, registry version discovery, external-target smoke, forceable
 external-smoke init, guarded publish planning, and named `meetingly` smoke all
 exist. Public npm publication and the release-license decision remain deferred.
-The next v1.1 build step is the installed-instance upgrade contract so each
-repo can understand its own installed harness state, source/channel semantics,
-available upgrade path, and next operator action without central coordination.
+The v1.1 installed-instance upgrade contract now has a narrow baseline:
+manifests record installed-instance source/channel metadata, upgrade plans emit
+`upgrade_guidance`, and install docs describe the private per-repo operator
+flow. The next v1.1 build step is profile switching.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -52,8 +53,8 @@ package-boundary validation, release preflight planning, registry version
 discovery, external-target smoke, forceable external-smoke init, guarded
 publish planning, and named real-repo smoke exist. Npm publication and the
 release-license decision are intentionally deferred. General human-facing
-file/template upgrade apply, profile switching, stronger installed-instance
-upgrade source/channel semantics, and non-npm distribution do not exist yet.
+file/template upgrade apply, profile switching, deeper installed-instance
+cascade apply, and non-npm distribution do not exist yet.
 The current v1 baseline and post-v1 extensions are documented in
 `docs/v1-validation.md`; current v1.1 direction is documented in
 `design/v1.1-installed-instance-roadmap.md`.
@@ -104,7 +105,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   planning, forceable external-smoke init, and named real-repo smoke are
   implemented. Actual npm publication is deferred for now.
 - `docs/v1-validation.md` is the v1 closeout validation and deferred-scope
-  baseline; the first post-v1 upgrade-apply increment is now implemented.
+  baseline; the first post-v1 upgrade-apply increment and first v1.1
+  installed-instance upgrade-contract increment are now implemented.
 - `design/v1.1-installed-instance-roadmap.md` is the current product direction:
   standalone installed-repo upgrade behavior, profile switching, remaining
   process-domain baselines, dogfood robustness, and real-repo evidence. Public
@@ -184,6 +186,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - For package-installed targets, the upgrade planner reports npm registry
   discovery status under `version_source.registry` and uses a discovered
   registry version as `available_harness_version` when one is available.
+- `npm run upgrade:plan` emits `upgrade_guidance` with the installed-instance
+  model, repo-local tracking boundary, current source/channel, next operator
+  action, and private per-repo workflow.
 - The upgrade planner reports plan schema, operation contract version, modules,
   registry-available modules, managed files, lock state, command wiring, typed
   operations, operation summaries, actions, warnings, blockers, and notes.
@@ -400,12 +405,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Start v1.1 with the installed-instance upgrade contract: clarify manifest
-  source/channel semantics, improve `upgrade --plan` guidance, document the
-  per-repo operator workflow, and validate it in this repo plus a copied real
-  repo.
-- After that depth is complete, proceed to profile switching, repo-local
-  cascade upgrade apply, and remaining process-domain baselines.
+- Proceed to profile switching: plan-first `profiles switch` behavior should
+  build on installed-instance upgrade guidance and existing
+  `profiles inspect`.
+- After profile switching, proceed to repo-local cascade upgrade apply and
+  remaining process-domain baselines.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

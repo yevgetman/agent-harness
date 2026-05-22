@@ -59,7 +59,10 @@ The plan command is read-only. The JSON form is the machine-readable upgrade
 plan contract. It reports:
 
 - Plan schema and operation contract versions.
-- Version source, currently `local-checkout`.
+- Version source, `local-checkout` for source dogfood and `package` for
+  package-installed targets.
+- Installed-instance upgrade guidance with source/channel and next operator
+  action.
 - Installed and available harness versions.
 - Installed module state.
 - Lock state.

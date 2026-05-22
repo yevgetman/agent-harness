@@ -816,44 +816,46 @@ build_strategy:
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
   current_depth_pass:
-    id: post-v1-profile-inspection
+    id: v1.1-installed-instance-upgrade-contract
     breadth_unit: >
-      Add read-only profile inspection before profile switching.
+      Clarify the installed-instance upgrade contract before profile switching.
     status: complete
-    completed_on: 2026-05-17
+    completed_on: 2026-05-22
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness profiles inspect reports source profile module metadata.
-          - harness profiles inspect --target reports target module state.
-          - harness profiles inspect --json emits machine-readable inspection output.
-          - Generated target manifests expose profiles-inspect.
+          - Generated package-installed manifests record source.install_model, source.registry_tag, and upgrade.model.
+          - The dogfood manifest records installed-instance local source metadata.
+          - harness upgrade --plan emits upgrade_guidance in terminal and JSON output.
+          - Distribution smoke validates installed-instance upgrade guidance in packed-package targets.
       - id: validation
         status: satisfied
         evidence:
-          - Missing target modules reuse module-add preflight without writing files.
-          - Clean missing modules are classified as clean-install.
-          - Artifact and command collisions are classified as review-required.
-          - Unsupported profiles fail before target inspection.
+          - upgrade_guidance records the repo-local tracking boundary and current source/channel.
+          - upgrade_guidance reports a next operator action based on blockers, warnings, version changes, and source type.
+          - Package-installed plans preserve npm registry status under version_source.registry.
+          - The source repo still does not track installed target repos.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers source-only profile inspect.
-          - npm test covers target profile inspect.
-          - npm test covers profile inspect JSON output.
-          - npm test covers unsupported profile failure and collision classification.
+          - npm test covers generated installed-instance manifest metadata.
+          - npm test covers upgrade_guidance in object and JSON plans.
+          - npm test covers registry-version next operator action.
+          - npm test covers distribution smoke validation of upgrade_guidance.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0025-adopt-profile-inspection-before-profile-switching.md records the inspection decision.
-          - design/v1-module-profile-installation-design.md defines profile inspect behavior.
-          - docs/minimal-profile.md and docs/v1-validation.md describe profile inspection.
+          - design/v1.1-installed-instance-roadmap.md marks the contract baseline complete and points next to profile switching.
+          - design/v1-installed-manifest-design.md defines source/channel semantics.
+          - design/v1-upgrade-operation-contract.md defines upgrade_guidance.
+          - docs/install.md documents the private per-repo upgrade workflow.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood repo exposes profiles-inspect in .harness/manifest.yaml.
-          - The temp-target test suite dogfoods inspect against minimal and dogfood profile states.
-          - npm publication remains deferred while private/license blockers remain.
+          - The dogfood repo exposes installed-instance local source metadata in .harness/manifest.yaml.
+          - npm run upgrade:plan reports local-checkout upgrade guidance for this repo.
+          - Copied external-target distribution smoke validates package-installed upgrade guidance without mutating the real target.
+          - The next breadth unit is profile switching.

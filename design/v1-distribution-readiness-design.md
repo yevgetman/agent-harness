@@ -98,6 +98,8 @@ package uses npm's public default.
 9. Runs `harness upgrade --plan --json`.
 10. Fails if the plan has warnings or blockers.
 11. Fails if the plan does not report `version_source.type: package`.
+12. Fails if the plan does not report `upgrade_guidance.model:
+    installed-instance`.
 
 Default profiles:
 

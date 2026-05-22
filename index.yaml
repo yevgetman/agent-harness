@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-17
+updated: 2026-05-22
 harness:
   package: portable-harness
   version: 0.1.0
@@ -118,7 +118,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, profile-bounded upgrade apply, and next upgrade-contract work. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, installed-instance upgrade guidance, and next profile-switching work. Not a changelog.
     depends_on:
       - agents
 
@@ -138,7 +138,7 @@ documents:
     title: "Formal Product Spec: V1.1 Installed Instance Harness"
     kind: formal-product-spec
     status: active
-    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, profile switching, remaining process-domain baselines, and real-repo dogfood."
+    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, installed-instance upgrade guidance, profile switching, remaining process-domain baselines, and real-repo dogfood."
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
@@ -170,7 +170,7 @@ documents:
     title: "Formal Design: V1 Installed Harness Manifest"
     kind: formal-design
     status: active
-    summary: Accepted baseline for target-repo installed harness state, managed files, module records, doctor behavior, and upgrade safety.
+    summary: Accepted baseline for target-repo installed harness state, source/channel semantics, managed files, module records, doctor behavior, and upgrade safety.
     depends_on:
       - v1-process-domain-design
 
@@ -219,7 +219,7 @@ documents:
     title: "Formal Design: V1 Upgrade Operation Contract"
     kind: formal-design
     status: active
-    summary: Accepted baseline for machine-readable upgrade plans, operation classes, apply-enabled operations, and safe command repair.
+    summary: Accepted baseline for machine-readable upgrade plans, installed-instance upgrade guidance, operation classes, apply-enabled operations, and safe command repair.
     depends_on:
       - v1-lock-provenance-design
       - v1-installed-manifest-design
@@ -279,7 +279,7 @@ documents:
     title: V1 Validation And Deferred Scope
     kind: validation-baseline
     status: active
-    summary: V1 closeout matrix, rerunnable command set, behavior boundary, deferred-scope summary, first post-v1 upgrade-apply extension, and remaining post-v1 candidates.
+    summary: V1 closeout matrix, rerunnable command set, behavior boundary, deferred-scope summary, first post-v1 upgrade-apply extension, v1.1 installed-instance upgrade-contract increment, and remaining post-v1 candidates.
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-distribution-readiness-design
@@ -290,7 +290,7 @@ documents:
     title: Installed Harness Manifest
     kind: dogfood-state
     status: active
-    summary: Dogfood manifest recording the harness modules installed in this repo.
+    summary: Dogfood manifest recording installed modules, local source/channel metadata, and installed-instance upgrade policy.
     depends_on:
       - v1-installed-manifest-design
 
@@ -769,7 +769,7 @@ documents:
     title: Harness Init
     kind: cli
     status: active
-    summary: Profile-backed installer with dry-run, non-git guard, overwrite refusal, installed metadata, and lock generation.
+    summary: Profile-backed installer with dry-run, non-git guard, overwrite refusal, installed-instance metadata, and lock generation.
     depends_on:
       - v1-incremental-build-strategy
       - v1-installed-manifest-design
@@ -781,7 +781,7 @@ documents:
     title: Minimal Install Profile
     kind: reference
     status: active
-    summary: Reference for the current minimal install profile, installed files, command behavior, and limits.
+    summary: Reference for the current minimal install profile, installed files, upgrade guidance, command behavior, and limits.
     depends_on:
       - init
       - v1-installed-manifest-design
@@ -792,7 +792,7 @@ documents:
     title: Harness Install
     kind: reference
     status: active
-    summary: Local tarball install guide, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, package-installed registry discovery expectation, and v1 validation pointer.
+    summary: Local tarball install guide, installed-instance upgrade flow, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, package-installed registry discovery expectation, and v1 validation pointer.
     depends_on:
       - v1-distribution-readiness-design
       - package
@@ -865,7 +865,7 @@ documents:
     title: Harness Distribution CLI
     kind: cli
     status: active
-    summary: Distribution command implementation for dry-run package contents validation, release preflight planning, guarded publish planning/confirmation, packed-package smoke validation through temporary target repos, and copied external-target smoke.
+    summary: Distribution command implementation for dry-run package contents validation, release preflight planning, guarded publish planning/confirmation, packed-package smoke validation through temporary target repos, installed-instance upgrade guidance validation, and copied external-target smoke.
     depends_on:
       - v1-distribution-readiness-design
       - package
@@ -902,7 +902,7 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Upgrade planner and safe apply behavior for installed harness state, JSON plans, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, deterministic command repair, and clean active-profile module installs.
+    summary: Upgrade planner and safe apply behavior for installed harness state, JSON plans, installed-instance upgrade guidance, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, deterministic command repair, and clean active-profile module installs.
     depends_on:
       - v1-installed-manifest-design
       - v1-lock-provenance-design
@@ -927,7 +927,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, plans/status, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profiles, structured metadata, canonical state, invariants, plans/status, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

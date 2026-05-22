@@ -1,6 +1,6 @@
 lock:
   version: 1
-  generated_at: 2026-05-17
+  generated_at: 2026-05-22
   package: portable-harness
   harness_version: 0.1.0
   profile: dogfood
@@ -8,6 +8,7 @@ lock:
     type: local
     path: ~/code/harness
     channel: dev
+    install_model: installed-instance
   modules:
     - id: agent-operating-contract
       version: 0.1.0
@@ -32,7 +33,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: 757dc439fd5c06050e0e4199b10b1712abadbdfcf4c034b2443d54d260e407a4
+      sha256: a9a416ff028602492f95bcb843dc9e098b4f258f7e9e1e7a34798c0c620de562
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -52,7 +53,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 83a92af4335f9d9cd894b7ddbe37e1f41761609335e0087080c3f3ce4bcdcd67
+      sha256: e8546de23b08c5db52bb4075dcc8f3bec3f159a30e1d1e7d51ab2975aa1f0584
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -76,7 +77,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 4eba425bec6e45d8974ebf127c595742494a7db1ee2b8c1cdc59dc5790cba06a
+      sha256: 1ead00b96d5132c37c2ea536a052c7fc9ad3ca810ed53e66d24becd2c9407f10
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -184,7 +185,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: 5612c1c0acb3e103c1870097f300def337fc2ada90a5c8926d8b661e11ceec43
+      sha256: 767e7addaf7e543ef559a2f3e0961d442f47372b25d854b4ef710df8aaee4f54
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -196,7 +197,7 @@ lock:
       source_kind: module-template
       source_path: modules/canonical-state/templates/canonical-state.yaml
       source_sha256: cf3ca0adef922711b744cbed03adbd19e8824cf5c6908eebc3edbef68a20f1c5
-      sha256: 96a1327328b489bf869892ee3cbb1a153b2b40e165ab9d717df2b89e994a4d31
+      sha256: e5bceeb3b8fbd82ae73657dcc09b7265e11fee92e926f3f43d614d2b682fe6dc
     - path: state/CONTEXT.md
       owner: progressive-orientation
       owner_type: module
@@ -206,7 +207,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 5310b0a28590a9ef300141ee1a2387dd329ab90eda3d3304e66d0f88799753b4
+      sha256: e9fd74b2ea5585177d6306fc849ef0dca27603715bbf55202bf71ca76209bf1a
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -216,7 +217,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: bc64a8a2768ae86303a58c5c98a3be84ab9f77be5e810479572624055be15491
+      sha256: 256caf69be6fa27889933b05dcfa59c660f15d62e41985b94098f857b16903e8
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

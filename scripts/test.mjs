@@ -260,6 +260,27 @@ withTempDir((root) => {
 
   const agents = readFileSync(join(gitTarget, "AGENTS.md"), "utf8");
   assert.match(agents, /version: 0\.1\.0/, "installed AGENTS.md should include harness version");
+  assert.match(
+    agents,
+    /source does not track this repo/,
+    "installed AGENTS.md should explain the installed-instance boundary",
+  );
+  const initializedManifest = parseYaml(readFileSync(join(gitTarget, ".harness", "manifest.yaml"), "utf8")).harness;
+  assert.equal(
+    initializedManifest.source.install_model,
+    "installed-instance",
+    "init should record the installed-instance source model",
+  );
+  assert.equal(
+    initializedManifest.source.registry_tag,
+    "latest",
+    "package-installed manifests should record the registry tag",
+  );
+  assert.equal(
+    initializedManifest.upgrade.model,
+    "installed-instance",
+    "init should record the installed-instance upgrade model",
+  );
   assert.equal(
     readLock(gitTarget).files.some((file) => file.path === "AGENTS.md"),
     true,
@@ -317,6 +338,41 @@ withTempDir((root) => {
   );
   assert.equal(upgrade.plan.version_source.type, "package", "upgrade plan should report package version source for initialized targets");
   assert.equal(
+    upgrade.plan.version_source.install_model,
+    "installed-instance",
+    "upgrade plan should report installed-instance version-source model",
+  );
+  assert.equal(
+    upgrade.plan.upgrade_guidance.model,
+    "installed-instance",
+    "upgrade plan should expose installed-instance guidance",
+  );
+  assert.equal(
+    upgrade.plan.upgrade_guidance.tracking,
+    "repo-local",
+    "upgrade guidance should preserve repo-local tracking",
+  );
+  assert.equal(
+    upgrade.plan.upgrade_guidance.current_instance.source_type,
+    "package",
+    "upgrade guidance should summarize the current package source",
+  );
+  assert.equal(
+    upgrade.plan.upgrade_guidance.current_instance.registry_tag,
+    "latest",
+    "upgrade guidance should include the configured registry tag",
+  );
+  assert.match(
+    upgrade.plan.upgrade_guidance.source_boundary,
+    /does not track installed target repos/,
+    "upgrade guidance should state the no-central-registry boundary",
+  );
+  assert.equal(
+    upgrade.plan.upgrade_guidance.operator_workflow.length,
+    3,
+    "upgrade guidance should include the private per-repo operator workflow",
+  );
+  assert.equal(
     upgrade.plan.version_source.registry.status,
     "unpublished-or-private",
     "upgrade plan should report unpublished/private package registry status",
@@ -345,6 +401,11 @@ withTempDir((root) => {
     registryUpgrade.plan.available_harness_version,
     "0.2.0",
     "available registry discovery should set the available harness version",
+  );
+  assert.match(
+    registryUpgrade.plan.upgrade_guidance.next_operator_action,
+    /0\.1\.0 -> 0\.2\.0/,
+    "available registry version changes should be reflected in next operator action",
   );
   assert.equal(
     hasOperation(registryUpgrade.plan, "review/harness-version-change", "0.1.0 -> 0.2.0"),
@@ -395,6 +456,11 @@ withTempDir((root) => {
     jsonPlan.operation_summary.by_code["safe/noop"] > 0,
     true,
     "JSON upgrade plan should include operation summary counts",
+  );
+  assert.equal(
+    jsonPlan.upgrade_guidance.current_instance.package,
+    "portable-harness",
+    "JSON upgrade plan should include installed-instance source package",
   );
   const availableDecisionModule = upgrade.plan.modules.find((module) => module.id === "decisions-open-questions");
   assert.equal(
@@ -1163,6 +1229,11 @@ withTempDir((root) => {
     "skipped",
     "test distribution smoke should report skipped registry discovery",
   );
+  assert.equal(
+    smoke.profiles[0].upgrade_guidance.model,
+    "installed-instance",
+    "distribution smoke should validate installed-instance upgrade guidance",
+  );
   assert.equal(smoke.profiles[0].managed_files, 4, "minimal distribution smoke should validate managed files");
 }
 
@@ -1187,6 +1258,11 @@ withTempDir((root) => {
     smoke.profiles[0].version_source.registry.status,
     "skipped",
     "external smoke should report skipped registry discovery in tests",
+  );
+  assert.equal(
+    smoke.profiles[0].upgrade_guidance.current_instance.source_type,
+    "package",
+    "external smoke should report installed-instance source guidance",
   );
   assert.equal(
     readFileSync(join(externalTarget, "AGENTS.md"), "utf8"),

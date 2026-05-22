@@ -38,6 +38,7 @@ function versionSourceFor(harness) {
       package: harness.source.package ?? readJsonFile(join(SOURCE_ROOT, "package.json")).name,
       channel: harness.source.channel ?? "unknown",
       registry_tag: harness.source.registry_tag ?? "latest",
+      install_model: harness.source.install_model ?? harness.upgrade?.model ?? "installed-instance",
       harness_package: "package.json",
       module_registry: "modules/registry.yaml",
       modules: "modules/<id>/module.yaml",
@@ -49,6 +50,7 @@ function versionSourceFor(harness) {
       type: "local-checkout",
       path: harness.source.path ?? SOURCE_ROOT,
       channel: harness.source.channel ?? "unknown",
+      install_model: harness.source.install_model ?? harness.upgrade?.model ?? "installed-instance",
       harness_package: "package.json",
       module_registry: "modules/registry.yaml",
       modules: "modules/<id>/module.yaml",
@@ -57,9 +59,94 @@ function versionSourceFor(harness) {
 
   return {
     type: sourceType ?? "unknown",
+    channel: harness.source?.channel ?? "unknown",
+    install_model: harness.source?.install_model ?? harness.upgrade?.model ?? "installed-instance",
     harness_package: "package.json",
     module_registry: "modules/registry.yaml",
     modules: "modules/<id>/module.yaml",
+  };
+}
+
+function sourceSummary(versionSource) {
+  if (versionSource.type === "package") {
+    return `${versionSource.package}@${versionSource.registry_tag ?? "latest"} (${versionSource.channel ?? "unknown"})`;
+  }
+  if (versionSource.type === "local-checkout") {
+    return `${versionSource.path ?? "unknown"} (${versionSource.channel ?? "unknown"})`;
+  }
+  return `${versionSource.type ?? "unknown"} (${versionSource.channel ?? "unknown"})`;
+}
+
+function nextOperatorAction({
+  versionSource,
+  registryVersion,
+  installedVersion,
+  availableVersion,
+  blockers,
+  warnings,
+}) {
+  if (blockers.length > 0) {
+    return "Resolve blockers in this repo before applying any harness upgrade operation.";
+  }
+
+  if (installedVersion !== availableVersion) {
+    return `Review the harness version change ${installedVersion} -> ${availableVersion}; rerun the plan after updating this repo's installed harness package or manifest state.`;
+  }
+
+  if (warnings.length > 0) {
+    return "Review warning-level operations in this repo before running harness upgrade apply.";
+  }
+
+  if (versionSource.type === "package" && registryVersion?.status === "available") {
+    return `This repo is already planned against ${versionSource.package}@${registryVersion.version}; run harness upgrade apply for supported safe operations.`;
+  }
+
+  if (versionSource.type === "package") {
+    return `When a newer harness package is available, install or update ${versionSource.package} in this repo, then rerun harness upgrade --plan here.`;
+  }
+
+  if (versionSource.type === "local-checkout") {
+    return "Update the local harness checkout, then rerun harness upgrade --plan inside each repo that should receive the new behavior.";
+  }
+
+  return "Confirm the harness source configuration, then rerun harness upgrade --plan inside this repo.";
+}
+
+function upgradeGuidanceFor({
+  harness,
+  versionSource,
+  registryVersion,
+  installedVersion,
+  availableVersion,
+  blockers,
+  warnings,
+}) {
+  return {
+    model: versionSource.install_model ?? "installed-instance",
+    tracking: "repo-local",
+    source_boundary: "the harness source repo does not track installed target repos",
+    current_instance: {
+      profile: harness.profile ?? "unknown",
+      source_type: versionSource.type,
+      channel: versionSource.channel ?? "unknown",
+      package: versionSource.package ?? null,
+      registry_tag: versionSource.registry_tag ?? null,
+      local_path: versionSource.path ?? null,
+      source: sourceSummary(versionSource),
+    },
+    next_operator_action: nextOperatorAction({
+      versionSource,
+      registryVersion,
+      installedVersion,
+      availableVersion,
+      blockers,
+      warnings,
+    }),
+    operator_workflow: [
+      "Update, build, or install the desired harness tool version outside the target repo when needed.",
+      "Run harness upgrade --plan inside the target repo with that harness tool.",
+      "Resolve blockers and review-required operations before running harness upgrade apply for supported safe operations.",
+    ],
   };
 }
 
@@ -758,6 +845,16 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
     detail: "full file/template upgrade apply is not implemented; limited safe apply is available",
   });
 
+  const upgradeGuidance = upgradeGuidanceFor({
+    harness,
+    versionSource,
+    registryVersion,
+    installedVersion,
+    availableVersion,
+    blockers,
+    warnings,
+  });
+
   return {
     ok: true,
     plan: {
@@ -770,6 +867,7 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
       profile: harness.profile ?? "unknown",
       source: harness.source ?? {},
       version_source: versionSource,
+      upgrade_guidance: upgradeGuidance,
       lock,
       modules,
       managed_files: managedFiles,
@@ -979,6 +1077,16 @@ function printPlan(plan) {
     console.log(`registry_status: ${plan.version_source.registry.status}`);
     console.log(`registry_version: ${plan.version_source.registry.version ?? "unknown"}`);
   }
+  console.log("upgrade_guidance:");
+  console.log(`  model: ${plan.upgrade_guidance.model}`);
+  console.log(`  tracking: ${plan.upgrade_guidance.tracking}`);
+  console.log(`  source: ${plan.upgrade_guidance.current_instance.source}`);
+  console.log(`  boundary: ${plan.upgrade_guidance.source_boundary}`);
+  console.log(`  next_action: ${plan.upgrade_guidance.next_operator_action}`);
+  console.log("  workflow:");
+  plan.upgrade_guidance.operator_workflow.forEach((step, index) => {
+    console.log(`    ${index + 1}. ${step}`);
+  });
   console.log(`installed_harness_version: ${plan.installed_harness_version}`);
   console.log(`available_harness_version: ${plan.available_harness_version}`);
   console.log("lock:");

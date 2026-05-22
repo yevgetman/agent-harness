@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-05-17
+  updated: 2026-05-22
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -270,17 +270,37 @@ plans_status:
 
     - id: v1.1-installed-instance-upgrade-contract
       title: Clarify installed-instance upgrade contract
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Clarify how each installed repo understands its own source/channel, upgrade path, and next operator action without the source repo tracking installations.
-      next_action: Improve manifest source/channel semantics, upgrade-plan guidance, and private per-repo upgrade docs.
+      summary: Manifests now record installed-instance source/channel metadata, upgrade plans emit `upgrade_guidance`, distribution smoke validates the guidance, and install docs describe the private per-repo upgrade flow.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - upgrade
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-installed-manifest-design.md
+        - design/v1-upgrade-operation-contract.md
+        - docs/install.md
+        - status.md
+        - state/CONTEXT.md
+
+    - id: v1.1-profile-switching
+      title: Add profile switching
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Build plan-first profile switching on top of `profiles inspect`, installed-instance upgrade guidance, and safe profile-bounded module install behavior.
+      next_action: Design and implement `harness profiles switch <profile> --plan` before any apply behavior.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - profiles
         - current
       references:
         - design/v1.1-installed-instance-roadmap.md
-        - status.md
-        - state/CONTEXT.md
+        - design/v1-module-profile-installation-design.md
+        - scripts/profiles.mjs
+        - scripts/upgrade.mjs

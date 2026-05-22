@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-17
+  updated: 2026-05-22
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -68,6 +68,7 @@ metadata:
         - product
         - installed-instance
         - cascade-upgrades
+        - upgrade-guidance
       depends_on:
         - product-spec
         - process-domain-design
@@ -229,6 +230,7 @@ metadata:
         - distribution
         - install
         - docs
+        - installed-instance
       depends_on:
         - distribution-readiness-design
         - package
@@ -421,9 +423,11 @@ metadata:
         - distribution
         - cli
         - validation
+        - installed-instance
       depends_on:
         - distribution-readiness-design
         - package
+        - upgrade-cli
 
     - id: upgrade-cli
       path: scripts/upgrade.mjs
@@ -434,8 +438,11 @@ metadata:
         - upgrade
         - registry
         - cli
+        - installed-instance
+        - upgrade-guidance
       depends_on:
         - product-spec
+        - v1.1-installed-instance-roadmap
         - package
 
     - id: structured-metadata-decision

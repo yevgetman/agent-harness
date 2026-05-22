@@ -374,6 +374,10 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
       errors.push(`upgrade plan version_source.type is '${plan.version_source?.type ?? "missing"}', expected 'package'`);
     }
 
+    if (plan.upgrade_guidance?.model !== "installed-instance") {
+      errors.push(`upgrade guidance model is '${plan.upgrade_guidance?.model ?? "missing"}', expected 'installed-instance'`);
+    }
+
     for (const blocker of plan.blockers ?? []) {
       errors.push(`upgrade blocker: ${blocker}`);
     }
@@ -390,6 +394,7 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
       ok: errors.length === 0,
       errors,
       version_source: plan.version_source,
+      upgrade_guidance: plan.upgrade_guidance,
       managed_files: plan.managed_files?.length ?? 0,
       commands: plan.commands?.length ?? 0,
     };
@@ -402,6 +407,7 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
       ok: false,
       errors: [commandError(error)],
       version_source: null,
+      upgrade_guidance: null,
       managed_files: 0,
       commands: 0,
     };
@@ -429,6 +435,7 @@ function printResult(result) {
       console.log(`    target_source: ${profile.target_source}`);
     }
     console.log(`    version_source: ${profile.version_source?.type ?? "unknown"}`);
+    console.log(`    upgrade_model: ${profile.upgrade_guidance?.model ?? "unknown"}`);
     console.log(`    managed_files: ${profile.managed_files}`);
     console.log(`    commands: ${profile.commands}`);
     for (const error of profile.errors) {

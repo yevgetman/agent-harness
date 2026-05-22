@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-17
+generated_on: 2026-05-22
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -118,7 +118,10 @@ Current dogfood state:
   `.harness/lock.yaml`, and reports no blockers or warnings for this dogfood
   repo. It reports `package` as the version source for package-installed
   targets. It now emits typed operation records plus operation summary counts
-  so future apply behavior has an explicit safety model.
+  so future apply behavior has an explicit safety model. It also emits
+  `upgrade_guidance` with the installed-instance model, repo-local tracking
+  boundary, current source/channel, next operator action, and private per-repo
+  workflow.
   `harness upgrade --plan --json` is the stable machine-readable plan output.
 - The first post-v1 apply expansion exists as `npm run upgrade:apply`; it
   permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, and
@@ -183,8 +186,8 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The current useful step is starting v1.1 with the installed-instance upgrade
-contract.
+The first v1.1 installed-instance upgrade-contract increment is implemented.
+The next useful step is profile switching.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -213,9 +216,6 @@ machinery, but public release is not the current product priority.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: clarify installed manifest source/channel semantics, make
-  `upgrade --plan` explain installed-instance upgrade source and next operator
-  action, document the per-repo upgrade workflow, and validate it in this repo
-  plus a copied real repo. Then move to profile switching, repo-local cascade
-  upgrade apply, and the remaining process-domain baselines.
+- Next work: add plan-first profile switching, then move to repo-local cascade
+  upgrade apply and the remaining process-domain baselines.
 - Keep `status.md` current after significant choices.

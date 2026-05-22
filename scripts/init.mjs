@@ -287,12 +287,15 @@ function buildFiles({ targetRoot, profile, date }) {
         type: "package",
         package: PACKAGE_NAME,
         channel: "dev",
+        registry_tag: "latest",
+        install_model: "installed-instance",
       },
       modules: moduleRefsFor(modules),
       managed_files: managedFilesFor(modules),
       commands: commandsFor(modules),
       upgrade: {
         policy: "plan-first",
+        model: "installed-instance",
       },
     },
   };
@@ -309,6 +312,10 @@ Harness metadata:
 - profile: ${profile}
 
 This repo has the portable harness installed with the \`${profile}\` profile.
+
+The harness source does not track this repo as an installation. Run harness
+lifecycle commands inside this repo when inspecting, validating, or upgrading
+its installed harness state.
 
 ## Boot Sequence
 

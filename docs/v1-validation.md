@@ -30,7 +30,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Module/profile lifecycle | Source profiles are listable and inspectable; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- dogfood`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
-| Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, and JSON-capable. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
+| Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
 | Safe upgrade apply | Apply permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, and post-v1 profile-bounded safe/install-module operations. | `npm test` covers safe apply, clean profile module install, blocked plans, and review-required refusal. |
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
 | Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. | `npm run distribution:smoke`. |
@@ -126,6 +126,15 @@ installability. When a target manifest is available, it classifies each
 profile module as installed, clean-install, review-required, blocked, or
 not-inspected without writing files.
 
+The first v1.1 installed-instance upgrade-contract increment is implemented.
+
+Generated target manifests now record `source.install_model:
+installed-instance`, package targets record `source.registry_tag`, and upgrade
+policy records `upgrade.model: installed-instance`. Upgrade plans emit
+`upgrade_guidance` with the repo-local tracking boundary, current source and
+channel, next operator action, and private per-repo workflow. The source repo
+still does not track installed target repos.
+
 ## Next Work After V1
 
 Current post-v1 direction lives in
@@ -134,14 +143,13 @@ installed-repo upgrade behavior and process-domain depth over public
 distribution. The source repo defines the tool; it does not track where the
 tool is installed.
 
-The strongest v1.1 candidates are:
+The strongest remaining v1.1 candidates are:
 
-1. Clarify the installed-instance upgrade contract.
-2. Add profile switching.
-3. Broaden human-facing file/template upgrade planning while preserving review
+1. Add profile switching.
+2. Broaden human-facing file/template upgrade planning while preserving review
    boundaries.
-4. Add stronger repo-local cascade upgrade planning and safe apply.
-5. Add remaining process-domain baselines.
+3. Add stronger repo-local cascade upgrade planning and safe apply.
+4. Add remaining process-domain baselines.
 
 Public publication remains deferred unless a new decision intentionally resumes
 release work.

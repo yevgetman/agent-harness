@@ -67,6 +67,7 @@ harness:
     type: local
     path: ~/code/harness
     channel: dev
+    install_model: installed-instance
   modules:
     - id: agent-operating-contract
       version: 0.1.0
@@ -96,6 +97,7 @@ harness:
     upgrade-plan: npm run upgrade:plan
   upgrade:
     policy: plan-first
+    model: installed-instance
 ```
 
 ## File management modes
@@ -155,6 +157,7 @@ managed files.
 The plan reports:
 
 - Version source.
+- Installed-instance upgrade guidance.
 - Installed and available harness versions.
 - Installed module state.
 - Lock state.
@@ -166,6 +169,22 @@ The plan reports:
 - Actions, warnings, blockers, and notes.
 
 ## Upgrade version source
+
+The manifest `source` block describes how the installed repo should interpret
+the harness tool it is running. It is repo-local metadata; it is not a
+registration with the source repo.
+
+Initial source fields:
+
+- `type` — `local` for source-checkout dogfood, `package` for package-installed
+  targets.
+- `channel` — operator-selected lifecycle channel such as `dev`; it does not
+  imply central coordination.
+- `install_model` — `installed-instance` for the standalone per-repo model.
+- `package` — package name for package-installed targets.
+- `registry_tag` — npm dist tag to inspect for package-installed targets when
+  registry discovery is available.
+- `path` — local source path for source-checkout dogfood targets.
 
 For the dogfood source repo, upgrade planning uses a local version source:
 
@@ -181,6 +200,12 @@ remain later design work.
 
 When distribution is chosen, the planner should add a version source record to
 the plan output instead of hiding how available versions were resolved.
+
+Upgrade plans also include an `upgrade_guidance` block that summarizes the
+installed-instance model, the repo-local tracking boundary, the current
+source/channel, and the next operator action. This guidance exists because a
+target repo should be able to answer "what harness instance am I running and
+what should I do next?" without the source repo knowing that the target exists.
 
 ## Doctor behavior
 

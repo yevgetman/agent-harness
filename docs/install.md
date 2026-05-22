@@ -31,6 +31,32 @@ npm install --save-dev /tmp/harness-pack/portable-harness-0.1.0.tgz
 Use `--profile dogfood` only for target repos that should install all current
 dogfood process-domain modules.
 
+## Installed-Instance Upgrade Flow
+
+Each repo owns its own `.harness/manifest.yaml` and `.harness/lock.yaml`.
+Installing the harness does not register that repo with the source repo, and
+the source repo does not know where the harness is installed.
+
+Private upgrade flow:
+
+1. Update, build, or install the desired harness tool version.
+2. In each target repo that should receive the improvement, run:
+
+```bash
+./node_modules/.bin/harness upgrade --plan
+```
+
+3. Resolve blockers and review-required operations in that target repo.
+4. Run apply only for supported safe operations:
+
+```bash
+./node_modules/.bin/harness upgrade apply
+```
+
+`harness upgrade --plan --json` includes `version_source` and
+`upgrade_guidance` so an installed repo can explain its source/channel, package
+or local checkout, and next operator action without central coordination.
+
 ## Package Boundary
 
 The package intentionally includes the CLI scripts, module definitions, module

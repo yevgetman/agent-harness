@@ -28,6 +28,8 @@ Upgrade plans expose:
 - `operation_contract_version`: version of the operation safety contract.
 - installed and available harness versions.
 - installed profile and source metadata.
+- `upgrade_guidance`, the installed-instance source/channel summary and next
+  operator action.
 - lock state.
 - module state.
 - managed-file state.
@@ -43,6 +45,22 @@ Use:
 ```bash
 harness upgrade --plan --json
 ```
+
+`upgrade_guidance` has this initial shape:
+
+- `model`: currently `installed-instance`.
+- `tracking`: currently `repo-local`.
+- `source_boundary`: reminder that the source repo does not track installed
+  target repos.
+- `current_instance`: profile, source type, channel, package or local path, and
+  a concise source summary.
+- `next_operator_action`: the next human/agent action for this repo.
+- `operator_workflow`: the private per-repo flow for updating the harness tool,
+  running a plan in the target repo, then applying only supported safe
+  operations after review.
+
+This block is guidance, not an operation. Mutation authority remains in
+`operations`.
 
 ## Operation Shape
 
