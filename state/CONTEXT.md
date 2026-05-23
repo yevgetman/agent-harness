@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-22
+generated_on: 2026-05-23
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -148,6 +148,13 @@ Current dogfood state:
   modules as safe installs, blocks or holds profile updates behind unsafe
   module states, and retains modules outside a smaller requested profile by
   default.
+- Profile switch apply exists via
+  `harness profiles switch <profile> --apply [--target <path>] [--json]`. It
+  re-runs switch planning, refuses review-required or blocked operations,
+  pre-checks every required module install before any write, installs clean
+  missing profile modules, updates the manifest profile only after installs
+  succeed, refreshes manifest lock provenance, and retains modules outside the
+  requested profile.
 - `decisions-open-questions` is mechanically installable from the registry into
   a minimal target, and the broad temp-git test matrix now covers clean install,
   collisions, force install, missing source artifacts, doctor, and upgrade
@@ -192,9 +199,10 @@ Then open the relevant formal design or exploratory spec for the task.
 
 ## Near-term work
 
-The first v1.1 installed-instance upgrade-contract increment and the first
-profile-switch planning increment are implemented. The next useful step is
-profile switch apply for clean plans.
+The first v1.1 installed-instance upgrade-contract increment, profile switch
+planning, safe profile switch apply, and template source lock-check correction
+are implemented. The next useful step is repo-local cascade upgrade apply for
+managed-file/template upgrades.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -223,6 +231,6 @@ machinery, but public release is not the current product priority.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: add safe profile switch apply for clean plans, then move to
-  repo-local cascade upgrade apply and the remaining process-domain baselines.
+- Next work: add repo-local cascade upgrade apply, then continue with profile
+  sync and the remaining process-domain baselines.
 - Keep `status.md` current after significant choices.

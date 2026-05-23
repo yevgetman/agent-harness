@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## Current Phase
 
@@ -28,9 +28,8 @@ apply for clean plans (`harness profiles switch <profile> --apply`), which
 installs required modules, updates the manifest profile only after installs
 succeed, refreshes lock provenance, retains modules outside the requested
 profile, and refuses review-required or blocked plans. The next v1.1 build
-step is either resolving the lock-check source_sha256 drift for
-template-installed managed files or starting cascade apply for managed-file
-upgrades.
+step is cascade apply for managed-file/template upgrades, using the now-clean
+profile switch apply and lock-check provenance baseline.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -76,10 +75,10 @@ publish planning, and named real-repo smoke exist. Npm publication and the
 release-license decision are intentionally deferred. General human-facing
 file/template upgrade apply, deeper installed-instance cascade apply, profile
 sync, profile removal, and non-npm distribution do not exist yet. The
-`lock-source-sha-drift-on-module-install` open question describes a
-pre-existing `lock check` drift for template-installed managed files that
-should be resolved before `lock check` is treated as authoritative for
-installed instances.
+`lock-source-sha-drift-on-module-install` open question is resolved: lock
+refresh/check now resolves template source fingerprints from the executing
+harness source/package root, and composed apply commands keep JSON output
+machine-readable while installing modules.
 The current v1 baseline and post-v1 extensions are documented in
 `docs/v1-validation.md`; current v1.1 direction is documented in
 `design/v1.1-installed-instance-roadmap.md`.
@@ -116,9 +115,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - The top-level v1 workflow model is **15 formal harness process domains**, not
   the full 37-item exploratory shape catalog.
 - Phase 2 Module And Profile Installation is substantially complete for the v1
-  install/list lifecycle; profile inspection and profile switch planning are
-  implemented as read-only post-v1 follow-ons, and profile switch apply remains
-  deferred.
+  install/list lifecycle; profile inspection, profile switch planning, and safe
+  profile switch apply are implemented as post-v1 follow-ons.
 - Phase 3 Lock And Provenance is active; the closeout implementation includes
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
@@ -433,10 +431,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Proceed to profile switch apply for clean plans, building on
-  `profiles switch --plan`, existing module install behavior, and lock refresh.
-- After profile switch apply, proceed to repo-local cascade upgrade apply and
-  remaining process-domain baselines.
+- Proceed to repo-local cascade upgrade apply for managed-file/template
+  upgrades now that profile switch apply and template source lock checks are
+  working.
+- After cascade apply, continue with profile sync and the remaining
+  process-domain baselines.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

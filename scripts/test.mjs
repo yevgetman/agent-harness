@@ -1322,6 +1322,9 @@ withTempDir((root) => {
   const doctor = quiet(() => runDoctor({ cwd: target }));
   assert.equal(doctor.ok, true, "doctor should pass after profile switch apply");
 
+  const lockCheck = quiet(() => runLock({ cwd: root, args: ["check", "--target", target] }));
+  assert.equal(lockCheck.ok, true, "lock check should pass after profile switch apply");
+
   const reapply = quiet(() => runProfiles({
     cwd: root,
     args: ["switch", "dogfood", "--target", target, "--apply"],
@@ -1333,6 +1336,39 @@ withTempDir((root) => {
     true,
     "re-applying a satisfied profile switch should report a profile noop",
   );
+});
+
+withTempDir((root) => {
+  const target = join(root, "json-target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before profile switch apply JSON test");
+
+  const jsonApply = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "switch", "dogfood", "--target", target, "--apply", "--json"],
+    { cwd: root, encoding: "utf8" },
+  ));
+  assert.equal(jsonApply.ok, true, "clean profiles switch --apply --json should emit parseable ok JSON");
+  assert.equal(jsonApply.mode, "apply", "clean profiles switch --apply --json should report apply mode");
+  assert.equal(jsonApply.apply.ok, true, "clean profiles switch --apply --json should apply successfully");
+  assert.equal(
+    jsonApply.operation_summary.by_code["safe/profile-module-install"],
+    5,
+    "clean profiles switch --apply --json should include safe module install operations",
+  );
+  assert.equal(
+    jsonApply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> dogfood")),
+    true,
+    "clean profiles switch --apply --json should report the profile update",
+  );
+
+  const lockCheck = quiet(() => runLock({ cwd: root, args: ["check", "--target", target] }));
+  assert.equal(lockCheck.ok, true, "lock check should pass after clean profile switch apply JSON");
 });
 
 withTempDir((root) => {
@@ -1606,6 +1642,9 @@ withTempDir((root) => {
 
   const doctor = quiet(() => runDoctor({ cwd: target }));
   assert.equal(doctor.ok, true, "doctor should pass after module add");
+
+  const lockCheck = quiet(() => runLock({ cwd: root, args: ["check", "--target", target] }));
+  assert.equal(lockCheck.ok, true, "lock check should pass after template-backed module add");
 
   const moduleList = quiet(() => runModules({ cwd: root, args: ["list", "--target", target] }));
   assert.equal(

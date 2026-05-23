@@ -163,14 +163,15 @@ installed-repo upgrade behavior and process-domain depth over public
 distribution. The source repo defines the tool; it does not track where the
 tool is installed.
 
+The `lock-source-sha-drift-on-module-install` question is resolved; template
+source fingerprints are checked against the executing harness source/package.
+
 The strongest remaining v1.1 candidates are:
 
-1. Resolve the `lock-source-sha-drift-on-module-install` open question so
-   `lock check` is authoritative for installed instances after template
-   installs.
-2. Broaden human-facing file/template upgrade planning while preserving review
+1. Broaden human-facing file/template upgrade planning while preserving review
    boundaries.
-3. Add stronger repo-local cascade upgrade planning and safe apply.
+2. Add stronger repo-local cascade upgrade planning and safe apply.
+3. Add profile sync for installed targets.
 4. Add remaining process-domain baselines.
 
 Public publication remains deferred unless a new decision intentionally resumes

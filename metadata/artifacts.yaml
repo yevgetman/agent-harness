@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-22
+  updated: 2026-05-23
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -667,6 +667,34 @@ metadata:
       depends_on:
         - profile-inspection-decision
         - profiles-cli
+
+    - id: profile-switch-apply-decision
+      path: decisions/0029-adopt-safe-profile-switch-apply.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profiles
+        - profile-switch
+        - apply
+        - decision
+      depends_on:
+        - profile-switch-planning-decision
+        - profiles-cli
+
+    - id: template-lock-source-root-decision
+      path: decisions/0030-use-harness-source-root-for-template-lock-checks.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - lock
+        - provenance
+        - installed-instance
+        - decision
+      depends_on:
+        - profile-switch-apply-decision
+        - installed-lock
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

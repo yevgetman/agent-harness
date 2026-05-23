@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-05-22
+  updated: 2026-05-23
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -327,17 +327,35 @@ plans_status:
 
     - id: v1.1-next-after-switch-apply
       title: Choose next post-switch-apply increment
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Profile switch apply is implemented; the next narrow v1.1 step is either cascade apply for managed-file/template upgrades or resolving the lock-check source_sha256 drift so lock check can be treated as authoritative for installed instances.
-      next_action: Pick between cascade apply (deeper installed-instance upgrade) and lock-check correctness (close `lock-source-sha-drift-on-module-install`), then record the choice as a decision.
+      summary: Profile switch apply is implemented and the lock-check source_sha256 drift is resolved; cascade apply for managed-file/template upgrades is the next narrow v1.1 increment.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
-        - current
+        - complete
       references:
         - design/v1.1-installed-instance-roadmap.md
         - decisions/0029-adopt-safe-profile-switch-apply.md
+        - decisions/0030-use-harness-source-root-for-template-lock-checks.md
         - open-questions.yaml
+        - status.md
+
+    - id: v1.1-cascade-upgrade-apply
+      title: Add cascade upgrade apply
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Build the next installed-instance lifecycle increment by making managed-file/template upgrades plan-first and safely applyable for clean cases.
+      next_action: Define and implement the first narrow cascade apply operation set for clean managed-file/template upgrades, reusing lock provenance and refusal semantics for modified or review-required files.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - upgrade
+        - current
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-upgrade-operation-contract.md
+        - decisions/0030-use-harness-source-root-for-template-lock-checks.md
         - status.md

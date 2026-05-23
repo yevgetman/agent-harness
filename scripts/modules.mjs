@@ -258,12 +258,15 @@ export function planModuleInstall({ root, moduleId, force = false, sourceRoot = 
   };
 }
 
-export function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT }) {
+export function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT, quiet = false }) {
+  const log = (message) => {
+    if (!quiet) console.log(message);
+  };
   const prepared = prepareModuleInstall({ root, moduleId, force, sourceRoot });
   if (!prepared.ok) return { ok: false, errors: prepared.errors };
 
   if (prepared.noop) {
-    console.log(`module '${moduleId}' already installed`);
+    log(`module '${moduleId}' already installed`);
     return { ok: true, moduleId, installed: false, noop: true };
   }
 
@@ -309,7 +312,7 @@ export function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT 
     generatedAt: todayIso(),
     sourceByPath,
   });
-  console.log(`installed module '${moduleId}'`);
+  log(`installed module '${moduleId}'`);
   return { ok: true, moduleId, installed: true };
 }
 

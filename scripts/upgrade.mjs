@@ -934,7 +934,7 @@ function applyPlan({ root, plan }) {
 
   for (const operation of moduleInstalls) {
     const moduleId = operation.install?.module_id ?? operation.subject;
-    const installed = installModule({ root, moduleId, force: false, sourceRoot: SOURCE_ROOT });
+    const installed = installModule({ root, moduleId, force: false, sourceRoot: SOURCE_ROOT, quiet: true });
     if (!installed.ok) {
       return {
         ok: false,

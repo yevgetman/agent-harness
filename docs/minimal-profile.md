@@ -142,7 +142,8 @@ See `docs/install.md` for the local tarball install path.
   managed files yet.
 - Module installation is collision-averse and does not merge existing
   human-authored files.
-- Profile switch apply and profile removal are not implemented yet.
+- Profile switch apply handles clean plans only; profile removal is not
+  implemented yet.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
 - Lock refresh rebuilds file fingerprints and semantic provenance, but

@@ -158,6 +158,8 @@ Current commands:
 - `harness modules add <module>`
 - `harness profiles list`
 - `harness profiles inspect <profile>`
+- `harness profiles switch <profile> --plan`
+- `harness profiles switch <profile> --apply`
 - `harness metadata list`
 - `harness metadata check`
 - `harness metadata report`
@@ -220,8 +222,8 @@ Exit signal:
 ### Phase 2: Module And Profile Installation
 
 Status: substantially complete for v1 install/list lifecycle. Profile
-inspection is implemented as a post-v1 read-only follow-on; profile switching
-remains deferred.
+inspection, profile switch planning, and clean profile switch apply are
+implemented as post-v1 follow-ons.
 
 Purpose:
 
@@ -238,9 +240,10 @@ Initial commands:
 - `harness profiles inspect <profile>`
 - `harness init --profile <profile>`
 
-Candidate follow-on commands:
+Implemented follow-on commands:
 
-- `harness profiles switch <profile>`
+- `harness profiles switch <profile> --plan`
+- `harness profiles switch <profile> --apply`
 
 Exit signal:
 

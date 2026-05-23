@@ -480,7 +480,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
 
   for (const operation of moduleInstalls) {
     const moduleId = operation.install?.module_id ?? operation.subject;
-    const installed = installModule({ root, moduleId, force: false, sourceRoot });
+    const installed = installModule({ root, moduleId, force: false, sourceRoot, quiet: true });
     if (!installed.ok) {
       return {
         ok: false,

@@ -1,6 +1,6 @@
 lock:
   version: 1
-  generated_at: 2026-05-22
+  generated_at: 2026-05-23
   package: portable-harness
   harness_version: 0.1.0
   profile: dogfood
@@ -53,7 +53,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: f5ffc14e90272b30cea7ef5b87c1e969d155fd5dbb854ba21ff883aea0a7af89
+      sha256: 479fc5dd9a8d4aa16cb0c0a5b9fc2a15024eab5bdf91ee47fc6fbbe20ccd4094
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -77,7 +77,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: a059cfc23d427e729cb0bc3bd332753eae0d2e3f9f20a9c134342c288995f221
+      sha256: 07e18be47768ff552b661a38e617f70db4c0487b1e53a871c0a4202f5a18a3be
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -173,7 +173,7 @@ lock:
       source_kind: module-template
       source_path: modules/decisions-open-questions/templates/open-questions.yaml
       source_sha256: d1ac79ec5a765928dcb54c5fd3a7441311f8361c4d65ebb04433a789ceb06bab
-      sha256: be41970178f6c9a0b265fdc3d1ed4125c7a21d74c62728d07d31150602f66f4e
+      sha256: 7cdae6b9aefdaf2a5f5c7854ba59655538e242614ce005537b05ad7435d56dee
     - path: plans/current.yaml
       owner: plans-and-status
       owner_type: module
@@ -185,7 +185,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: dba8f3d55d4d3638df416e90f5440f0451d9b8aca3775ab185233ee465293a83
+      sha256: 6c204fc979e3849fae78d422b7ad50c789e44ad5cfb66f9b87426fb0936535da
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -207,7 +207,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 64e6f5a9744261be2ee67c420deaaaed885c8667d02f8a9063c5a89e4ee2bbc6
+      sha256: 44918abb7800d22c33eed5bf40c1bcd08fe636d524f034941d0649d6235e4476
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -217,7 +217,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: cd79974643c0b48f3a27c9be6a552a5e144094159d626f29d27dc7cd92ebca86
+      sha256: b4758a20f6547664365ca6cc73d9141214d88704f03260f30fd4b98c4d77dc41
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

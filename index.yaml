@@ -82,6 +82,8 @@ reading_order:
   - decision-0026
   - decision-0027
   - decision-0028
+  - decision-0029
+  - decision-0030
   - decision-template
   - package
   - harness-cli
@@ -119,7 +121,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, installed-instance upgrade guidance, and next profile-switching work. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, profile switch apply, lock-check provenance, and next cascade-apply work. Not a changelog.
     depends_on:
       - agents
 
@@ -200,7 +202,7 @@ documents:
     title: "Formal Design: V1 Module And Profile Installation"
     kind: formal-design
     status: active
-    summary: Accepted baseline for registry-backed module listing, installable-module commands, profile listing/inspection/switch planning, and profile-backed init.
+    summary: Accepted baseline for registry-backed module listing, installable-module commands, profile listing/inspection/switch plan/apply, and profile-backed init.
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-installed-manifest-design
@@ -748,6 +750,27 @@ documents:
       - profiles-cli
       - decision-0025
 
+  - doc_id: decision-0029
+    file: decisions/0029-adopt-safe-profile-switch-apply.md
+    title: Adopt Safe Profile Switch Apply
+    kind: decision
+    status: active
+    summary: Decision record adopting safe profile switch apply for clean plans.
+    depends_on:
+      - v1-module-profile-installation-design
+      - profiles-cli
+      - decision-0028
+
+  - doc_id: decision-0030
+    file: decisions/0030-use-harness-source-root-for-template-lock-checks.md
+    title: Use Harness Source Root For Template Lock Checks
+    kind: decision
+    status: active
+    summary: Decision record resolving template source_sha lock drift by checking source fingerprints against the executing harness source root.
+    depends_on:
+      - v1-lock-provenance-design
+      - decision-0029
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -826,7 +849,7 @@ documents:
     title: Harness Profiles CLI
     kind: cli
     status: active
-    summary: Profile listing, read-only profile inspection, read-only profile switch planning, and profile-loading helpers used by profile-backed init.
+    summary: Profile listing, read-only profile inspection, profile switch planning/apply, and profile-loading helpers used by profile-backed init.
     depends_on:
       - v1-module-profile-installation-design
       - profile-minimal
@@ -939,7 +962,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection and switch planning, structured metadata, canonical state, invariants, plans/status, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection and switch plan/apply, structured metadata, canonical state, invariants, plans/status, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

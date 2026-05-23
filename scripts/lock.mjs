@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 const LOCK_PATH = ".harness/lock.yaml";
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
 
 function sortByPath(files) {
   return [...files].sort((a, b) => a.path.localeCompare(b.path));
@@ -328,10 +331,10 @@ function loadManifest(root) {
   }
 }
 
-export function createLockFromManifest({ root, harness, generatedAt }) {
+export function createLockFromManifest({ root, harness, generatedAt, sourceRoot = SOURCE_ROOT }) {
   const paths = expectedLockPaths(harness, { root });
   const missing = paths.filter((path) => !existsSync(join(root, path)));
-  const files = lockEntriesFromPaths(root, paths, harness, sourceByPathFromManifest(root, harness));
+  const files = lockEntriesFromPaths(root, paths, harness, sourceByPathFromManifest(root, harness, sourceRoot));
   return {
     paths,
     missing,
@@ -399,7 +402,7 @@ function fileDrift(currentLock, expectedLock) {
   return drift;
 }
 
-export function checkLockState({ root, generatedAt = todayIso() }) {
+export function checkLockState({ root, generatedAt = todayIso(), sourceRoot = SOURCE_ROOT }) {
   const loadedManifest = loadManifest(root);
   if (loadedManifest.error) {
     return {
@@ -416,6 +419,7 @@ export function checkLockState({ root, generatedAt = todayIso() }) {
     root,
     harness: loadedManifest.harness,
     generatedAt,
+    sourceRoot,
   });
   const loadedLock = readLock(root);
   const errors = [];
@@ -446,7 +450,11 @@ export function checkLockState({ root, generatedAt = todayIso() }) {
   };
 }
 
-function sourceByPathFromManifest(root, harness) {
+function sourceShaFromSourceRoot({ root, sourceRoot, sourcePath }) {
+  return defaultSourceSha(sourceRoot, sourcePath) ?? defaultSourceSha(root, sourcePath);
+}
+
+function sourceByPathFromManifest(root, harness, sourceRoot = SOURCE_ROOT) {
   const sourceByPath = {};
   for (const moduleRef of harness?.modules ?? []) {
     if (!moduleRef?.id) continue;
@@ -455,7 +463,7 @@ function sourceByPathFromManifest(root, harness) {
     sourceByPath[modulePath] = {
       source: "module-definition",
       source_path: modulePath,
-      source_sha256: existsSync(join(root, modulePath)) ? hashFile(root, modulePath) : null,
+      source_sha256: sourceShaFromSourceRoot({ root, sourceRoot, sourcePath: modulePath }),
     };
 
     const fullModulePath = join(root, modulePath);
@@ -469,7 +477,7 @@ function sourceByPathFromManifest(root, harness) {
           sourceByPath[artifact.path] = {
             source: "module-template",
             source_path: sourcePath,
-            source_sha256: defaultSourceSha(root, sourcePath),
+            source_sha256: sourceShaFromSourceRoot({ root, sourceRoot, sourcePath }),
           };
         }
       }
@@ -507,8 +515,8 @@ Commands:
 `);
 }
 
-function runCheck(root) {
-  const result = checkLockState({ root });
+function runCheck(root, sourceRoot) {
+  const result = checkLockState({ root, sourceRoot });
   console.log("Harness lock check");
   console.log(`target: ${root}`);
   console.log(`status: ${result.ok ? "ok" : "drift-or-error"}`);
@@ -517,7 +525,7 @@ function runCheck(root) {
   return result;
 }
 
-function runRefresh(root) {
+function runRefresh(root, sourceRoot) {
   const loadedManifest = loadManifest(root);
   if (loadedManifest.error) {
     console.error(`fail ${loadedManifest.error}`);
@@ -528,6 +536,7 @@ function runRefresh(root) {
     root,
     harness: loadedManifest.harness,
     generatedAt: todayIso(),
+    sourceRoot,
   });
 
   if (generated.missing.length > 0) {
@@ -545,7 +554,7 @@ function runRefresh(root) {
   return { ok: true, root, lock: generated.lock, files: generated.lock.files.length };
 }
 
-export function runLock({ cwd = process.cwd(), args = [] } = {}) {
+export function runLock({ cwd = process.cwd(), args = [], sourceRoot = SOURCE_ROOT } = {}) {
   const [subcommand, ...rest] = args;
 
   if (!subcommand || subcommand === "--help" || subcommand === "-h" || subcommand === "help") {
@@ -558,11 +567,11 @@ export function runLock({ cwd = process.cwd(), args = [] } = {}) {
   const root = resolve(cwd, targetArg);
 
   if (subcommand === "check" || (subcommand === "refresh" && rest.includes("--check"))) {
-    return runCheck(root);
+    return runCheck(root, sourceRoot);
   }
 
   if (subcommand === "refresh") {
-    return runRefresh(root);
+    return runRefresh(root, sourceRoot);
   }
 
   console.error(`fail unknown lock command '${subcommand}'`);

@@ -20,18 +20,12 @@
 
 - id: lock-source-sha-drift-on-module-install
   title: Why does lock check report source_sha256 drift on template-installed managed files?
-  status: open
+  status: resolved
   owner: maintainer
   trigger: before lock check is offered as a hard correctness gate on installed instances
   notes: |
-    `lock check` (via `sourceByPathFromManifest`) recomputes the expected
-    `source_sha256` for each template-installed managed file by hashing
-    `<target>/<artifact.source>` - but the template source path
-    (e.g. `modules/decisions-open-questions/templates/open-questions.yaml`)
-    only exists in the source/harness package, not the target. Both `init`
-    and `installModule` write the correct source-hash into the lock, so the
-    drift is in the check's expectation rather than the install. Reproduces
-    with `harness init --profile dogfood && harness lock check` in a fresh
-    repo. Doctor and managed-file fingerprint checks remain accurate, so the
-    drift does not currently block apply, but it should be resolved before
-    `lock check` is treated as authoritative for installed instances.
+    Resolved by decision 0030. `lock check` and `lock refresh` now resolve
+    template source fingerprints from the executing harness source/package root
+    before falling back to target-local paths. Fresh dogfood installs, module
+    adds, and profile switch apply runs can therefore validate template-backed
+    source provenance without false drift.

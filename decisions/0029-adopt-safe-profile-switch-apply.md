@@ -64,10 +64,8 @@ inspection surface and now reports `apply_available: true`.
 - Retained modules become a first-class deferred operation. Removing extra
   modules from a smaller profile remains explicit follow-up work (see open
   question `profile-module-removal-scope` if and when prioritized).
-- The pre-existing lock drift for template-installed managed files
-  (`source_sha256` is computed against the source repo at install time but
-  recomputed against the target repo at check time) is now exercised by
-  apply; the issue is recorded in [[lock-source-sha-drift-on-module-install]]
-  and does not affect doctor-level validation.
+- The pre-existing lock drift for template-installed managed files is now
+  resolved by decision 0030; apply can rely on lock check for template-backed
+  installed artifacts.
 - Cascade apply for managed file or template upgrades remains out of scope
   for this increment and is the next candidate v1.1 step.
