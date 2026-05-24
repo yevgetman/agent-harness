@@ -87,6 +87,7 @@ reading_order:
   - decision-0031
   - decision-0032
   - decision-0033
+  - decision-0034
   - decision-template
   - package
   - harness-cli
@@ -669,8 +670,8 @@ documents:
     file: decisions/0021-adopt-forceable-external-smoke-init.md
     title: Adopt Explicit Force Init Overwrite Contract
     kind: decision
-    status: active
-    summary: Decision record making init collision warnings explicit, defining force init overwrite behavior, and adding forceable external smoke.
+    status: superseded
+    summary: Superseded decision record that made init collision warnings explicit, defined destructive force init overwrite behavior, and added forceable external smoke.
     depends_on:
       - v1-distribution-readiness-design
       - v1-module-profile-installation-design
@@ -807,6 +808,17 @@ documents:
       - profile-full
       - decision-0032
 
+  - doc_id: decision-0034
+    file: decisions/0034-adopt-global-cli-and-merge-safe-init.md
+    title: Adopt Global CLI And Merge Safe Init
+    kind: decision
+    status: active
+    summary: Decision record adopting global CLI installation, default full init, merge-safe init, compatibility-only force, and bare harness upgrade safe apply.
+    depends_on:
+      - v1.1-installed-instance-roadmap
+      - decision-0033
+      - decision-0021
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -821,7 +833,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -840,7 +852,7 @@ documents:
     title: Harness Init
     kind: cli
     status: active
-    summary: Profile-backed installer with dry-run, non-git guard, overwrite refusal, installed-instance metadata, and lock generation.
+    summary: Profile-backed installer with default full profile, dry-run, non-git guard, merge-safe existing-file handling, compatibility-only force, installed-instance metadata, and lock generation.
     depends_on:
       - v1-incremental-build-strategy
       - v1-installed-manifest-design
@@ -936,7 +948,7 @@ documents:
     title: Harness Distribution CLI
     kind: cli
     status: active
-    summary: Distribution command implementation for dry-run package contents validation, release preflight planning, guarded publish planning/confirmation, packed-package smoke validation through temporary target repos, installed-instance upgrade guidance validation, and copied external-target smoke.
+    summary: Distribution command implementation for dry-run package contents validation, release preflight planning, guarded publish planning/confirmation, packed-package smoke validation through temporary target repos, global CLI smoke through a temporary npm prefix, installed-instance upgrade guidance validation, and copied external-target smoke.
     depends_on:
       - v1-distribution-readiness-design
       - package
@@ -973,7 +985,7 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Upgrade planner and safe apply behavior for installed harness state, JSON plans, installed-instance upgrade guidance, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, deterministic command repair, and clean active-profile module installs.
+    summary: Upgrade planner and safe apply behavior for installed harness state, JSON plans, installed-instance upgrade guidance, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, deterministic command repair, clean active-profile module installs, merge-safe template updates, and bare harness upgrade apply.
     depends_on:
       - v1-installed-manifest-design
       - v1-lock-provenance-design

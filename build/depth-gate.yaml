@@ -815,10 +815,57 @@ build_strategy:
             - plans/current.yaml records Phase 5 external-target smoke as active current work.
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
+    - id: v1.1-profile-sync-planning
+      breadth_unit: >
+        Add read-only active-profile sync planning for installed targets.
+      status: complete
+      completed_on: 2026-05-24
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - harness profiles sync --plan reads the target manifest active profile.
+            - Sync planning reuses module-add preflight for active-profile modules.
+            - Installed active-profile modules are safe/sync-module-present.
+            - Clean missing active-profile modules are safe/sync-module-install.
+            - Sync planning reports retained modules outside the active profile.
+        - id: validation
+          status: satisfied
+          evidence:
+            - Sync is plan-only and emits deferred/sync-apply-not-implemented.
+            - Sync refuses explicit profile arguments so it cannot accidentally switch profiles.
+            - Collision states are review/sync-module-install-collision.
+            - Missing active-profile modules do not mutate the target during planning.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers in-sync minimal targets.
+            - npm test covers in-sync full-profile targets.
+            - npm test covers clean missing active-profile modules.
+            - npm test covers profile sync JSON output.
+            - npm test covers sync collision review and required --plan behavior.
+        - id: docs
+          status: satisfied
+          evidence:
+            - decisions/0032-adopt-plan-first-profile-sync-planning.md records the sync planning decision.
+            - design/v1-module-profile-installation-design.md defines profile sync planning.
+            - design/v1.1-installed-instance-roadmap.md records profile sync as built and process-domain breadth as next.
+            - docs/v1-validation.md includes profile sync in the validation matrix and closeout command set.
+            - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run profiles:sync -- --plan reports the dogfood target in sync.
+            - The dogfood manifest exposes profiles-sync.
+            - Temp-target tests exercise profile sync against minimal and full-profile installs.
+            - User requested a pause before starting process-domain breadth.
+
   current_depth_pass:
-    id: v1.1-profile-sync-planning
+    id: v1.1-global-cli-merge-safe-init
     breadth_unit: >
-      Add read-only active-profile sync planning for installed targets.
+      Add global CLI validation, default full-profile init, merge-safe init,
+      and bare harness upgrade safe apply.
     status: complete
     completed_on: 2026-05-24
     ready_for_next_breadth: true
@@ -826,38 +873,35 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness profiles sync --plan reads the target manifest active profile.
-          - Sync planning reuses module-add preflight for active-profile modules.
-          - Installed active-profile modules are safe/sync-module-present.
-          - Clean missing active-profile modules are safe/sync-module-install.
-          - Sync planning reports retained modules outside the active profile.
+          - The package bin exposes a global `harness` command.
+          - harness init defaults to the full profile.
+          - Existing AGENTS.md content is preserved while harness-owned sections are appended or updated.
+          - harness upgrade with no subcommand runs the supported safe apply path.
       - id: validation
         status: satisfied
         evidence:
-          - Sync is plan-only and emits deferred/sync-apply-not-implemented.
-          - Sync refuses explicit profile arguments so it cannot accidentally switch profiles.
-          - Collision states are review/sync-module-install-collision.
-          - Missing active-profile modules do not mutate the target during planning.
+          - --force is compatibility-only and no longer overwrites human-authored content.
+          - Structured merge failures are refused instead of overwritten.
+          - Merge-managed template updates use merge-safe content handling.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers in-sync minimal targets.
-          - npm test covers in-sync full-profile targets.
-          - npm test covers clean missing active-profile modules.
-          - npm test covers profile sync JSON output.
-          - npm test covers sync collision review and required --plan behavior.
+          - npm test covers default full init.
+          - npm test covers idempotent existing AGENTS.md section updates.
+          - npm test covers no-overwrite --force compatibility.
+          - npm test covers bare harness upgrade safe apply.
+          - npm test covers distribution global-smoke.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0032-adopt-plan-first-profile-sync-planning.md records the sync planning decision.
-          - design/v1-module-profile-installation-design.md defines profile sync planning.
-          - design/v1.1-installed-instance-roadmap.md records profile sync as built and process-domain breadth as next.
-          - docs/v1-validation.md includes profile sync in the validation matrix and closeout command set.
+          - decisions/0034-adopt-global-cli-and-merge-safe-init.md records the lifecycle contract change.
+          - docs/install.md documents global CLI installation and bare init/upgrade.
+          - design/v1.1-installed-instance-roadmap.md records the global CLI and merge-safe init baseline.
+          - docs/v1-validation.md includes global CLI smoke and merge-safe init in validation.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run profiles:sync -- --plan reports the dogfood target in sync.
-          - The dogfood manifest exposes profiles-sync.
-          - Temp-target tests exercise profile sync against minimal and full-profile installs.
-          - User requested a pause before starting process-domain breadth.
+          - npm run distribution:global-smoke validates global CLI usage from a temporary target.
+          - npm test validates the global CLI smoke path.
+          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:global-smoke, npm run distribution:smoke, and npm test pass against the dogfood repo.

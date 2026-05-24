@@ -135,7 +135,7 @@ plans_status:
       status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: The packed package now validates against the named `~/code/meetingly` repo for both minimal and full profiles using forced init in the copied smoke target.
+      summary: The packed package now validates against the named `~/code/meetingly` repo for both minimal and full profiles using merge-safe compatibility init in the copied smoke target.
       next_action: Treat Phase 5 as complete for v1 local-tarball distribution while npm publication remains deferred.
       canonical_state_id: product-spec
       tags:
@@ -394,6 +394,28 @@ plans_status:
         - decisions/0033-rename-complete-profile-to-full.md
         - profiles/full.yaml
         - .harness/manifest.yaml
+        - docs/v1-validation.md
+        - status.md
+
+    - id: v1.1-global-cli-merge-safe-init
+      title: Add global CLI and merge-safe init
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: The packed package now supports global CLI smoke, bare `harness init` defaults to `full`, init preserves existing human-authored content, and bare `harness upgrade` runs safe apply.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - global-cli
+        - init
+        - upgrade
+        - complete
+      references:
+        - decisions/0034-adopt-global-cli-and-merge-safe-init.md
+        - scripts/init.mjs
+        - scripts/upgrade.mjs
+        - scripts/distribution.mjs
+        - docs/install.md
         - docs/v1-validation.md
         - status.md
 

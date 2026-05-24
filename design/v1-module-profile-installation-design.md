@@ -180,21 +180,24 @@ Initial artifact types:
    not removed.
 10. Emit JSON when `--json` is passed.
 
-`harness init --profile <profile>` should:
+`harness init [--profile <profile>]` should:
 
-1. Read the requested profile from `profiles/`.
-2. Resolve the profile module bundle through `modules/registry.yaml`.
-3. Refuse profiles missing the required init bootstrap modules.
-4. Install the target operating contract, orientation files, manifest, and
+1. Default to the `full` profile when no profile is requested.
+2. Read the requested profile from `profiles/`.
+3. Resolve the profile module bundle through `modules/registry.yaml`.
+4. Refuse profiles missing the required init bootstrap modules.
+5. Install the target operating contract, orientation files, manifest, and
    profile module definitions.
-5. Install module artifacts for profile modules that declare install metadata.
-6. Write profile module commands into the target manifest.
-7. Write installed-file provenance into `.harness/lock.yaml`.
+6. Install module artifacts for profile modules that declare install metadata.
+7. Preserve existing human-authored content by adding or updating
+   harness-owned sections or safe structured merges.
+8. Write profile module commands into the target manifest.
+9. Write installed-file provenance into `.harness/lock.yaml`.
 
-When planned harness artifacts already exist, init should warn and refuse to
-overwrite them unless `--force` is explicitly passed. Forced init is a
-definitive overwrite of the planned harness artifacts in the target repo; it
-does not attempt to merge an existing harness process.
+When planned harness artifacts already exist, init should warn and merge when
+there is a safe merge path. If a human-authored file cannot be merged safely,
+init should refuse instead of overwriting. `--force` is compatibility-only and
+does not authorize overwriting human-authored content.
 
 ## Module Add Behavior
 

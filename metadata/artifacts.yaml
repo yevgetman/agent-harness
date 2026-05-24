@@ -220,6 +220,7 @@ metadata:
         - package
         - distribution
         - cli
+        - global-cli
       depends_on:
         - product-spec
 
@@ -428,6 +429,7 @@ metadata:
         - cli
         - validation
         - installed-instance
+        - global-cli
       depends_on:
         - distribution-readiness-design
         - package
@@ -444,6 +446,7 @@ metadata:
         - cli
         - installed-instance
         - upgrade-guidance
+        - safe-apply
       depends_on:
         - product-spec
         - v1.1-installed-instance-roadmap
@@ -596,7 +599,7 @@ metadata:
     - id: force-init-overwrite-decision
       path: decisions/0021-adopt-forceable-external-smoke-init.md
       kind: decision
-      status: active
+      status: deprecated
       owner_domain: harness-lifecycle
       tags:
         - distribution
@@ -738,6 +741,23 @@ metadata:
       depends_on:
         - profile-sync-planning-decision
         - profile-full
+
+    - id: global-cli-merge-safe-init-decision
+      path: decisions/0034-adopt-global-cli-and-merge-safe-init.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - global-cli
+        - init
+        - merge-safe
+        - upgrade
+        - decision
+      depends_on:
+        - complete-profile-rename-decision
+        - force-init-overwrite-decision
+        - distribution-cli
+        - upgrade-cli
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

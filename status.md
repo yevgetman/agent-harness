@@ -15,10 +15,11 @@ where the harness is installed. The v1.1 baseline lives in
 and deferred-scope baseline remain in `docs/v1-validation.md`.
 
 Distribution is supporting validation machinery for v1.1, not the product
-priority. Packed-package smoke, package-boundary validation, release preflight
-planning, registry version discovery, external-target smoke, forceable
-external-smoke init, guarded publish planning, and named `meetingly` smoke all
-exist. Public npm publication and the release-license decision remain deferred.
+priority. Packed-package smoke, global CLI smoke, package-boundary validation,
+release preflight planning, registry version discovery, external-target smoke,
+merge-safe force-compatible external-smoke init, guarded publish planning, and
+named `meetingly` smoke all exist. Public npm publication and the
+release-license decision remain deferred.
 The v1.1 installed-instance upgrade contract now has a narrow baseline:
 manifests record installed-instance source/channel metadata, upgrade plans emit
 `upgrade_guidance`, and install docs describe the private per-repo operator
@@ -28,17 +29,21 @@ apply for clean plans (`harness profiles switch <profile> --apply`), which
 installs required modules, updates the manifest profile only after installs
 succeed, refreshes lock provenance, retains modules outside the requested
 profile, and refuses review-required or blocked plans. The first cascade
-apply baseline now handles clean module-template managed-file updates through
-`harness upgrade apply`. Profile sync planning now exists through
-`harness profiles sync --plan`. The next v1.1 build step is process-domain
+apply baseline now handles merge-safe clean module-template managed-file
+updates through `harness upgrade apply`. Bare `harness upgrade` now runs the
+safe apply path after planning internally. Profile sync planning now exists
+through `harness profiles sync --plan`. Bare `harness init` now defaults to
+the `full` profile and preserves existing human-authored content by adding or
+updating harness-owned sections. The next v1.1 build step is process-domain
 breadth, paused for operator confirmation.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
 lock file, seven active module definitions, a runnable `harness doctor`
-command, a profile-backed `harness init --profile <profile>` installer, a
-repo-local depth gate, and a read-only `harness upgrade --plan` command. The
+command, a profile-backed and merge-safe `harness init` installer, a
+repo-local depth gate, a read-only `harness upgrade --plan` command, and bare
+`harness upgrade` safe apply. The
 first module/profile installation surface exists through `modules/registry.yaml`,
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
 `harness profiles list`, `harness profiles inspect <profile>`,
@@ -78,14 +83,14 @@ profile alignment checks: it loads the target's manifest profile, classifies
 installed, clean missing, review-required, and blocked active-profile modules,
 reports retained modules outside the active profile, and records sync apply as
 deferred.
-Local packed-package distribution smoke, explicit npm
+Local packed-package distribution smoke, global CLI smoke, explicit npm
 package-boundary validation, release preflight planning, registry version
-discovery, external-target smoke, forceable external-smoke init, guarded
-publish planning, and named real-repo smoke exist. Npm publication and the
-release-license decision are intentionally deferred. General generated-file,
-module-definition, merge-aware, and review-mediated file/template upgrade
-apply, profile sync apply, profile removal, and non-npm distribution do not
-exist yet. The
+discovery, external-target smoke, merge-safe force-compatible external-smoke
+init, guarded publish planning, and named real-repo smoke exist. Npm
+publication and the release-license decision are intentionally deferred.
+General generated-file, module-definition, broad semantic merge, and
+review-mediated file/template upgrade apply, profile sync apply, profile
+removal, and non-npm distribution do not exist yet. The
 `lock-source-sha-drift-on-module-install` open question is resolved: lock
 refresh/check now resolves template source fingerprints from the executing
 harness source/package root, and composed apply commands keep JSON output
@@ -109,13 +114,14 @@ package scripts for local dogfood use, and doctor validation when
 `plans-and-status` is installed. Distribution Readiness exists via
 `harness distribution check`, `npm run distribution:check`,
 `harness distribution release --plan`, `npm run distribution:release-plan`,
-`harness distribution smoke`, `npm run distribution:smoke`, an explicit package
-`files` boundary, install docs, package-based upgrade version-source reporting,
+`harness distribution smoke`, `npm run distribution:smoke`,
+`harness distribution global-smoke`, `npm run distribution:global-smoke`, an
+explicit package `files` boundary, install docs, package-based upgrade version-source reporting,
 package-installed registry status reporting, release preflight blockers while
 the package is private, packed-package smoke validation for the `minimal` and
-`full` profiles, copied external-target smoke validation, forced init inside
-copied smoke targets, public npm access policy, guarded publish planning, and
-named `meetingly` smoke evidence.
+`full` profiles, copied external-target smoke validation, merge-safe force
+compatibility inside copied smoke targets, public npm access policy, guarded
+publish planning, and named `meetingly` smoke evidence.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
@@ -148,6 +154,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   publication is not the active priority.
 - The complete install profile is named `full`; dogfood remains the practice
   of using the harness source repo as its first installed target.
+- The global CLI and merge-safe init contract is active: install the packed
+  package globally, `cd` into a repo, run `harness init` for the default
+  `full` profile, and run `harness upgrade` for supported safe apply.
+  `--force` no longer authorizes overwriting human-authored content.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1 closeout. It remains relevant context but no longer drives current
   post-v1 sequencing.
@@ -196,13 +206,15 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   installed harness health plus Decisions And Open Questions shape when that
   module is installed.
 - `npm run init` reads `profiles/*.yaml` and installs the selected profile into
-  a target repo. The default `minimal` profile installs `AGENTS.md`,
-  `status.md`, `index.yaml`, `state/CONTEXT.md`, `.harness/manifest.yaml`, and
-  the two initial module definitions.
-- `npm test` covers minimal init, doctor success, overwrite refusal,
-  `--force`, unsupported profile failure, profile inspection, profile switch
-  plan/apply, profile sync planning, decisions/questions, upgrade-plan
-  scenarios, and module list/add scenarios.
+  a target repo. Bare `harness init` defaults to `full`; `--profile minimal`
+  remains available for bootstrap-only installs. Existing human-authored
+  files are preserved through harness-owned marked sections or safe structured
+  merges.
+- `npm test` covers default full init, explicit minimal init, doctor success,
+  merge-safe existing `AGENTS.md`, no-overwrite `--force` compatibility,
+  unsupported profile failure, profile inspection, profile switch plan/apply,
+  profile sync planning, decisions/questions, upgrade-plan scenarios, bare
+  upgrade apply, global CLI smoke, and module list/add scenarios.
 - `npm run decisions:new -- "<title>"` creates the next decision record under
   `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
@@ -307,8 +319,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `build/depth-gate.yaml` records `post-v1-profile-inspection` as the current
   complete depth pass.
 - `~/code/meetingly` has passed distribution smoke for both `minimal` and
-  `full` profiles with forced init in a copied target; the original repo was
-  not mutated.
+  `full` profiles with merge-safe compatibility init in a copied target; the
+  original repo was not mutated.
 - `plans/current.yaml` records profile inspection complete, v1.1 installed
   instance roadmap adoption complete, and installed-instance upgrade-contract
   work active while npm publication remains deferred.
@@ -404,7 +416,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `decisions/0020-adopt-guarded-npm-publish-workflow.md` — decision record for
   adopting public npm access policy and guarded publish planning.
 - `decisions/0021-adopt-forceable-external-smoke-init.md` — decision record
-  for explicit forced init overwrite semantics and forceable external smoke.
+  for superseded forced init overwrite semantics and still-relevant external
+  smoke compatibility.
 - `decisions/0022-close-phase-5-with-local-tarball-distribution.md` — decision
   record for closing Phase 5 with local tarball distribution while registry
   publication remains deferred.
@@ -435,6 +448,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   for adding read-only active-profile sync planning.
 - `decisions/0033-rename-complete-profile-to-full.md` — decision record for
   renaming the complete install profile from `dogfood` to `full`.
+- `decisions/0034-adopt-global-cli-and-merge-safe-init.md` — decision record
+  for global CLI installation, default full init, merge-safe init, and bare
+  `harness upgrade` safe apply.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/full.yaml` — current profile bundle
@@ -446,9 +462,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   `scripts/distribution.mjs` / `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
   metadata commands, canonical state validation, invariants validation, plans
-  validation and reporting, distribution contents/smoke/external-target/publish
-  validation, lock command/helpers, registry-aware upgrade planner, and doctor
-  command.
+  validation and reporting, distribution contents/smoke/global-smoke/
+  external-target/publish validation, lock command/helpers, registry-aware
+  upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, structured metadata, canonical state, invariants, plans/status,
   distribution package contents and smoke validation, semantic lock provenance,

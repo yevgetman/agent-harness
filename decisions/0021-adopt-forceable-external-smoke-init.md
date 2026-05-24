@@ -1,10 +1,10 @@
 ---
 id: 21
 title: "Adopt explicit force init overwrite contract"
-status: accepted
+status: superseded
 date: 2026-05-16
 supersedes: []
-superseded_by: null
+superseded_by: 34
 ---
 
 # Adopt explicit force init overwrite contract

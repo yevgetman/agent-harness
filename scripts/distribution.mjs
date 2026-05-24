@@ -107,17 +107,19 @@ Usage:
   harness distribution publish --plan [--json]
   harness distribution publish --confirm [--json]
   harness distribution smoke [--profile <profile>] [--target <path>] [--force] [--json] [--keep]
+  harness distribution global-smoke [--profile <profile>] [--json] [--keep]
 
 Commands:
-  check    Validate explicit npm package contents without writing a tarball.
-  release  Plan release readiness without publishing.
-  publish  Run the guarded npm publish workflow. Requires --plan or --confirm.
-  smoke    Pack the local npm package and validate installed target repos.
+  check         Validate explicit npm package contents without writing a tarball.
+  release       Plan release readiness without publishing.
+  publish       Run the guarded npm publish workflow. Requires --plan or --confirm.
+  smoke         Pack the local npm package and validate installed target repos.
+  global-smoke  Install the packed package into a temporary global npm prefix and run harness from a target repo.
 
 Options:
   --profile <profile>  Profile to smoke. May be repeated. Defaults to minimal and full.
   --target <path>      Existing git target repo to copy into the smoke workspace. May be repeated.
-  --force              Pass --force to harness init inside the temporary smoke target.
+  --force              Pass compatibility --force to harness init inside the temporary smoke target.
   --json               Emit JSON result.
   --keep               Keep the temporary smoke directory for debugging.
 `);
@@ -441,6 +443,31 @@ function printResult(result) {
     for (const error of profile.errors) {
       console.log(`    error: ${error}`);
     }
+  }
+}
+
+function printGlobalSmokeResult(result) {
+  console.log("Harness distribution global smoke");
+  console.log(`status: ${result.ok ? "ok" : "error"}`);
+  console.log(`package: ${result.package_name}@${result.package_version}`);
+  console.log(`tarball_entries: ${result.file_count}`);
+  console.log(`package_check: ${result.package_check?.ok ? "ok" : "error"}`);
+  console.log(`work_root: ${result.work_root}${result.kept ? "" : " (removed)"}`);
+  console.log(`prefix: ${result.prefix}`);
+  console.log(`harness_bin: ${result.harness_bin ?? "missing"}`);
+  console.log("profiles:");
+  for (const profile of result.profiles ?? []) {
+    console.log(`  ${profile.profile}: ${profile.ok ? "ok" : "error"}`);
+    console.log(`    default_init: ${profile.default_init ? "yes" : "no"}`);
+    console.log(`    target: ${profile.target}`);
+    console.log(`    plan_profile: ${profile.plan_profile ?? "unknown"}`);
+    console.log(`    upgrade_apply: ${profile.upgrade_apply_ok ? "ok" : "error"}`);
+    for (const error of profile.errors ?? []) {
+      console.log(`    error: ${error}`);
+    }
+  }
+  for (const error of result.errors ?? []) {
+    console.log(`error: ${error}`);
   }
 }
 
@@ -768,6 +795,154 @@ function runSmoke(args) {
   }
 }
 
+function globalSmokeProfile({ harnessBin, workRoot, profile, defaultInit }) {
+  const target = join(workRoot, `global-target-${safeName(profile)}`);
+  try {
+    mkdirSync(target, { recursive: true });
+    run("git", ["init"], { cwd: target });
+
+    const initArgs = defaultInit ? ["init"] : ["init", "--profile", profile];
+    run(harnessBin, initArgs, { cwd: target });
+    run(harnessBin, ["doctor"], { cwd: target });
+    const plan = JSON.parse(run(harnessBin, ["upgrade", "--plan", "--json"], { cwd: target }));
+    const upgradeApply = runCaptured(harnessBin, ["upgrade"], { cwd: target });
+    const errors = [];
+
+    if (plan.profile !== profile) {
+      errors.push(`upgrade plan profile is '${plan.profile ?? "missing"}', expected '${profile}'`);
+    }
+    if (plan.version_source?.type !== "package") {
+      errors.push(`upgrade plan version_source.type is '${plan.version_source?.type ?? "missing"}', expected 'package'`);
+    }
+    if (!upgradeApply.ok) {
+      errors.push(`harness upgrade failed: ${upgradeApply.stderr.trim() || upgradeApply.stdout.trim() || upgradeApply.error || `exit ${upgradeApply.status}`}`);
+    }
+
+    return {
+      profile,
+      default_init: defaultInit,
+      target,
+      ok: errors.length === 0,
+      errors,
+      plan_profile: plan.profile,
+      version_source: plan.version_source,
+      upgrade_apply_ok: upgradeApply.ok,
+    };
+  } catch (error) {
+    return {
+      profile,
+      default_init: defaultInit,
+      target,
+      ok: false,
+      errors: [commandError(error)],
+      plan_profile: null,
+      version_source: null,
+      upgrade_apply_ok: false,
+    };
+  }
+}
+
+function runGlobalSmoke(args) {
+  const keep = args.includes("--keep");
+  const explicitProfiles = repeatedArg(args, "--profile");
+  const profilesToSmoke = explicitProfiles.length > 0 ? explicitProfiles : ["full"];
+  const workRoot = mkdtempSync(join(tmpdir(), "harness-global-smoke-"));
+  const prefix = join(workRoot, "prefix");
+  let result;
+
+  try {
+    const packed = packPackage(workRoot);
+    if (packed.error) {
+      result = {
+        ok: false,
+        work_root: workRoot,
+        kept: keep,
+        prefix,
+        harness_bin: null,
+        package_name: "unknown",
+        package_version: "unknown",
+        file_count: 0,
+        package_check: {
+          ok: false,
+          errors: [packed.error],
+          required_files: REQUIRED_PACKAGE_FILES.length,
+          forbidden_rules: FORBIDDEN_PACKAGE_PREFIXES.length + FORBIDDEN_PACKAGE_FILES.length,
+        },
+        profiles: [],
+        errors: [packed.error],
+      };
+      return result;
+    }
+
+    const packageCheck = validatePackageFiles(packed.files);
+    const harnessBin = join(prefix, "bin", "harness");
+    if (!packageCheck.ok) {
+      result = {
+        ok: false,
+        work_root: workRoot,
+        kept: keep,
+        prefix,
+        harness_bin: harnessBin,
+        package_name: packed.package_name,
+        package_version: packed.package_version,
+        file_count: packed.file_count,
+        package_check: packageCheck,
+        profiles: [],
+        errors: packageCheck.errors,
+      };
+      return result;
+    }
+
+    run("npm", ["install", "-g", packed.tarball, "--prefix", prefix, "--no-audit", "--no-fund", "--ignore-scripts"], {
+      cwd: workRoot,
+    });
+    if (!existsSync(harnessBin)) {
+      result = {
+        ok: false,
+        work_root: workRoot,
+        kept: keep,
+        prefix,
+        harness_bin: harnessBin,
+        package_name: packed.package_name,
+        package_version: packed.package_version,
+        file_count: packed.file_count,
+        package_check: packageCheck,
+        profiles: [],
+        errors: [`${harnessBin}: global harness binary is missing`],
+      };
+      return result;
+    }
+
+    const profiles = profilesToSmoke.map((profile) =>
+      globalSmokeProfile({
+        harnessBin,
+        workRoot,
+        profile,
+        defaultInit: explicitProfiles.length === 0 && profile === "full",
+      }),
+    );
+
+    result = {
+      ok: profiles.every((profile) => profile.ok),
+      work_root: workRoot,
+      kept: keep,
+      prefix,
+      harness_bin: harnessBin,
+      package_name: packed.package_name,
+      package_version: packed.package_version,
+      file_count: packed.file_count,
+      package_check: packageCheck,
+      profiles,
+      errors: profiles.flatMap((profile) => profile.errors),
+    };
+    return result;
+  } finally {
+    if (!keep) {
+      rmSync(workRoot, { recursive: true, force: true });
+    }
+  }
+}
+
 export function runDistribution({ args = [] } = {}) {
   const [subcommand, ...rest] = args;
   if (!subcommand || subcommand === "--help" || subcommand === "-h" || subcommand === "help") {
@@ -807,6 +982,16 @@ export function runDistribution({ args = [] } = {}) {
       console.log(JSON.stringify(result, null, 2));
     } else {
       printPublishResult(result);
+    }
+    return result;
+  }
+
+  if (subcommand === "global-smoke") {
+    const result = runGlobalSmoke(rest);
+    if (rest.includes("--json")) {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      printGlobalSmokeResult(result);
     }
     return result;
   }

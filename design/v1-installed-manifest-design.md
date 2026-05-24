@@ -118,7 +118,9 @@ generated or lock-like artifacts.
 
 ## Upgrade behavior
 
-`harness upgrade` should be plan-first.
+`harness upgrade` should be plan-first internally. Bare `harness upgrade`
+replans and runs the supported safe apply path; `harness upgrade --plan`
+remains the explicit read-only form.
 
 It should:
 
@@ -132,17 +134,20 @@ It should:
 
 It must not blindly overwrite target files.
 
-`harness init --force` is the explicit exception for first-class
-initialization. If planned harness artifacts already exist, normal init warns
-and refuses to write. With `--force`, init definitively overwrites the planned
-harness artifacts for the selected profile and writes a fresh manifest and
-lock. This is an initialization contract, not a general upgrade merge policy.
+`harness init` is merge-safe. If planned human-facing artifacts already exist,
+init preserves existing content and adds or updates harness-owned sections.
+Structured files are merged only where a safe structured merge exists; otherwise
+init refuses instead of overwriting. `--force` remains accepted for compatibility
+with older commands, but it does not authorize overwriting human-authored
+content. Harness-owned lifecycle files such as `.harness/manifest.yaml` and
+`.harness/lock.yaml` may be refreshed by init.
 
 The current implementation exposes only:
 
 ```text
 harness upgrade --plan
 harness upgrade --plan --json
+harness upgrade
 harness upgrade apply
 ```
 

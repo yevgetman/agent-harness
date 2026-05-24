@@ -110,9 +110,11 @@ Current dogfood state:
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
   `npm test`; doctor now validates command wiring and the depth gate when
   present.
-- The first installer surface exists as `harness init --profile <profile>`,
-  exposed locally as `npm run init`; it now reads `profiles/*.yaml` and has
-  dry-run, non-git safety, and installed metadata.
+- The installer surface exists as `harness init`; bare init defaults to the
+  complete `full` profile, `--profile minimal` remains available, and init now
+  reads `profiles/*.yaml`, has dry-run and non-git safety, records installed
+  metadata, and preserves existing human-authored content through
+  harness-owned marked sections or safe structured merges.
 - The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
   uses a `local-checkout` version source in the dogfood repo, reads
   `.harness/lock.yaml`, and reports no blockers or warnings for this dogfood
@@ -123,12 +125,13 @@ Current dogfood state:
   boundary, current source/channel, next operator action, and private per-repo
   workflow.
   `harness upgrade --plan --json` is the stable machine-readable plan output.
-- The first post-v1 apply expansion exists as `npm run upgrade:apply`; it
+- The first post-v1 apply expansion exists as `npm run upgrade:apply`; bare
+  `harness upgrade` also runs the safe apply path. It
   permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, and
   clean profile-bounded safe/install-module operations. The first cascade
-  apply baseline adds clean safe/update-template-file operations for
-  template-backed managed files. Optional registry modules remain deferred,
-  and blocked or review-required plans are refused.
+  apply baseline adds merge-safe clean safe/update-template-file operations
+  for template-backed managed files. Optional registry modules remain
+  deferred, and blocked or review-required plans are refused.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
   add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
@@ -140,7 +143,7 @@ Current dogfood state:
   source profiles, and `harness init --profile <profile>` reads
   `profiles/*.yaml` instead of a hardcoded minimal bundle.
   The complete profile is `full`; dogfood is the source repo's usage posture,
-  not a profile id.
+  not a profile id. Bare `harness init` means `--profile full --target .`.
 - Profile inspection exists via `npm run profiles:inspect -- <profile>` and
   `harness profiles inspect <profile> [--target <path>] [--json]`. It reports
   source profile modules and, for target repos, classifies modules as
@@ -177,18 +180,22 @@ Current dogfood state:
   `npm run distribution:check`, which validates explicit npm package contents,
   `npm run distribution:release-plan`, which runs package validation plus
   `npm publish --dry-run --json` and reports publishing as blocked while the
-  package is private, and `npm run distribution:smoke`, which packs the local
-  npm package, validates package contents, installs it into temporary target
-  repos, runs the installed `harness` binary, validates initialized profiles
-  with doctor, and confirms package-based upgrade version source plus npm
-  registry status reporting. It can also copy a caller-supplied git target into
+  package is private, `npm run distribution:global-smoke`, which validates
+  global CLI installation into a temporary npm prefix plus bare `harness init`
+  and bare `harness upgrade`, and `npm run distribution:smoke`, which packs
+  the local npm package, validates package contents, installs it into
+  temporary target repos, runs the installed `harness` binary, validates
+  initialized profiles with doctor, and confirms package-based upgrade version
+  source plus npm registry status reporting. It can also copy a caller-supplied git target into
   the smoke workspace with `--target <path>` and validate the packed package
   without mutating the original target. It now exposes guarded public npm
   publish planning through `npm run distribution:publish-plan`, while publish
   confirmation remains blocked by private/license release blockers.
-  External smoke supports `--force` for forced init inside the disposable copy.
+  External smoke supports `--force` for compatibility inside the disposable
+  copy, but init remains merge-safe.
   `~/code/meetingly` passed named real-repo smoke for both `minimal` and
-  `full` profiles using the packed package and forced init in the copy.
+  `full` profiles using the packed package and merge-safe compatibility init in
+  the copy.
   Actual npm publication is deferred for now; Phase 5 is complete for v1 local
   tarball distribution. `docs/v1-validation.md` records the v1 validation
   matrix, closeout command set, behavior boundary, and deferred-scope summary.

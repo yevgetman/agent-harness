@@ -4,7 +4,8 @@
 **Date:** 2026-05-16
 **Scope:** Phase 5 packed-package smoke validation, package boundary, release
 preflight, registry version discovery, external-target smoke, guarded npm
-publish workflow, forceable smoke init, and named real-repo smoke
+publish workflow, force-compatible merge-safe smoke init, named real-repo
+smoke, and global CLI smoke
 
 This is a formal design document. It defines the first Distribution Readiness
 increments after the Phase 4 Plans And Status breadth pass.
@@ -40,8 +41,14 @@ refuses publish confirmation while release blockers remain.
 
 The seventh increment validates a named real repo, `~/code/meetingly`, using
 the packed package. That smoke found that real targets may already have
-bootstrap files, so external smoke now supports `--force` to pass forced init
-inside the disposable copied target.
+bootstrap files, so external smoke accepts `--force` for compatibility while
+still preserving existing content through merge-safe init inside the disposable
+copied target.
+
+The v1.1 global CLI increment validates installing the packed package into a
+temporary global npm prefix and running `harness` from inside a target repo.
+Bare `harness init` defaults to `full`, and bare `harness upgrade` runs the
+safe apply path. `--force` is now compatibility-only; init remains merge-safe.
 
 ## Command
 
@@ -51,6 +58,7 @@ harness distribution release --plan
 harness distribution publish --plan
 harness distribution publish --confirm
 harness distribution smoke
+harness distribution global-smoke
 ```
 
 Local package script:
@@ -60,6 +68,7 @@ npm run distribution:check
 npm run distribution:release-plan
 npm run distribution:publish-plan
 npm run distribution:smoke
+npm run distribution:global-smoke
 ```
 
 `harness distribution check` runs `npm pack --dry-run --json` and validates the
@@ -101,6 +110,17 @@ package uses npm's public default.
 12. Fails if the plan does not report `upgrade_guidance.model:
     installed-instance`.
 
+`harness distribution global-smoke`:
+
+1. Creates a temporary work directory and npm prefix.
+2. Packs the local package.
+3. Installs the tarball globally into the temporary prefix.
+4. Creates a temporary git target repo.
+5. Runs the global `harness` binary from inside that repo.
+6. Runs bare `harness init`, validating the default `full` profile.
+7. Runs `harness doctor`, `harness upgrade --plan --json`, and bare
+   `harness upgrade`.
+
 Default profiles:
 
 - `minimal`
@@ -135,10 +155,9 @@ the `minimal` profile. Repeated `--target` and `--profile` options produce one
 copied smoke target for each target/profile pair.
 
 `--force` passes `--force` to the packaged `harness init` command inside the
-temporary smoke target. This is useful for real repo shapes that already have
-bootstrap files such as `AGENTS.md`. The original target is still copied first
-and is not mutated. Without `--force`, external smoke remains collision-averse
-and reports init refusal as a compatibility gap.
+temporary smoke target for compatibility with older smoke commands. Init is now
+merge-safe, so the flag does not authorize overwriting human-authored content.
+The original target is still copied first and is not mutated.
 
 ## Upgrade Version Source
 

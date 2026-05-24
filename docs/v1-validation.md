@@ -25,15 +25,16 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | --- | --- | --- |
 | Agent operating contract | `AGENTS.md` establishes boot, status, lock, plans, metadata, distribution, and vocabulary discipline. | `npm run doctor` validates the file and the installed manifest references. |
 | Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
-| Minimal profile install | `harness init --profile minimal` installs operating contract, status, index, context, manifest, lock, and bootstrap module definitions. | `npm test` covers fresh git-target init, doctor, upgrade plan, dry-run collisions, and force overwrite. |
-| Force init contract | Normal init warns/refuses when planned artifacts exist; `--force` definitively overwrites planned harness artifacts. | `npm test` covers warnings, collision reporting, and overwrite of an existing `AGENTS.md`. |
+| Full default install | Bare `harness init` installs the complete `full` profile; `--profile minimal` remains available for bootstrap-only targets. | `npm test` covers default full init, explicit minimal init, doctor, and upgrade plan. |
+| Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
 | Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
-| Safe upgrade apply | Apply permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and clean safe/update-template-file operations. | `npm test` covers safe apply, clean profile module install, clean template cascade apply, blocked plans, and review-required refusal. |
+| Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations. | `npm test` covers safe apply, bare upgrade apply, clean profile module install, merge-safe template cascade apply, blocked plans, and review-required refusal. |
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
 | Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. | `npm run distribution:smoke`. |
+| Global CLI smoke | The package installs into a temporary global npm prefix and validates bare `harness init` plus bare `harness upgrade` from inside a target repo. | `npm run distribution:global-smoke`. |
 | External target smoke | A caller-supplied git target is copied into the smoke workspace and validated without mutating the source repo. | `npm test` and `node scripts/harness.mjs distribution smoke --target <path> --profile minimal --force`. |
 | Named real-repo smoke | `~/code/meetingly` validates as a named target for both `minimal` and `full` profiles. | `node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force` and the same command with `--profile full`. |
 | Release preflight | Release planning runs package validation and `npm publish --dry-run --json` without publishing. | `npm run distribution:release-plan`; expected v1 status is blocked. |
@@ -63,6 +64,7 @@ npm run lock:check
 npm run doctor
 npm run upgrade:plan
 npm run distribution:check
+npm run distribution:global-smoke
 npm run distribution:release-plan
 npm run distribution:publish-plan
 npm run distribution:smoke
@@ -83,8 +85,10 @@ Expected v1 release/publish state:
 V1 includes:
 
 - Local packed npm tarball distribution.
+- Machine-level global CLI installation from the packed tarball.
 - Install, minimal-profile, and v1 validation docs in the package.
-- `minimal` and `full` profile installation.
+- Bare `harness init` full-profile installation plus explicit `minimal` and
+  `full` profile installation.
 - Registry-backed module listing and module add.
 - Dogfooded Decisions And Open Questions, Structured Metadata, Canonical State,
   Invariants And Golden Principles, and Plans And Status.
@@ -115,10 +119,10 @@ collision preflight as `harness modules add` are classified as
 the existing module-add path.
 
 Clean module-template managed files whose source template changed are
-classified as `safe/update-template-file`. `harness upgrade apply` rechecks
-the target lock fingerprint and source template fingerprint, writes the
-current template only when both are still safe, and refreshes the file's lock
-provenance.
+classified as `safe/update-template-file` only when the update can be applied
+without overwriting human content. `harness upgrade apply` rechecks the target
+lock fingerprint and source template fingerprint, applies merge-safe content
+updates for merge-managed files, and refreshes the file's lock provenance.
 
 Registry modules that are merely available, but not part of the active
 profile, remain `deferred/installable-module-available`. Existing artifact or
@@ -173,6 +177,14 @@ active-profile modules as `safe/sync-module-install`, collisions as
 blocked sync operations, retained modules outside the active profile as
 `deferred/profile-module-retained`, and sync apply as
 `deferred/sync-apply-not-implemented`.
+
+The global CLI and merge-safe init increment is implemented.
+
+The packed package can be installed into a global npm prefix and used from any
+target repo as `harness`. Bare `harness init` defaults to the `full` profile,
+preserves existing human-authored content, and appends or updates marked
+harness sections. Bare `harness upgrade` runs the supported safe apply path
+after planning internally and refuses blocked or review-required plans.
 
 ## Next Work After V1
 

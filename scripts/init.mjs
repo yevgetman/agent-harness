@@ -3,7 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDoctor } from "./doctor.mjs";
-import { createLock, lockEntriesFromPlannedEntries, sha256 } from "./lock.mjs";
+import { createLockFromManifest, sha256, writeLock } from "./lock.mjs";
 import { loadProfile } from "./profiles.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -44,9 +44,9 @@ Usage:
   harness init [--profile <profile>] [--target <path>] [--force] [--dry-run]
 
 Options:
-  --profile <profile>   Install a profile from profiles/. Defaults to minimal.
+  --profile <profile>   Install a profile from profiles/. Defaults to full.
   --target <path>       Target repository root. Defaults to the current dir.
-  --force               Definitively overwrite planned harness artifacts.
+  --force               Deprecated compatibility flag; init remains merge-safe.
   --dry-run             Print the install plan without writing files.
   --allow-non-git       Permit installation into a directory without .git.
   -h, --help            Show this help.
@@ -65,42 +65,280 @@ function collectExistingArtifacts(targetRoot, planned) {
 }
 
 function collisionWarning(count) {
-  return `${count} planned harness artifact(s) already exist; rerun with --force to overwrite them`;
+  return `${count} planned harness artifact(s) already exist; init will merge harness sections or refresh harness-owned lifecycle state`;
 }
 
-function writePlannedEntries(targetRoot, planned) {
+function forceWarning() {
+  return "--force is accepted for compatibility, but init no longer overwrites human-authored content";
+}
+
+function markerId(path) {
+  return path
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
+function markerStart(path) {
+  return `<!-- harness:start ${markerId(path)} -->`;
+}
+
+function markerEnd(path) {
+  return `<!-- harness:end ${markerId(path)} -->`;
+}
+
+function markerPattern(path) {
+  const start = markerStart(path).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const end = markerEnd(path).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`${start}[\\s\\S]*?${end}`);
+}
+
+function stripLeadingHeading(markdown) {
+  return markdown.replace(/^# .*\n+/, "").trim();
+}
+
+function stripFrontmatter(markdown) {
+  return markdown.replace(/^---\n[\s\S]*?\n---\n+/, "");
+}
+
+function sectionForMarkdown(path, incomingContent) {
+  const existingSection = incomingContent.match(markerPattern(path))?.[0];
+  if (existingSection) return existingSection;
+
+  if (path === "state/CONTEXT.md") {
+    return `${markerStart(path)}
+${stripLeadingHeading(stripFrontmatter(incomingContent))}
+${markerEnd(path)}`;
+  }
+
+  return `${markerStart(path)}
+${stripLeadingHeading(incomingContent)}
+${markerEnd(path)}`;
+}
+
+function mergeMarkedMarkdown(path, existingContent, incomingContent) {
+  const section = sectionForMarkdown(path, incomingContent);
+  const pattern = markerPattern(path);
+
+  if (pattern.test(existingContent)) {
+    return {
+      ok: true,
+      content: `${existingContent.replace(pattern, section).replace(/\s+$/, "")}\n`,
+      action: "updated-section",
+    };
+  }
+
+  return {
+    ok: true,
+    content: `${existingContent.replace(/\s+$/, "")}\n\n${section}\n`,
+    action: "appended-section",
+  };
+}
+
+function byId(list, key) {
+  const output = [];
+  const seen = new Set();
+
+  for (const item of Array.isArray(list) ? list : []) {
+    const id = item?.[key];
+    if (id) seen.add(id);
+    output.push(item);
+  }
+
+  return { output, seen };
+}
+
+function mergeObjects(existing, incoming) {
+  if (!existing || typeof existing !== "object" || Array.isArray(existing)) return incoming;
+  if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) return existing;
+  return { ...incoming, ...existing };
+}
+
+function mergeListByKey(existingList, incomingList, key) {
+  if (!key) {
+    const output = Array.isArray(existingList) ? [...existingList] : [];
+    const seen = new Set(output);
+    for (const item of Array.isArray(incomingList) ? incomingList : []) {
+      if (seen.has(item)) continue;
+      output.push(item);
+      seen.add(item);
+    }
+    return output;
+  }
+
+  const { output, seen } = byId(existingList, key);
+  for (const item of Array.isArray(incomingList) ? incomingList : []) {
+    const id = item?.[key];
+    if (!id || seen.has(id)) continue;
+    output.push(item);
+    seen.add(id);
+  }
+  return output;
+}
+
+function parseYamlContent(path, content) {
+  try {
+    return { value: parseYaml(content) };
+  } catch (error) {
+    return { error: `${path}: cannot merge existing YAML safely: ${error.message}` };
+  }
+}
+
+function mergeIndexYaml(existing, incoming) {
+  const merged = mergeObjects(existing, incoming);
+  merged.harness = incoming.harness;
+  merged.orientation = mergeObjects(existing.orientation, incoming.orientation);
+  merged.orientation.boot_order = mergeListByKey(
+    existing.orientation?.boot_order ?? [],
+    incoming.orientation?.boot_order ?? [],
+    null,
+  );
+  merged.reading_order = mergeListByKey(existing.reading_order ?? [], incoming.reading_order ?? [], null);
+  merged.documents = mergeListByKey(existing.documents ?? [], incoming.documents ?? [], "doc_id");
+  return merged;
+}
+
+function mergeYamlListRoot(existing, incoming, rootKey, listKey) {
+  const merged = mergeObjects(existing, incoming);
+  merged[rootKey] = mergeObjects(existing?.[rootKey], incoming?.[rootKey]);
+  merged[rootKey][listKey] = mergeListByKey(
+    existing?.[rootKey]?.[listKey] ?? [],
+    incoming?.[rootKey]?.[listKey] ?? [],
+    "id",
+  );
+  return merged;
+}
+
+function mergeYamlContent(path, existingContent, incomingContent) {
+  const existing = parseYamlContent(path, existingContent);
+  if (existing.error) return { ok: false, error: existing.error };
+  const incoming = parseYamlContent(path, incomingContent);
+  if (incoming.error) return { ok: false, error: incoming.error };
+
+  if (path === "open-questions.yaml") {
+    if (!Array.isArray(existing.value)) {
+      return { ok: false, error: `${path}: existing file is not a top-level list; cannot merge safely` };
+    }
+    return { ok: true, content: existingContent, action: "preserved-yaml-list" };
+  }
+
+  let merged;
+  if (path === "index.yaml") {
+    merged = mergeIndexYaml(existing.value ?? {}, incoming.value ?? {});
+  } else if (path === "metadata/artifacts.yaml") {
+    merged = mergeYamlListRoot(existing.value ?? {}, incoming.value ?? {}, "metadata", "artifacts");
+  } else if (path === "state/canonical-state.yaml") {
+    merged = mergeYamlListRoot(existing.value ?? {}, incoming.value ?? {}, "canonical_state", "entries");
+  } else if (path === "invariants/golden-principles.yaml") {
+    merged = mergeYamlListRoot(existing.value ?? {}, incoming.value ?? {}, "invariants", "principles");
+  } else if (path === "plans/current.yaml") {
+    merged = mergeYamlListRoot(existing.value ?? {}, incoming.value ?? {}, "plans_status", "plans");
+  } else {
+    return { ok: true, content: existingContent, action: "preserved-existing" };
+  }
+
+  return { ok: true, content: stringifyYaml(merged), action: "merged-yaml" };
+}
+
+export function mergeManagedContent({ path, existingContent, incomingContent }) {
+  if (["AGENTS.md", "status.md", "state/CONTEXT.md"].includes(path)) {
+    return mergeMarkedMarkdown(path, existingContent, incomingContent);
+  }
+
+  if (path.endsWith(".yaml") || path.endsWith(".yml")) {
+    return mergeYamlContent(path, existingContent, incomingContent);
+  }
+
+  return { ok: true, content: existingContent, action: "preserved-existing" };
+}
+
+function shouldReplaceExisting(path) {
+  return path === ".harness/manifest.yaml" || /^modules\/[^/]+\/module\.ya?ml$/.test(path);
+}
+
+function writePlannedEntries(targetRoot, planned, { harness, date }) {
+  const written = [];
+  const merged = [];
+  const preserved = [];
+  const errors = [];
+
   for (const entry of planned) {
+    if (entry.path === ".harness/lock.yaml") continue;
+
     const outPath = join(targetRoot, entry.path);
     if (entry.type === "directory") {
       mkdirSync(outPath, { recursive: true });
+      written.push(entry.path);
       continue;
     }
 
     ensureParent(outPath);
-    writeFileSync(outPath, entry.content);
+    if (!existsSync(outPath) || shouldReplaceExisting(entry.path)) {
+      writeFileSync(outPath, entry.content);
+      written.push(entry.path);
+      continue;
+    }
+
+    const mergedContent = mergeManagedContent({
+      path: entry.path,
+      existingContent: readFileSync(outPath, "utf8"),
+      incomingContent: entry.content,
+    });
+    if (!mergedContent.ok) {
+      errors.push(mergedContent.error);
+      continue;
+    }
+
+    if (mergedContent.content !== readFileSync(outPath, "utf8")) {
+      writeFileSync(outPath, mergedContent.content);
+      merged.push(`${entry.path}: ${mergedContent.action}`);
+    } else {
+      preserved.push(`${entry.path}: ${mergedContent.action}`);
+    }
   }
+
+  if (errors.length === 0) {
+    const generated = createLockFromManifest({
+      root: targetRoot,
+      harness,
+      generatedAt: date,
+      sourceRoot: SOURCE_ROOT,
+    });
+    if (generated.missing.length > 0) {
+      errors.push(...generated.missing.map((path) => `${path}: expected lock path is missing`));
+    } else {
+      writeLock(targetRoot, generated.lock);
+      written.push(".harness/lock.yaml");
+    }
+  }
+
+  return { written, merged, preserved, errors };
 }
 
-function printPlan({ targetRoot, profile, entries, dryRun, collisions = [], overwrites = [], warnings = [] }) {
+function printPlan({ targetRoot, profile, entries, dryRun, existing = [], merges = [], preserved = [], warnings = [] }) {
   const label = dryRun ? "dry-run plan" : "install plan";
   console.log(`Harness init: ${label}`);
   console.log(`target: ${targetRoot}`);
   console.log(`profile: ${profile}`);
-  console.log(`files:`);
-  for (const entry of entries) {
-    console.log(`  ${entry.path}`);
+  if (entries.length > 0) {
+    console.log(`files:`);
+    for (const entry of entries) {
+      console.log(`  ${entry.path}`);
+    }
   }
-  if (collisions.length > 0) {
-    console.log(`collisions:`);
-    for (const file of collisions) {
+  if (existing.length > 0) {
+    console.log(`existing:`);
+    for (const file of existing) {
       console.log(`  ${file}`);
     }
   }
-  if (overwrites.length > 0) {
-    console.log(`overwriting:`);
-    for (const file of overwrites) {
-      console.log(`  ${file}`);
-    }
+  if (merges.length > 0) {
+    console.log(`merged:`);
+    for (const file of merges) console.log(`  ${file}`);
+  }
+  if (preserved.length > 0) {
+    console.log(`preserved:`);
+    for (const file of preserved) console.log(`  ${file}`);
   }
   if (warnings.length > 0) {
     console.log(`warnings:`);
@@ -308,6 +546,9 @@ function buildFiles({ targetRoot, profile, date }) {
         path: "AGENTS.md",
         content: `# Agent Instructions
 
+${markerStart("AGENTS.md")}
+## Harness Agent Instructions
+
 Harness metadata:
 - package: ${PACKAGE_NAME}
 - version: ${HARNESS_VERSION}
@@ -342,6 +583,7 @@ Use \`harness lock check\` to inspect installed-file provenance drift.
 
 After intentional changes to harness-managed files, use
 \`harness lock refresh\` before final validation.
+${markerEnd("AGENTS.md")}
 `,
       },
       {
@@ -349,6 +591,7 @@ After intentional changes to harness-managed files, use
         path: "status.md",
         content: `# ${name} Status
 
+${markerStart("status.md")}
 Last updated: ${date}
 
 ## Current Phase
@@ -368,6 +611,7 @@ Harness installed with the \`${profile}\` profile.
 
 - Fill in \`state/CONTEXT.md\` with repo-specific orientation.
 - Keep \`index.yaml\` current as orientation-relevant files are added.
+${markerEnd("status.md")}
 `,
       },
       {
@@ -444,6 +688,7 @@ harness:
 
 # ${name} Context Briefing
 
+${markerStart("state/CONTEXT.md")}
 This repo has the portable harness installed with the \`${profile}\` profile.
 
 ## Orientation rule
@@ -461,6 +706,7 @@ Then inspect only the docs or files required for the task.
 
 Replace this section with a concise repo-specific briefing once the repo's
 purpose, current state, and next work are known.
+${markerEnd("state/CONTEXT.md")}
 `,
       },
       {
@@ -471,21 +717,16 @@ purpose, current state, and next work are known.
       ...moduleDefinitionEntries(modules),
       ...artifactPlan.entries,
     ];
-  const lock = createLock({
-    harness: manifest.harness,
-    generatedAt: date,
-    files: lockEntriesFromPlannedEntries(entries, manifest.harness),
-  });
-
   entries.push({
     type: "file",
     path: ".harness/lock.yaml",
-    content: stringifyYaml({ lock }),
+    content: "# Generated after init writes current merged file state.\n",
   });
 
   return {
     errors: [],
     entries,
+    harness: manifest.harness,
   };
 }
 
@@ -495,7 +736,7 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
     return { ok: true };
   }
 
-  const profile = argValue(args, "--profile", "minimal");
+  const profile = argValue(args, "--profile", "full");
   const targetArg = argValue(args, "--target", cwd);
   const targetRoot = resolve(cwd, targetArg);
   const force = args.includes("--force");
@@ -512,39 +753,70 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
   }
 
   const existingArtifacts = errors.length === 0 ? collectExistingArtifacts(targetRoot, plan.entries) : [];
-  const collisions = force ? [] : existingArtifacts;
-  const overwrites = force ? existingArtifacts : [];
-  const warnings = collisions.length > 0 ? [collisionWarning(collisions.length)] : [];
+  const warnings = [
+    ...(existingArtifacts.length > 0 ? [collisionWarning(existingArtifacts.length)] : []),
+    ...(force ? [forceWarning()] : []),
+  ];
 
   if (dryRun && errors.length === 0) {
-    printPlan({ targetRoot, profile, entries: plan.entries, dryRun, collisions, overwrites, warnings });
+    printPlan({ targetRoot, profile, entries: plan.entries, dryRun, existing: existingArtifacts, warnings });
     console.log("");
     console.log("Harness init: dry run complete; no files written");
     return {
       ok: true,
       targetRoot,
       planned: plan.entries.map((entry) => entry.path),
-      collisions,
-      overwrites,
+      existing: existingArtifacts,
       warnings,
+      profile,
+      default_profile: !args.includes("--profile"),
+      merge_safe: true,
+      force_deprecated: force,
+      collisions: [],
+      overwrites: [],
     };
-  }
-
-  if (errors.length === 0) {
-    for (const file of collisions) {
-      errors.push(`${file}: already exists (pass --force to overwrite)`);
-    }
   }
 
   if (errors.length > 0) {
     printFailure(errors, warnings);
-    return { ok: false, targetRoot, errors, warnings, collisions };
+    return {
+      ok: false,
+      targetRoot,
+      errors,
+      warnings,
+      existing: existingArtifacts,
+      collisions: [],
+    };
   }
 
-  printPlan({ targetRoot, profile, entries: plan.entries, dryRun, overwrites });
+  printPlan({ targetRoot, profile, entries: plan.entries, dryRun, existing: existingArtifacts, warnings });
 
   mkdirSync(targetRoot, { recursive: true });
-  writePlannedEntries(targetRoot, plan.entries);
+  const written = writePlannedEntries(targetRoot, plan.entries, { harness: plan.harness, date });
+
+  if (written.errors.length > 0) {
+    printFailure(written.errors, warnings);
+    return {
+      ok: false,
+      targetRoot,
+      errors: written.errors,
+      warnings,
+      existing: existingArtifacts,
+      collisions: [],
+      overwrites: [],
+    };
+  }
+
+  if (written.merged.length > 0 || written.preserved.length > 0) {
+    printPlan({
+      targetRoot,
+      profile,
+      entries: [],
+      dryRun: false,
+      merges: written.merged,
+      preserved: written.preserved,
+    });
+  }
 
   console.log("");
   console.log(`Harness init: installed ${plan.entries.length} artifact(s)`);
@@ -553,8 +825,17 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
     ok: doctor.ok,
     targetRoot,
     errors: doctor.diagnostics.errors,
-    warnings: doctor.diagnostics.warnings,
-    overwrites,
+    warnings: [...warnings, ...doctor.diagnostics.warnings],
+    existing: existingArtifacts,
+    merged: written.merged,
+    preserved: written.preserved,
+    written: written.written,
+    profile,
+    default_profile: !args.includes("--profile"),
+    merge_safe: true,
+    force_deprecated: force,
+    collisions: [],
+    overwrites: [],
   };
 }
 

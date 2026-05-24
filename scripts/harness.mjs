@@ -20,7 +20,7 @@ function printHelp() {
   console.log(`harness
 
 Usage:
-  harness init     Install the minimal harness into a target repo
+  harness init     Install the full harness into the current target repo
   harness decisions new "<title>"
   harness decisions list
   harness questions list
@@ -48,6 +48,7 @@ Usage:
   harness lock check
   harness upgrade --plan
   harness upgrade --plan --json
+  harness upgrade
   harness upgrade apply
   harness doctor   Validate installed harness health
   harness help     Show this help

@@ -6,30 +6,60 @@ published to a registry yet.
 For the full v1 closeout validation matrix and deferred-scope summary, see
 `docs/v1-validation.md`.
 
-## Local Tarball
+## Global CLI From Local Tarball
 
 From the harness source repo:
 
 ```bash
 npm run distribution:check
+npm run distribution:global-smoke
 npm run distribution:release-plan
 npm run distribution:publish-plan
 npm run distribution:smoke
+mkdir -p /tmp/harness-pack
 npm pack --pack-destination /tmp/harness-pack
+```
+
+Install the CLI globally on the machine:
+
+```bash
+npm install -g /tmp/harness-pack/portable-harness-0.1.0.tgz
 ```
 
 From a target git repo:
 
 ```bash
+cd ~/code/sitekit
+harness init
+harness doctor
+harness upgrade --plan
+harness upgrade
+```
+
+`harness init` defaults to the complete `full` profile. It is equivalent to
+`harness init --profile full --target .`. Use `--profile minimal` only for
+target repos that should receive the bootstrap harness files without the
+additional process-domain modules.
+
+Init is merge-safe. If files such as `AGENTS.md`, `status.md`, `index.yaml`,
+or `state/CONTEXT.md` already exist, init preserves their content and adds or
+updates harness-owned sections. If a structured file cannot be merged safely,
+init refuses instead of overwriting it. `--force` remains accepted for older
+commands, but it no longer authorizes overwriting human-authored content.
+
+## Repo-Local Package Install
+
+The older repo-local install path still works when a target repo should carry
+the harness as a dev dependency:
+
+```bash
+cd ~/code/sitekit
 npm init -y
 npm install --save-dev /tmp/harness-pack/portable-harness-0.1.0.tgz
-./node_modules/.bin/harness init --profile minimal --target .
+./node_modules/.bin/harness init
 ./node_modules/.bin/harness doctor
 ./node_modules/.bin/harness upgrade --plan
 ```
-
-Use `--profile full` only for target repos that should install all current
-process-domain modules.
 
 ## Installed-Instance Upgrade Flow
 
@@ -43,14 +73,14 @@ Private upgrade flow:
 2. In each target repo that should receive the improvement, run:
 
 ```bash
-./node_modules/.bin/harness upgrade --plan
+harness upgrade --plan
 ```
 
 3. Resolve blockers and review-required operations in that target repo.
 4. Run apply only for supported safe operations:
 
 ```bash
-./node_modules/.bin/harness upgrade apply
+harness upgrade
 ```
 
 `harness upgrade --plan --json` includes `version_source` and
@@ -68,6 +98,8 @@ is not part of the runtime package.
 `npm run distribution:check` validates this boundary with `npm pack --dry-run`.
 `npm run distribution:smoke` validates the packed tarball by installing it into
 temporary target repos and running the installed `harness` binary.
+`npm run distribution:global-smoke` validates machine-level CLI installation
+through a temporary npm global prefix.
 
 To validate a real target repo shape without mutating it, pass the target path
 to smoke:
@@ -80,8 +112,9 @@ The smoke command copies the target into a temporary work directory, excludes
 `.git` and `node_modules`, installs the packed tarball into the copy, and runs
 the harness checks there.
 
-If the copied target already has bootstrap files such as `AGENTS.md`, use
-forced init inside the disposable smoke copy:
+If the copied target already has bootstrap files such as `AGENTS.md`, smoke
+validation still preserves them through merge-safe init. The legacy `--force`
+flag is accepted for compatibility, but it does not authorize overwrites:
 
 ```bash
 npm run distribution:smoke -- --target ../some-target --profile minimal --force

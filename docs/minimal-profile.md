@@ -42,11 +42,15 @@ By default, `harness init` expects the target to be a git repository. Use
 
 Use `--dry-run` to inspect the install plan without writing files.
 
-When planned harness artifacts already exist, `harness init` warns and refuses
-to overwrite them by default. Use `--force` only after reviewing local changes;
-forced init definitively overwrites the planned harness artifacts, including
-the repo operating contract, orientation files, manifest, lock, and installed
-module definitions.
+Bare `harness init` now defaults to the `full` profile. Use
+`harness init --profile minimal` when the target should receive only the
+bootstrap harness files.
+
+When planned harness artifacts already exist, `harness init` preserves existing
+human-authored content and adds or updates harness-owned sections where it can
+merge safely. If a structured file cannot be merged safely, init refuses
+instead of overwriting it. `--force` is accepted for older commands but no
+longer authorizes overwriting human-authored content.
 
 ## Upgrade Planning
 
@@ -55,6 +59,7 @@ The profile records a plan-first upgrade policy and exposes:
 ```bash
 harness upgrade --plan
 harness upgrade --plan --json
+harness upgrade
 ```
 
 The plan command is read-only. The JSON form is the machine-readable upgrade
@@ -78,6 +83,7 @@ plan contract. It reports:
 The profile also exposes:
 
 ```bash
+harness upgrade
 harness upgrade apply
 ```
 
@@ -85,7 +91,9 @@ The apply surface handles `safe/noop`, `safe/refresh-lock`, deterministic
 `safe/repair-command` operations, and clean profile-bounded
 `safe/install-module` operations. It also handles clean
 `safe/update-template-file` operations for template-backed managed files whose
-source template changed. It refuses blocked or review-required plans.
+source template changed and can be merged without overwriting human content.
+It refuses blocked or review-required plans. Bare `harness upgrade` runs this
+safe apply path after planning internally.
 
 ## Lock Maintenance
 

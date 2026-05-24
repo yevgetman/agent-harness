@@ -149,6 +149,7 @@ release blockers.
 
 Current commands:
 
+- `harness init`
 - `harness init --profile <profile>`
 - `harness doctor`
 - `harness decisions new`
@@ -175,10 +176,12 @@ Current commands:
 - `harness distribution release --plan`
 - `harness distribution publish --plan`
 - `harness distribution smoke`
+- `harness distribution global-smoke`
 - `harness lock refresh`
 - `harness lock check`
 - `harness upgrade --plan`
 - `harness upgrade --plan --json`
+- `harness upgrade`
 - `harness upgrade apply`
 
 Current dogfood modules:
@@ -294,8 +297,9 @@ Initial behavior:
   deterministic package-script command repair, and post-v1 clean
   active-profile module installs.
 - `harness upgrade apply` handles the first v1.1 clean cascade case:
-  source-template updates for managed files that still match their lock
-  fingerprint.
+  merge-safe source-template updates for managed files that still match their
+  lock fingerprint.
+- Bare `harness upgrade` runs the safe apply path after planning internally.
 - `.harness/lock.yaml` records semantic file provenance such as artifact role,
   owner type, module id, merge strategy, source kind, source path, and source
   fingerprint.
@@ -408,9 +412,12 @@ Initial behavior:
 - `harness distribution smoke --target <path>` copies a caller-supplied git
   target into the smoke workspace, installs the packed tarball there, validates
   init/doctor/upgrade behavior, and leaves the original target unchanged.
-- `harness distribution smoke --target <path> --force` passes forced init only
-  inside the disposable copied target so real repo shapes with existing
-  bootstrap files can be validated without mutating the source target.
+- `harness distribution smoke --target <path> --force` passes force only
+  inside the disposable copied target for compatibility; init remains
+  merge-safe and does not overwrite human-authored content.
+- `harness distribution global-smoke` validates installing the packed package
+  into a temporary global npm prefix, then running bare `harness init` and bare
+  `harness upgrade` from inside a target repo.
 - Packed-package smoke validation covers the `minimal` and `full` profiles
   by default.
 - Upgrade planning reports `version_source.type: package` when a target was
@@ -427,8 +434,8 @@ Initial behavior:
 - `docs/install.md` documents local tarball installation and records registry
   publication as deferred.
 - `~/code/meetingly` has passed named real-repo smoke for the `minimal` and
-  `full` profiles using the packed package and forced init in the temporary
-  copy.
+  `full` profiles using the packed package and merge-safe compatibility init in
+  the temporary copy.
 
 Exit signal:
 

@@ -252,6 +252,16 @@ withTempDir((root) => {
   const gitTarget = join(root, "git-target");
   initGitRepo(gitTarget);
 
+  const defaultTarget = join(root, "default-target");
+  initGitRepo(defaultTarget);
+  const defaultInit = quiet(() => runInit({ cwd: root, args: ["--target", defaultTarget] }));
+  assert.equal(defaultInit.ok, true, "init should default to the full profile");
+  assert.equal(defaultInit.profile, "full", "init result should report the default full profile");
+  assert.equal(defaultInit.default_profile, true, "init should report that no explicit profile was supplied");
+  const defaultManifest = parseYaml(readFileSync(join(defaultTarget, ".harness", "manifest.yaml"), "utf8")).harness;
+  assert.equal(defaultManifest.profile, "full", "default init should write profile full");
+  assert.equal(defaultManifest.modules.length, 7, "default full init should install every current module");
+
   const init = quiet(() => runInit({
     cwd: root,
     args: ["--target", gitTarget, "--profile", "minimal"],
@@ -307,12 +317,13 @@ withTempDir((root) => {
     cwd: root,
     args: ["--target", gitTarget, "--profile", "minimal", "--dry-run"],
   }));
-  assert.equal(dryRunCollision.ok, true, "init --dry-run should report collisions without failing");
-  assert.equal(dryRunCollision.collisions.length, 8, "dry-run should report planned file collisions");
+  assert.equal(dryRunCollision.ok, true, "init --dry-run should report existing artifacts without failing");
+  assert.equal(dryRunCollision.existing.length, 8, "dry-run should report planned existing artifacts");
+  assert.equal(dryRunCollision.collisions.length, 0, "merge-safe dry-run should not report overwrite collisions");
   assert.equal(
-    dryRunCollision.warnings.some((warning) => warning.includes("rerun with --force")),
+    dryRunCollision.warnings.some((warning) => warning.includes("init will merge")),
     true,
-    "init --dry-run should warn that --force can overwrite existing artifacts",
+    "init --dry-run should warn that existing artifacts are merge-safe",
   );
 
   writeFileSync(join(gitTarget, "AGENTS.md"), "# Existing local process\n");
@@ -320,23 +331,33 @@ withTempDir((root) => {
     cwd: root,
     args: ["--target", gitTarget, "--profile", "minimal"],
   }));
-  assert.equal(duplicate.ok, false, "init should refuse to overwrite without --force");
-  assert.equal(duplicate.collisions.includes("AGENTS.md"), true, "init should report colliding artifacts");
+  assert.equal(duplicate.ok, true, "init should merge existing artifacts without --force");
+  assert.equal(duplicate.collisions.length, 0, "init should not report overwrite collisions");
+  assert.equal(duplicate.merged.some((item) => item.includes("AGENTS.md")), true, "init should merge AGENTS.md");
   assert.equal(
-    duplicate.warnings.some((warning) => warning.includes("rerun with --force")),
+    duplicate.warnings.some((warning) => warning.includes("init will merge")),
     true,
-    "init should warn that --force can definitively overwrite existing artifacts",
+    "init should warn that existing artifacts are merged or refreshed",
   );
+  const mergedAgents = readFileSync(join(gitTarget, "AGENTS.md"), "utf8");
+  assert.match(mergedAgents, /Existing local process/, "init should preserve existing AGENTS.md content");
+  assert.match(mergedAgents, /harness:start agents-md/, "init should append a harness-managed AGENTS.md section");
 
   const forced = quiet(() => runInit({
     cwd: root,
     args: ["--target", gitTarget, "--profile", "minimal", "--force"],
   }));
-  assert.equal(forced.ok, true, "init --force should overwrite and pass");
-  assert.equal(forced.overwrites.includes("AGENTS.md"), true, "init --force should report overwritten artifacts");
+  assert.equal(forced.ok, true, "init --force should remain accepted for compatibility");
+  assert.equal(forced.force_deprecated, true, "init --force should report compatibility mode");
+  assert.equal(forced.overwrites.length, 0, "init --force should not overwrite human-authored artifacts");
   const forcedAgents = readFileSync(join(gitTarget, "AGENTS.md"), "utf8");
   assert.match(forcedAgents, /This repo has the portable harness installed/, "init --force should write harness instructions");
-  assert.doesNotMatch(forcedAgents, /Existing local process/, "init --force should replace existing process text");
+  assert.match(forcedAgents, /Existing local process/, "init --force should preserve existing process text");
+  assert.equal(
+    (forcedAgents.match(/harness:start agents-md/g) ?? []).length,
+    1,
+    "repeated init should update the harness AGENTS.md section idempotently",
+  );
 
   const upgrade = quiet(() => runTestUpgrade({ cwd: gitTarget, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after init");
@@ -449,6 +470,13 @@ withTempDir((root) => {
     apply.apply.applied.some((item) => item.includes("safe/noop")),
     true,
     "upgrade apply should report satisfied noop operations",
+  );
+  const defaultApply = quiet(() => runTestUpgrade({ cwd: gitTarget, args: [] }));
+  assert.equal(defaultApply.ok, true, "upgrade with no args should run the safe apply path");
+  assert.equal(
+    defaultApply.apply.applied.some((item) => item.includes("safe/noop")),
+    true,
+    "upgrade with no args should report applied safe operations",
   );
   const jsonPlan = JSON.parse(execFileSync(
     process.execPath,
@@ -811,7 +839,7 @@ withTempDir((root) => {
 
   const sourcePath = "modules/decisions-open-questions/templates/open-questions.yaml";
   const targetPath = "open-questions.yaml";
-  const oldContent = "# Harness open questions.\n# old installed template\n";
+  const oldContent = "# local question context\n[]\n";
   simulateOutdatedTemplate({ root: target, path: targetPath, sourcePath, oldContent });
 
   const plan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
@@ -838,15 +866,15 @@ withTempDir((root) => {
   );
   assert.equal(
     readFileSync(join(target, targetPath), "utf8"),
-    readFileSync(join(REPO_ROOT, sourcePath), "utf8"),
-    "upgrade apply should replace clean outdated template content with current source template",
+    oldContent,
+    "upgrade apply should preserve existing merge-managed template content",
   );
   const lock = readLock(target);
   const entry = lock.files.find((file) => file.path === targetPath);
   assert.equal(
     entry.sha256,
-    sha256(readFileSync(join(REPO_ROOT, sourcePath), "utf8")),
-    "template apply should refresh installed file fingerprint",
+    sha256(oldContent),
+    "template apply should refresh installed file fingerprint for preserved content",
   );
   assert.equal(
     entry.source_sha256,
@@ -1761,6 +1789,16 @@ withTempDir((root) => {
     "distribution smoke should validate installed-instance upgrade guidance",
   );
   assert.equal(smoke.profiles[0].managed_files, 4, "minimal distribution smoke should validate managed files");
+
+  const globalSmoke = quiet(() => withRegistryDiscoverySkip(() =>
+    runDistribution({ args: ["global-smoke"] }),
+  ));
+  assert.equal(globalSmoke.ok, true, "global distribution smoke should pass");
+  assert.equal(globalSmoke.profiles.length, 1, "global smoke should default to one profile");
+  assert.equal(globalSmoke.profiles[0].profile, "full", "global smoke should default harness init to full");
+  assert.equal(globalSmoke.profiles[0].default_init, true, "global smoke should validate bare harness init");
+  assert.equal(globalSmoke.profiles[0].plan_profile, "full", "global smoke should plan against the full profile");
+  assert.equal(globalSmoke.profiles[0].upgrade_apply_ok, true, "global smoke should validate bare harness upgrade");
 }
 
 withTempDir((root) => {

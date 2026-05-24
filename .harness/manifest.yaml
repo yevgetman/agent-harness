@@ -106,6 +106,7 @@ harness:
     distribution-release-plan: npm run distribution:release-plan
     distribution-publish-plan: npm run distribution:publish-plan
     distribution-smoke: npm run distribution:smoke
+    distribution-global-smoke: npm run distribution:global-smoke
   upgrade:
     policy: plan-first
     model: installed-instance

@@ -75,13 +75,13 @@ function publicDiagnostics(diagnostics) {
 
 function missingFileHint(file, diagnostics) {
   if (file === ".harness/manifest.yaml") {
-    hint(diagnostics, "Install the harness with `harness init --profile minimal` or restore the manifest.");
+    hint(diagnostics, "Install the harness with `harness init` or restore the manifest.");
     return;
   }
 
   hint(
     diagnostics,
-    `Restore missing managed/orientation files, or re-run init with --force only after reviewing local changes.`,
+    `Restore missing managed/orientation files, or re-run merge-safe init after reviewing local changes.`,
   );
 }
 

@@ -70,6 +70,7 @@
     "distribution:release-plan": "node scripts/harness.mjs distribution release --plan",
     "distribution:publish-plan": "node scripts/harness.mjs distribution publish --plan",
     "distribution:smoke": "node scripts/harness.mjs distribution smoke",
+    "distribution:global-smoke": "node scripts/harness.mjs distribution global-smoke",
     "lock:refresh": "node scripts/harness.mjs lock refresh",
     "lock:check": "node scripts/harness.mjs lock check",
     "upgrade:plan": "node scripts/harness.mjs upgrade --plan",

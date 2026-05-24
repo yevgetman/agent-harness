@@ -6,6 +6,7 @@ import { parse as parseYaml } from "yaml";
 import { createLockFromManifest, hashFile, lockFileMap, readLock, updateLockFromPaths, writeLock } from "./lock.mjs";
 import { installModule, planModuleInstall } from "./modules.mjs";
 import { loadProfile } from "./profiles.mjs";
+import { mergeManagedContent } from "./init.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -99,7 +100,7 @@ function nextOperatorAction({
   }
 
   if (versionSource.type === "package" && registryVersion?.status === "available") {
-    return `This repo is already planned against ${versionSource.package}@${registryVersion.version}; run harness upgrade apply for supported safe operations.`;
+    return `This repo is already planned against ${versionSource.package}@${registryVersion.version}; run harness upgrade for supported safe operations.`;
   }
 
   if (versionSource.type === "package") {
@@ -146,7 +147,7 @@ function upgradeGuidanceFor({
     operator_workflow: [
       "Update, build, or install the desired harness tool version outside the target repo when needed.",
       "Run harness upgrade --plan inside the target repo with that harness tool.",
-      "Resolve blockers and review-required operations before running harness upgrade apply for supported safe operations.",
+      "Resolve blockers and review-required operations before running harness upgrade for supported safe operations.",
     ],
   };
 }
@@ -261,10 +262,15 @@ function printHelp() {
   console.log(`harness upgrade
 
 Usage:
+  harness upgrade
   harness upgrade --plan
   harness upgrade --plan --json
   harness upgrade plan
   harness upgrade apply
+
+With no subcommand, harness upgrade runs the supported safe apply path. It
+replans first, applies only supported safe operations, and refuses blocked or
+review-required plans.
 
 The apply command is currently limited to safe/noop, safe/refresh-lock,
 deterministic safe/repair-command package-script repairs, and clean
@@ -770,11 +776,29 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
     const state = managedFileState(root, file, lockByPath, loadedLock.status);
     const lockEntry = lockByPath.get(file.path);
     const templateUpdate = templateUpdatePlan({ root, state, lockEntry });
-    managedFiles.push(templateUpdate?.ok ? {
+    let safeTemplateUpdate = templateUpdate;
+    if (templateUpdate?.ok && state.mode === "merge") {
+      const sourcePath = join(SOURCE_ROOT, templateUpdate.source_path);
+      const mergePreview = mergeManagedContent({
+        path: state.path,
+        existingContent: readFileSync(join(root, state.path), "utf8"),
+        incomingContent: existsSync(sourcePath) ? readFileSync(sourcePath, "utf8") : "",
+      });
+      if (!mergePreview.ok) {
+        safeTemplateUpdate = {
+          ...templateUpdate,
+          ok: false,
+          review: true,
+          detail: mergePreview.error,
+        };
+      }
+    }
+
+    managedFiles.push(safeTemplateUpdate?.ok ? {
       ...state,
       status: "template-update-available",
-      detail: `source template changed since installed lock: ${templateUpdate.source_path}`,
-      source_update: templateUpdate,
+      detail: `source template changed since installed lock: ${safeTemplateUpdate.source_path}`,
+      source_update: safeTemplateUpdate,
     } : state);
     if (state.status === "missing") {
       blockers.push(`managed file '${state.path}' is missing`);
@@ -784,22 +808,31 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
         subject: state.path,
         detail: state.detail,
       });
-    } else if (templateUpdate?.ok) {
+    } else if (safeTemplateUpdate?.ok) {
       actions.push(`applicable: update template-backed file ${state.path}`);
       addOperation(operations, {
         code: "safe/update-template-file",
         subject_type: "managed-file",
         subject: state.path,
-        detail: `target file is clean and source template changed: ${templateUpdate.source_path}`,
-        update: templateUpdate,
+        detail: `target file is clean and source template changed: ${safeTemplateUpdate.source_path}`,
+        mode: state.mode,
+        update: safeTemplateUpdate,
       });
-    } else if (templateUpdate && !templateUpdate.ok) {
-      blockers.push(`managed file '${state.path}' cannot be updated: ${templateUpdate.detail}`);
+    } else if (safeTemplateUpdate?.review) {
+      warnings.push(`managed file '${state.path}' needs review before template update: ${safeTemplateUpdate.detail}`);
+      addOperation(operations, {
+        code: "review/template-merge-required",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: safeTemplateUpdate.detail,
+      });
+    } else if (safeTemplateUpdate && !safeTemplateUpdate.ok) {
+      blockers.push(`managed file '${state.path}' cannot be updated: ${safeTemplateUpdate.detail}`);
       addOperation(operations, {
         code: "blocked/source-template-unavailable",
         subject_type: "managed-file",
         subject: state.path,
-        detail: templateUpdate.detail,
+        detail: safeTemplateUpdate.detail,
       });
     } else if (state.status === "present-modified" && state.mode !== "observe") {
       warnings.push(`managed file '${state.path}' differs from lock fingerprint`);
@@ -1140,13 +1173,35 @@ function applyPlan({ root, plan }) {
     preparedTemplateUpdates.push({
       operation,
       update,
-      content: readFileSync(join(SOURCE_ROOT, update.source_path), "utf8"),
+      sourceContent: readFileSync(join(SOURCE_ROOT, update.source_path), "utf8"),
       sourceSha256,
     });
   }
 
   for (const prepared of preparedTemplateUpdates) {
-    writeFileSync(join(root, prepared.update.path), prepared.content);
+    const targetPath = join(root, prepared.update.path);
+    const currentContent = readFileSync(targetPath, "utf8");
+    const nextContent = prepared.operation.mode === "merge"
+      ? mergeManagedContent({
+        path: prepared.update.path,
+        existingContent: currentContent,
+        incomingContent: prepared.sourceContent,
+      })
+      : { ok: true, content: prepared.sourceContent };
+
+    if (!nextContent.ok) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${prepared.operation.code}: ${prepared.update.path}: ${nextContent.error}`],
+      };
+    }
+
+    writeFileSync(targetPath, nextContent.content);
     const loaded = loadManifest(root);
     if (loaded.error) {
       return {
@@ -1310,10 +1365,10 @@ export function runUpgrade({ cwd = process.cwd(), args = [], registryDiscovery =
   const root = resolve(cwd);
   const wantsHelp = args.includes("--help") || args.includes("-h") || args[0] === "help";
   const wantsPlan = args.includes("--plan") || args[0] === "plan";
-  const wantsApply = args[0] === "apply";
+  const wantsApply = args.length === 0 || args[0] === "apply";
   const wantsJson = args.includes("--json");
 
-  if (wantsHelp || args.length === 0) {
+  if (wantsHelp) {
     printHelp();
     return { ok: true };
   }
