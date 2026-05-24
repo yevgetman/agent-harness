@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-05-23
+  updated: 2026-05-24
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -344,18 +344,35 @@ plans_status:
 
     - id: v1.1-cascade-upgrade-apply
       title: Add cascade upgrade apply
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Build the next installed-instance lifecycle increment by making managed-file/template upgrades plan-first and safely applyable for clean cases.
-      next_action: Define and implement the first narrow cascade apply operation set for clean managed-file/template upgrades, reusing lock provenance and refusal semantics for modified or review-required files.
+      summary: The first cascade apply baseline now plans and applies clean module-template managed-file updates while refusing modified or review-required files.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - upgrade
-        - current
+        - complete
       references:
         - design/v1.1-installed-instance-roadmap.md
         - design/v1-upgrade-operation-contract.md
         - decisions/0030-use-harness-source-root-for-template-lock-checks.md
+        - decisions/0031-adopt-safe-template-cascade-apply-baseline.md
+        - status.md
+
+    - id: v1.1-profile-sync
+      title: Add profile sync planning
+      status: active
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Add a read-only profile sync plan so installed targets can inspect whether their active profile modules and retained modules are aligned without switching profiles.
+      next_action: Implement `harness profiles sync --plan [--target <path>] [--json]`, classify missing active-profile modules through existing preflight, and keep apply behavior deferred.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - profiles
+        - current
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-module-profile-installation-design.md
         - status.md

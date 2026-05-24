@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-22
+updated: 2026-05-24
 harness:
   package: portable-harness
   version: 0.1.0
@@ -84,6 +84,7 @@ reading_order:
   - decision-0028
   - decision-0029
   - decision-0030
+  - decision-0031
   - decision-template
   - package
   - harness-cli
@@ -121,7 +122,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, profile switch apply, lock-check provenance, and next cascade-apply work. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, profile switch apply, cascade apply, and next profile-sync work. Not a changelog.
     depends_on:
       - agents
 
@@ -770,6 +771,17 @@ documents:
     depends_on:
       - v1-lock-provenance-design
       - decision-0029
+
+  - doc_id: decision-0031
+    file: decisions/0031-adopt-safe-template-cascade-apply-baseline.md
+    title: Adopt Safe Template Cascade Apply Baseline
+    kind: decision
+    status: active
+    summary: Decision record adopting safe cascade apply for clean template-backed managed files.
+    depends_on:
+      - v1-upgrade-operation-contract
+      - v1-lock-provenance-design
+      - decision-0030
 
   - doc_id: decision-template
     file: templates/decision.md

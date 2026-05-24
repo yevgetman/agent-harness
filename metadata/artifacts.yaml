@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-23
+  updated: 2026-05-24
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -694,6 +694,21 @@ metadata:
         - decision
       depends_on:
         - profile-switch-apply-decision
+        - installed-lock
+
+    - id: template-cascade-apply-decision
+      path: decisions/0031-adopt-safe-template-cascade-apply-baseline.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - upgrade
+        - cascade-apply
+        - templates
+        - decision
+      depends_on:
+        - template-lock-source-root-decision
+        - upgrade-cli
         - installed-lock
 
     - id: v1.1-private-fleet-roadmap-decision

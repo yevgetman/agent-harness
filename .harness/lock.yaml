@@ -1,6 +1,6 @@
 lock:
   version: 1
-  generated_at: 2026-05-23
+  generated_at: 2026-05-24
   package: portable-harness
   harness_version: 0.1.0
   profile: dogfood
@@ -53,7 +53,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 479fc5dd9a8d4aa16cb0c0a5b9fc2a15024eab5bdf91ee47fc6fbbe20ccd4094
+      sha256: b2762a52f1e4f17deff097f2b33553dd88abdf4a940fc59b549aa6b0faac1545
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -77,7 +77,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 07e18be47768ff552b661a38e617f70db4c0487b1e53a871c0a4202f5a18a3be
+      sha256: 8834f0afec2458d1200d9398193f12a75256fdf3fdf3c38a17463e7c2f66e364
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -185,7 +185,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: 6c204fc979e3849fae78d422b7ad50c789e44ad5cfb66f9b87426fb0936535da
+      sha256: decfa644baf17dc12cfa834b8d0ac08aafba3ba7627049c12cf92d39a808ac19
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -207,7 +207,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 44918abb7800d22c33eed5bf40c1bcd08fe636d524f034941d0649d6235e4476
+      sha256: 5c7edbc63820ba63ba26000e2973b357a8e46a19a7c464047876a54da3be2934
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -217,7 +217,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: b4758a20f6547664365ca6cc73d9141214d88704f03260f30fd4b98c4d77dc41
+      sha256: 783cf3eff59eb652314677fce6c93305ef2b883c4bb94712802663edc666bd87
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

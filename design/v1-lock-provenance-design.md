@@ -175,6 +175,9 @@ Operation codes include:
   review accepts current file contents as baseline.
 - `safe/install-module` — a missing active-profile module can be installed
   cleanly through the module-add installer.
+- `safe/update-template-file` — a clean managed file can be replaced with the
+  current source module template when source provenance shows the template
+  changed and the target still matches its lock fingerprint.
 - `review/modified-managed-file` — a managed file differs from its lock
   fingerprint and requires human/agent review before mutation.
 - `review/unlocked-managed-file` — a managed file exists but has no lock entry.
@@ -187,10 +190,14 @@ Operation codes include:
 - `blocked/unrunnable-command` — a manifest command is not runnable.
 - `blocked/install-module-unavailable` — a missing active-profile module cannot
   be installed from available source artifacts.
+- `blocked/source-template-unavailable` — a managed file records source
+  template provenance, but the executing harness source/package cannot find
+  that template.
 - `deferred/installable-module-available` — a registry module is available but
   not installed.
-- `deferred/apply-not-implemented` — full file/template upgrade application is
-  not implemented beyond the explicitly safe apply operations.
+- `deferred/apply-not-implemented` — generated-file, module-definition,
+  merge-aware, and review-mediated file/template application is not
+  implemented beyond the explicitly safe apply operations.
 
 Plans include `operation_summary` with total counts by operation status and by
 operation code. The summary is for quick scanability; individual operation
@@ -218,14 +225,17 @@ It may apply:
   when local prerequisites exist
 - `safe/install-module` by installing clean missing active-profile modules
   through the existing module-add installer
+- `safe/update-template-file` by replacing clean template-backed managed files
+  with the current source template and refreshing lock provenance
 
 It refuses to apply when the plan contains:
 
 - any `blocked/*` operation
 - any `review/*` operation
 
-`deferred/*` operations are skipped and reported. Full file/template upgrade
-application remains deferred.
+`deferred/*` operations are skipped and reported. Generated-file,
+module-definition, merge-aware, and review-mediated file/template application
+remain deferred.
 
 ## Limits
 
@@ -236,7 +246,7 @@ It does not yet:
 - compute semantic diffs
 - identify which human edited a file
 - support remote package provenance
-- apply general file/template upgrades
+- apply generated-file or module-definition upgrades
 - merge local edits into upgraded templates
 
 Those are future depth increments after baseline provenance is dogfooded.

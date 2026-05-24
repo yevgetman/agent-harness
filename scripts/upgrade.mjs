@@ -3,19 +3,20 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import { createLockFromManifest, hashFile, lockFileMap, readLock, writeLock } from "./lock.mjs";
+import { createLockFromManifest, hashFile, lockFileMap, readLock, updateLockFromPaths, writeLock } from "./lock.mjs";
 import { installModule, planModuleInstall } from "./modules.mjs";
 import { loadProfile } from "./profiles.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
 const PLAN_SCHEMA_VERSION = 1;
-const OPERATION_CONTRACT_VERSION = 2;
+const OPERATION_CONTRACT_VERSION = 3;
 const SAFE_APPLY_CODES = new Set([
   "safe/noop",
   "safe/refresh-lock",
   "safe/repair-command",
   "safe/install-module",
+  "safe/update-template-file",
 ]);
 
 function readJsonFile(path) {
@@ -267,8 +268,8 @@ Usage:
 
 The apply command is currently limited to safe/noop, safe/refresh-lock,
 deterministic safe/repair-command package-script repairs, and clean
-safe/install-module profile-module installs. It refuses blocked and
-review-required plans.
+safe/install-module profile-module installs, and clean source-template file
+updates. It refuses blocked and review-required plans.
 `);
 }
 
@@ -461,6 +462,35 @@ function managedFileState(root, file, lockByPath, lockStatus) {
     mode: file.mode ?? "unknown",
     status,
     detail,
+  };
+}
+
+function templateUpdatePlan({ root, state, lockEntry }) {
+  if (state.status !== "present-clean") return null;
+  if (lockEntry?.source_kind !== "module-template") return null;
+  if (!lockEntry.source_path || !lockEntry.source_sha256) return null;
+
+  const sourcePath = lockEntry.source_path;
+  const fullSourcePath = join(SOURCE_ROOT, sourcePath);
+  if (!existsSync(fullSourcePath)) {
+    return {
+      ok: false,
+      path: state.path,
+      detail: `${sourcePath}: source template missing`,
+    };
+  }
+
+  const sourceSha256 = hashFile(SOURCE_ROOT, sourcePath);
+  if (sourceSha256 === lockEntry.source_sha256) return null;
+
+  return {
+    ok: true,
+    path: state.path,
+    source: lockEntry.source ?? "module-template",
+    source_kind: lockEntry.source_kind,
+    source_path: sourcePath,
+    from_source_sha256: lockEntry.source_sha256,
+    to_source_sha256: sourceSha256,
   };
 }
 
@@ -738,7 +768,14 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
 
   for (const file of harness.managed_files ?? []) {
     const state = managedFileState(root, file, lockByPath, loadedLock.status);
-    managedFiles.push(state);
+    const lockEntry = lockByPath.get(file.path);
+    const templateUpdate = templateUpdatePlan({ root, state, lockEntry });
+    managedFiles.push(templateUpdate?.ok ? {
+      ...state,
+      status: "template-update-available",
+      detail: `source template changed since installed lock: ${templateUpdate.source_path}`,
+      source_update: templateUpdate,
+    } : state);
     if (state.status === "missing") {
       blockers.push(`managed file '${state.path}' is missing`);
       addOperation(operations, {
@@ -746,6 +783,23 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
         subject_type: "managed-file",
         subject: state.path,
         detail: state.detail,
+      });
+    } else if (templateUpdate?.ok) {
+      actions.push(`applicable: update template-backed file ${state.path}`);
+      addOperation(operations, {
+        code: "safe/update-template-file",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: `target file is clean and source template changed: ${templateUpdate.source_path}`,
+        update: templateUpdate,
+      });
+    } else if (templateUpdate && !templateUpdate.ok) {
+      blockers.push(`managed file '${state.path}' cannot be updated: ${templateUpdate.detail}`);
+      addOperation(operations, {
+        code: "blocked/source-template-unavailable",
+        subject_type: "managed-file",
+        subject: state.path,
+        detail: templateUpdate.detail,
       });
     } else if (state.status === "present-modified" && state.mode !== "observe") {
       warnings.push(`managed file '${state.path}' differs from lock fingerprint`);
@@ -817,7 +871,7 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
     }
   }
 
-  notes.push("apply is limited to safe/noop, safe/refresh-lock, safe/repair-command, and profile-bounded safe/install-module operations");
+  notes.push("apply is limited to safe/noop, safe/refresh-lock, safe/repair-command, profile-bounded safe/install-module, and clean safe/update-template-file operations");
   if (activeProfile.error) {
     notes.push(`active source profile could not be loaded; profile-bounded module apply is unavailable: ${activeProfile.error}`);
   }
@@ -842,7 +896,7 @@ function buildPlan({ root, registryDiscovery = discoverNpmRegistryVersion }) {
     code: "deferred/apply-not-implemented",
     subject_type: "upgrade-apply",
     subject: "harness upgrade apply",
-    detail: "full file/template upgrade apply is not implemented; limited safe apply is available",
+    detail: "generated-file, module-definition, merge-aware, and review-mediated file/template apply is not implemented; limited safe apply is available",
   });
 
   const upgradeGuidance = upgradeGuidanceFor({
@@ -1002,6 +1056,123 @@ function applyPlan({ root, plan }) {
     } else {
       applied.push(`safe/repair-command: package script ${repair.script} already present`);
     }
+  }
+
+  const templateUpdates = plan.operations.filter((operation) => operation.code === "safe/update-template-file");
+  const preparedTemplateUpdates = [];
+  for (const operation of templateUpdates) {
+    const update = operation.update;
+    if (!update?.path || !update.source_path || !update.to_source_sha256) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: unsupported update payload for ${operation.subject}`],
+      };
+    }
+
+    const targetPath = join(root, update.path);
+    if (!existsSync(targetPath)) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: ${update.path}: target file is missing`],
+      };
+    }
+
+    const lockEntry = lockFileMap(readLock(root).lock).get(update.path);
+    if (!lockEntry?.sha256) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: ${update.path}: lock entry is missing`],
+      };
+    }
+
+    if (hashFile(root, update.path) !== lockEntry.sha256) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: ${update.path}: target file changed since plan`],
+      };
+    }
+
+    if (!existsSync(join(SOURCE_ROOT, update.source_path))) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: ${update.source_path}: source template missing`],
+      };
+    }
+
+    const sourceSha256 = hashFile(SOURCE_ROOT, update.source_path);
+    if (sourceSha256 !== update.to_source_sha256) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [`${operation.code}: ${update.source_path}: source template changed since plan`],
+      };
+    }
+
+    preparedTemplateUpdates.push({
+      operation,
+      update,
+      content: readFileSync(join(SOURCE_ROOT, update.source_path), "utf8"),
+      sourceSha256,
+    });
+  }
+
+  for (const prepared of preparedTemplateUpdates) {
+    writeFileSync(join(root, prepared.update.path), prepared.content);
+    const loaded = loadManifest(root);
+    if (loaded.error) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped: plan.operations.filter((item) => item.status === "deferred"),
+        blockers,
+        reviews,
+        errors: [loaded.error],
+      };
+    }
+    updateLockFromPaths({
+      root,
+      harness: loaded.harness,
+      paths: [prepared.update.path],
+      generatedAt: new Date().toISOString().slice(0, 10),
+      sourceByPath: {
+        [prepared.update.path]: {
+          source: prepared.update.source ?? "module-template",
+          source_path: prepared.update.source_path,
+          source_sha256: prepared.sourceSha256,
+        },
+      },
+    });
+    applied.push(`safe/update-template-file: ${prepared.update.path}`);
   }
 
   const refreshLock = plan.operations.some((operation) => operation.code === "safe/refresh-lock");

@@ -227,7 +227,8 @@ Initial checks:
 - Manifest command records may expose `harness upgrade apply`; the apply
   surface permits safe/noop, safe/refresh-lock, deterministic
   safe/repair-command operations, and clean profile-bounded
-  safe/install-module operations.
+  safe/install-module operations, plus clean source-template managed-file
+  updates.
 - Manifest commands are wired when the target repo exposes local package
   scripts or node entrypoints.
 - `index.yaml` document entries point to real files.

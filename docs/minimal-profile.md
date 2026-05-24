@@ -83,7 +83,9 @@ harness upgrade apply
 
 The apply surface handles `safe/noop`, `safe/refresh-lock`, deterministic
 `safe/repair-command` operations, and clean profile-bounded
-`safe/install-module` operations. It refuses blocked or review-required plans.
+`safe/install-module` operations. It also handles clean
+`safe/update-template-file` operations for template-backed managed files whose
+source template changed. It refuses blocked or review-required plans.
 
 ## Lock Maintenance
 

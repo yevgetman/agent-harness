@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-05-23
+Last updated: 2026-05-24
 
 ## Current Phase
 
@@ -27,9 +27,9 @@ flow. The first profile-switching increment added
 apply for clean plans (`harness profiles switch <profile> --apply`), which
 installs required modules, updates the manifest profile only after installs
 succeed, refreshes lock provenance, retains modules outside the requested
-profile, and refuses review-required or blocked plans. The next v1.1 build
-step is cascade apply for managed-file/template upgrades, using the now-clean
-profile switch apply and lock-check provenance baseline.
+profile, and refuses review-required or blocked plans. The first cascade
+apply baseline now handles clean module-template managed-file updates through
+`harness upgrade apply`. The next v1.1 build step is profile sync planning.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -50,10 +50,11 @@ command, and doctor validation. Baseline installed-file provenance exists via
 doctor checks, semantic lock metadata, lock-aware upgrade planning with typed
 operation records, JSON plans, operation summaries, and a limited safe
 `harness upgrade apply` surface. The first post-v1 upgrade-apply increment is
-implemented: upgrade plans now emit operation contract version 2 and
+implemented: upgrade plans now emit operation contract version 3,
 profile-bounded `safe/install-module` operations for clean missing active
-profile modules, while optional registry modules remain deferred and
-collisions remain review-required. The second post-v1 increment adds
+profile modules, and `safe/update-template-file` operations for clean
+outdated module-template managed files, while optional registry modules remain
+deferred and collisions remain review-required. The second post-v1 increment adds
 `harness profiles inspect <profile> [--target <path>] [--json]` for read-only
 profile module, target-state, and module-install preflight inspection before
 profile switching. The first profile-switching increment adds
@@ -72,9 +73,10 @@ Local packed-package distribution smoke, explicit npm
 package-boundary validation, release preflight planning, registry version
 discovery, external-target smoke, forceable external-smoke init, guarded
 publish planning, and named real-repo smoke exist. Npm publication and the
-release-license decision are intentionally deferred. General human-facing
-file/template upgrade apply, deeper installed-instance cascade apply, profile
-sync, profile removal, and non-npm distribution do not exist yet. The
+release-license decision are intentionally deferred. General generated-file,
+module-definition, merge-aware, and review-mediated file/template upgrade
+apply, profile sync, profile removal, and non-npm distribution do not exist
+yet. The
 `lock-source-sha-drift-on-module-install` open question is resolved: lock
 refresh/check now resolves template source fingerprints from the executing
 harness source/package root, and composed apply commands keep JSON output
@@ -235,12 +237,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   unlocked, and missing managed files.
 - `npm run upgrade:plan` now emits operation records such as `safe/noop`,
   `safe/refresh-lock`, profile-bounded `safe/install-module`,
+  `safe/update-template-file`,
   `review/modified-managed-file`, `review/install-module-collision`,
   `blocked/missing-managed-file`, and `deferred/apply-not-implemented`.
 - `npm run upgrade:apply` permits `safe/noop`, `safe/refresh-lock`,
-  deterministic `safe/repair-command`, and clean profile-bounded
-  `safe/install-module` operations, while refusing blocked or review-required
-  plans.
+  deterministic `safe/repair-command`, clean profile-bounded
+  `safe/install-module`, and clean `safe/update-template-file` operations
+  while refusing blocked or review-required plans.
 - Lock entries now preserve semantic provenance fields including
   `artifact_role`, `owner_type`, `module_id`, `merge_strategy`, `source_kind`,
   optional `source_path`, and optional `source_sha256`.
@@ -397,6 +400,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0024-adopt-profile-bounded-safe-module-install-apply.md` —
   decision record for operation contract version 2 and clean active-profile
   module installs through `harness upgrade apply`.
+- `decisions/0031-adopt-safe-template-cascade-apply-baseline.md` — decision
+  record for operation contract version 3 and clean module-template cascade
+  apply.
 - `decisions/0025-adopt-profile-inspection-before-profile-switching.md` —
   decision record for adding read-only profile inspection before profile
   switching.
@@ -431,11 +437,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Proceed to repo-local cascade upgrade apply for managed-file/template
-  upgrades now that profile switch apply and template source lock checks are
-  working.
-- After cascade apply, continue with profile sync and the remaining
-  process-domain baselines.
+- Proceed to profile sync planning now that the first clean template cascade
+  apply baseline is working.
+- After profile sync, pause before adding the remaining process-domain
+  baselines.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

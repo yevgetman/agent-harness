@@ -1,7 +1,7 @@
 # Formal Design: V1 Upgrade Operation Contract
 
 **Status:** accepted baseline  
-**Date:** 2026-05-14; amended 2026-05-17
+**Date:** 2026-05-14; amended 2026-05-17 and 2026-05-24
 **Scope:** upgrade-plan schema, operation classes, apply safety, and narrow
 repair behavior
 
@@ -116,6 +116,9 @@ Apply-enabled:
 - `safe/install-module`: install a missing module required by the target's
   active source profile when module-add preflight finds no artifact or command
   collisions.
+- `safe/update-template-file`: replace a clean managed file with the current
+  source module template when the target still matches its lock fingerprint and
+  the source template fingerprint has changed.
 
 Review-only:
 
@@ -136,6 +139,7 @@ Blocked:
 - `blocked/unsupported-upgrade-policy`
 - `blocked/unrunnable-command`
 - `blocked/install-module-unavailable`
+- `blocked/source-template-unavailable`
 
 Deferred:
 
@@ -197,6 +201,29 @@ unavailable, the planner emits `blocked/install-module-unavailable`.
 Apply reuses the existing module-add installer rather than introducing a
 second module installation implementation.
 
+## Safe Template File Update
+
+`safe/update-template-file` is the first cascade apply operation for
+source-backed managed files.
+
+It can update a managed file only when all of the following are true:
+
+- the file exists in the target repo;
+- the file matches its current lock fingerprint;
+- the lock entry records `source_kind: module-template`;
+- the source template path exists in the executing harness source/package; and
+- the current source template fingerprint differs from the installed
+  `source_sha256`.
+
+Apply rechecks both the target file fingerprint and the source template
+fingerprint before writing. If either changed since planning, apply refuses.
+After writing the current source template into the target repo, apply refreshes
+that file's lock entry with the new installed fingerprint and source
+fingerprint.
+
+Modified target files remain `review/modified-managed-file`; this operation
+does not merge local edits.
+
 ## Semantic Provenance
 
 The lock file now records semantic file metadata in addition to hashes:
@@ -220,6 +247,7 @@ This contract does not yet define:
 - semantic diffs for human-facing documents.
 - template merge application.
 - module profile switching.
+- module-definition cascade apply.
 - remote package discovery.
 - automatic installation of registry modules that are not in the active
   profile.

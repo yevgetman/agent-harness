@@ -20,7 +20,7 @@ import { runDistribution } from "./distribution.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runInit } from "./init.mjs";
-import { runLock } from "./lock.mjs";
+import { runLock, sha256 } from "./lock.mjs";
 import { runMetadata } from "./metadata.mjs";
 import { runModules } from "./modules.mjs";
 import { runPlans } from "./plans.mjs";
@@ -78,6 +78,19 @@ function setManifestProfile(root, profile) {
   const manifest = parseYaml(readFileSync(manifestPath, "utf8"));
   manifest.harness.profile = profile;
   writeFileSync(manifestPath, stringifyYaml(manifest));
+}
+
+function simulateOutdatedTemplate({ root, path, sourcePath, oldContent }) {
+  writeFileSync(join(root, path), oldContent);
+  const lock = readLock(root);
+  const entry = lock.files.find((file) => file.path === path);
+  assert.equal(Boolean(entry), true, `${path} should have a lock entry`);
+  entry.sha256 = sha256(oldContent);
+  entry.source = "module-template";
+  entry.source_kind = "module-template";
+  entry.source_path = sourcePath;
+  entry.source_sha256 = sha256(`old source for ${path}\n`);
+  writeLock(root, lock);
 }
 
 function hasOperation(plan, code, subject = null) {
@@ -333,7 +346,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.plan_schema_version, 1, "upgrade plan should expose a schema version");
   assert.equal(
     upgrade.plan.operation_contract_version,
-    2,
+    3,
     "upgrade plan should expose an operation contract version",
   );
   assert.equal(upgrade.plan.version_source.type, "package", "upgrade plan should report package version source for initialized targets");
@@ -676,6 +689,111 @@ withTempDir((root) => {
 
   const doctor = quiet(() => runDoctor({ cwd: target }));
   assert.equal(doctor.ok, true, "doctor should pass after profile-bounded module apply");
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "dogfood"],
+  }));
+  assert.equal(init.ok, true, "dogfood init should pass before template cascade apply");
+
+  const sourcePath = "modules/decisions-open-questions/templates/open-questions.yaml";
+  const targetPath = "open-questions.yaml";
+  const oldContent = "# Harness open questions.\n# old installed template\n";
+  simulateOutdatedTemplate({ root: target, path: targetPath, sourcePath, oldContent });
+
+  const plan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(plan.ok, true, "upgrade --plan should pass before template cascade apply");
+  assert.equal(plan.plan.blockers.length, 0, "template cascade plan should have no blockers");
+  assert.equal(plan.plan.warnings.length, 0, "template cascade plan should have no warnings for clean files");
+  assert.equal(
+    hasOperation(plan.plan, "safe/update-template-file", targetPath),
+    true,
+    "upgrade --plan should classify clean outdated templates as safe updates",
+  );
+  assert.equal(
+    plan.plan.managed_files.find((file) => file.path === targetPath)?.status,
+    "template-update-available",
+    "upgrade --plan should report template update file state",
+  );
+
+  const apply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
+  assert.equal(apply.ok, true, "upgrade apply should apply clean template updates");
+  assert.equal(
+    apply.apply.applied.some((item) => item.includes(`safe/update-template-file: ${targetPath}`)),
+    true,
+    "upgrade apply should report template update application",
+  );
+  assert.equal(
+    readFileSync(join(target, targetPath), "utf8"),
+    readFileSync(join(REPO_ROOT, sourcePath), "utf8"),
+    "upgrade apply should replace clean outdated template content with current source template",
+  );
+  const lock = readLock(target);
+  const entry = lock.files.find((file) => file.path === targetPath);
+  assert.equal(
+    entry.sha256,
+    sha256(readFileSync(join(REPO_ROOT, sourcePath), "utf8")),
+    "template apply should refresh installed file fingerprint",
+  );
+  assert.equal(
+    entry.source_sha256,
+    sha256(readFileSync(join(REPO_ROOT, sourcePath), "utf8")),
+    "template apply should refresh source fingerprint",
+  );
+
+  const lockCheck = quiet(() => runLock({ cwd: root, args: ["check", "--target", target] }));
+  assert.equal(lockCheck.ok, true, "lock check should pass after template cascade apply");
+
+  const after = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(
+    hasOperation(after.plan, "safe/update-template-file", targetPath),
+    false,
+    "upgrade --plan should not keep reporting template updates after apply",
+  );
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "dogfood"],
+  }));
+  assert.equal(init.ok, true, "dogfood init should pass before modified template cascade refusal");
+
+  const sourcePath = "modules/decisions-open-questions/templates/open-questions.yaml";
+  const targetPath = "open-questions.yaml";
+  simulateOutdatedTemplate({
+    root: target,
+    path: targetPath,
+    sourcePath,
+    oldContent: "# Harness open questions.\n# old installed template\n",
+  });
+  writeFileSync(join(target, targetPath), "# local edit after install\n");
+
+  const plan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(
+    hasOperation(plan.plan, "review/modified-managed-file", targetPath),
+    true,
+    "upgrade --plan should require review for locally modified templates",
+  );
+  assert.equal(
+    hasOperation(plan.plan, "safe/update-template-file", targetPath),
+    false,
+    "upgrade --plan should not classify modified templates as safe updates",
+  );
+
+  const apply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
+  assert.equal(apply.ok, false, "upgrade apply should refuse modified template cascade plans");
+  assert.match(
+    readFileSync(join(target, targetPath), "utf8"),
+    /local edit/,
+    "upgrade apply should not overwrite locally modified template content",
+  );
 });
 
 withTempDir((root) => {

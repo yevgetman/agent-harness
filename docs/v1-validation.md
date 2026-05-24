@@ -31,7 +31,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
-| Safe upgrade apply | Apply permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, and post-v1 profile-bounded safe/install-module operations. | `npm test` covers safe apply, clean profile module install, blocked plans, and review-required refusal. |
+| Safe upgrade apply | Apply permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and clean safe/update-template-file operations. | `npm test` covers safe apply, clean profile module install, clean template cascade apply, blocked plans, and review-required refusal. |
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
 | Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. | `npm run distribution:smoke`. |
 | External target smoke | A caller-supplied git target is copied into the smoke workspace and validated without mutating the source repo. | `npm test` and `node scripts/harness.mjs distribution smoke --target <path> --profile minimal --force`. |
@@ -105,13 +105,19 @@ V1 does not include:
 
 ## Post-V1 Extensions
 
-The first post-v1 upgrade-apply increment is implemented.
+The first post-v1 upgrade-apply increments are implemented.
 
-`harness upgrade --plan` now emits operation contract version 2. Missing
+`harness upgrade --plan` now emits operation contract version 3. Missing
 modules that are required by the target's active profile and pass the same
 collision preflight as `harness modules add` are classified as
 `safe/install-module`. `harness upgrade apply` installs those modules through
 the existing module-add path.
+
+Clean module-template managed files whose source template changed are
+classified as `safe/update-template-file`. `harness upgrade apply` rechecks
+the target lock fingerprint and source template fingerprint, writes the
+current template only when both are still safe, and refreshes the file's lock
+provenance.
 
 Registry modules that are merely available, but not part of the active
 profile, remain `deferred/installable-module-available`. Existing artifact or
@@ -168,11 +174,10 @@ source fingerprints are checked against the executing harness source/package.
 
 The strongest remaining v1.1 candidates are:
 
-1. Broaden human-facing file/template upgrade planning while preserving review
-   boundaries.
-2. Add stronger repo-local cascade upgrade planning and safe apply.
-3. Add profile sync for installed targets.
-4. Add remaining process-domain baselines.
+1. Add profile sync for installed targets.
+2. Broaden generated-file, module-definition, merge-aware, and
+   review-mediated file/template upgrades while preserving review boundaries.
+3. Add remaining process-domain baselines.
 
 Public publication remains deferred unless a new decision intentionally resumes
 release work.

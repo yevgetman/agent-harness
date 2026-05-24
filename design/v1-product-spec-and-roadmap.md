@@ -291,6 +291,9 @@ Initial behavior:
 - `harness upgrade apply` handles safe/noop, safe/refresh-lock,
   deterministic package-script command repair, and post-v1 clean
   active-profile module installs.
+- `harness upgrade apply` handles the first v1.1 clean cascade case:
+  source-template updates for managed files that still match their lock
+  fingerprint.
 - `.harness/lock.yaml` records semantic file provenance such as artifact role,
   owner type, module id, merge strategy, source kind, source path, and source
   fingerprint.

@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-23
+generated_on: 2026-05-24
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -125,8 +125,10 @@ Current dogfood state:
   `harness upgrade --plan --json` is the stable machine-readable plan output.
 - The first post-v1 apply expansion exists as `npm run upgrade:apply`; it
   permits safe/noop, safe/refresh-lock, deterministic safe/repair-command, and
-  clean profile-bounded safe/install-module operations. Optional registry
-  modules remain deferred, and blocked or review-required plans are refused.
+  clean profile-bounded safe/install-module operations. The first cascade
+  apply baseline adds clean safe/update-template-file operations for
+  template-backed managed files. Optional registry modules remain deferred,
+  and blocked or review-required plans are refused.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
   add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
@@ -200,9 +202,9 @@ Then open the relevant formal design or exploratory spec for the task.
 ## Near-term work
 
 The first v1.1 installed-instance upgrade-contract increment, profile switch
-planning, safe profile switch apply, and template source lock-check correction
-are implemented. The next useful step is repo-local cascade upgrade apply for
-managed-file/template upgrades.
+planning, safe profile switch apply, template source lock-check correction, and
+clean template cascade apply baseline are implemented. The next useful step is
+profile sync planning.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -231,6 +233,6 @@ machinery, but public release is not the current product priority.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: add repo-local cascade upgrade apply, then continue with profile
-  sync and the remaining process-domain baselines.
+- Next work: add profile sync planning, then pause before the remaining
+  process-domain baselines.
 - Keep `status.md` current after significant choices.
