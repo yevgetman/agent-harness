@@ -29,7 +29,9 @@ installs required modules, updates the manifest profile only after installs
 succeed, refreshes lock provenance, retains modules outside the requested
 profile, and refuses review-required or blocked plans. The first cascade
 apply baseline now handles clean module-template managed-file updates through
-`harness upgrade apply`. The next v1.1 build step is profile sync planning.
+`harness upgrade apply`. Profile sync planning now exists through
+`harness profiles sync --plan`. The next v1.1 build step is process-domain
+breadth, paused for operator confirmation.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -41,8 +43,9 @@ first module/profile installation surface exists through `modules/registry.yaml`
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
 `harness profiles list`, `harness profiles inspect <profile>`,
 `harness profiles switch <profile> --plan`,
-`harness profiles switch <profile> --apply`, and profile-backed
-`harness init --profile <profile>`, with broad temp-target tests. Decisions And
+`harness profiles switch <profile> --apply`,
+`harness profiles sync --plan`, and profile-backed init, with broad
+temp-target tests. Decisions And
 Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
 command, and doctor validation. Baseline installed-file provenance exists via
@@ -69,14 +72,20 @@ pre-checks every required install before any write, installs each clean module
 through the existing module-add installer, updates the manifest profile only
 after installs succeed, refreshes lock provenance for the manifest, and
 records retained modules as `deferred/profile-module-retained` skips.
+Profile sync planning now adds
+`harness profiles sync --plan [--target <path>] [--json]` for read-only active
+profile alignment checks: it loads the target's manifest profile, classifies
+installed, clean missing, review-required, and blocked active-profile modules,
+reports retained modules outside the active profile, and records sync apply as
+deferred.
 Local packed-package distribution smoke, explicit npm
 package-boundary validation, release preflight planning, registry version
 discovery, external-target smoke, forceable external-smoke init, guarded
 publish planning, and named real-repo smoke exist. Npm publication and the
 release-license decision are intentionally deferred. General generated-file,
 module-definition, merge-aware, and review-mediated file/template upgrade
-apply, profile sync, profile removal, and non-npm distribution do not exist
-yet. The
+apply, profile sync apply, profile removal, and non-npm distribution do not
+exist yet. The
 `lock-source-sha-drift-on-module-install` open question is resolved: lock
 refresh/check now resolves template source fingerprints from the executing
 harness source/package root, and composed apply commands keep JSON output
@@ -179,6 +188,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   clean-install, review-required, blocked, or not-inspected.
 - `npm run profiles:switch -- <profile> --plan` plans a profile switch for an
   installed target without writing files.
+- `npm run profiles:sync -- --plan` plans active-profile alignment for an
+  installed target without writing files.
 - `npm run doctor` is the first Mechanical Validation surface; it validates
   installed harness health plus Decisions And Open Questions shape when that
   module is installed.
@@ -187,8 +198,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   `status.md`, `index.yaml`, `state/CONTEXT.md`, `.harness/manifest.yaml`, and
   the two initial module definitions.
 - `npm test` covers minimal init, doctor success, overwrite refusal,
-  `--force`, unsupported profile failure, profile inspection, decisions/questions,
-  upgrade-plan scenarios, and module list/add scenarios.
+  `--force`, unsupported profile failure, profile inspection, profile switch
+  plan/apply, profile sync planning, decisions/questions, upgrade-plan
+  scenarios, and module list/add scenarios.
 - `npm run decisions:new -- "<title>"` creates the next decision record under
   `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
@@ -400,9 +412,6 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 - `decisions/0024-adopt-profile-bounded-safe-module-install-apply.md` —
   decision record for operation contract version 2 and clean active-profile
   module installs through `harness upgrade apply`.
-- `decisions/0031-adopt-safe-template-cascade-apply-baseline.md` — decision
-  record for operation contract version 3 and clean module-template cascade
-  apply.
 - `decisions/0025-adopt-profile-inspection-before-profile-switching.md` —
   decision record for adding read-only profile inspection before profile
   switching.
@@ -410,6 +419,18 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   record for the superseded private fleet and cascading-upgrade roadmap.
 - `decisions/0027-adopt-standalone-installed-instance-upgrade-model.md` —
   decision record for adopting the standalone installed-instance upgrade model.
+- `decisions/0028-adopt-plan-first-profile-switch-planning.md` — decision
+  record for adding read-only profile switch planning.
+- `decisions/0029-adopt-safe-profile-switch-apply.md` — decision record for
+  adding safe profile switch apply for clean plans.
+- `decisions/0030-use-harness-source-root-for-template-lock-checks.md` —
+  decision record for checking template source locks against the executing
+  harness source root.
+- `decisions/0031-adopt-safe-template-cascade-apply-baseline.md` — decision
+  record for operation contract version 3 and clean module-template cascade
+  apply.
+- `decisions/0032-adopt-plan-first-profile-sync-planning.md` — decision record
+  for adding read-only active-profile sync planning.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
@@ -437,10 +458,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
 
 ## Next Work
 
-- Proceed to profile sync planning now that the first clean template cascade
-  apply baseline is working.
-- After profile sync, pause before adding the remaining process-domain
-  baselines.
+- Pause before starting the next process-domain breadth increment.
+- The next likely breadth unit is one of the remaining process-domain baselines
+  from `design/v1.1-installed-instance-roadmap.md`.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

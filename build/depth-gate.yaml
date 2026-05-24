@@ -816,9 +816,9 @@ build_strategy:
             - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:release-plan, npm run distribution:smoke, and npm test pass against the dogfood repo.
 
   current_depth_pass:
-    id: v1.1-template-cascade-apply
+    id: v1.1-profile-sync-planning
     breadth_unit: >
-      Add safe cascade apply for clean template-backed managed files.
+      Add read-only active-profile sync planning for installed targets.
     status: complete
     completed_on: 2026-05-24
     ready_for_next_breadth: true
@@ -826,36 +826,38 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - harness upgrade --plan emits safe/update-template-file for clean outdated module-template managed files.
-          - harness upgrade apply rechecks target and source fingerprints before writing template updates.
-          - Applied template updates refresh installed-file and source-template lock provenance.
-          - Modified managed files remain review-required and are not overwritten.
+          - harness profiles sync --plan reads the target manifest active profile.
+          - Sync planning reuses module-add preflight for active-profile modules.
+          - Installed active-profile modules are safe/sync-module-present.
+          - Clean missing active-profile modules are safe/sync-module-install.
+          - Sync planning reports retained modules outside the active profile.
       - id: validation
         status: satisfied
         evidence:
-          - Operation contract version 3 includes safe/update-template-file.
-          - Apply refuses stale or locally modified template update plans.
-          - Lock check passes after clean template cascade apply.
-          - Existing safe/noop, safe/refresh-lock, safe/repair-command, and safe/install-module behavior is preserved.
+          - Sync is plan-only and emits deferred/sync-apply-not-implemented.
+          - Sync refuses explicit profile arguments so it cannot accidentally switch profiles.
+          - Collision states are review/sync-module-install-collision.
+          - Missing active-profile modules do not mutate the target during planning.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers clean template cascade planning and apply.
-          - npm test covers modified template refusal.
-          - npm test verifies lock provenance after template cascade apply.
-          - npm test preserves profile switch and module apply coverage.
+          - npm test covers in-sync minimal targets.
+          - npm test covers in-sync dogfood targets.
+          - npm test covers clean missing active-profile modules.
+          - npm test covers profile sync JSON output.
+          - npm test covers sync collision review and required --plan behavior.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0031-adopt-safe-template-cascade-apply-baseline.md records the cascade apply decision.
-          - design/v1-upgrade-operation-contract.md defines safe/update-template-file.
-          - design/v1-lock-provenance-design.md describes clean template cascade apply.
-          - design/v1.1-installed-instance-roadmap.md records profile sync as the next recommended increment.
+          - decisions/0032-adopt-plan-first-profile-sync-planning.md records the sync planning decision.
+          - design/v1-module-profile-installation-design.md defines profile sync planning.
+          - design/v1.1-installed-instance-roadmap.md records profile sync as built and process-domain breadth as next.
+          - docs/v1-validation.md includes profile sync in the validation matrix and closeout command set.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood repo's upgrade plan remains clean after adding cascade apply.
-          - npm run lock:check validates refreshed source-template provenance.
-          - Temp-target tests exercise installed dogfood profile template cascade apply.
-          - The next breadth unit is profile sync planning.
+          - npm run profiles:sync -- --plan reports the dogfood target in sync.
+          - The dogfood manifest exposes profiles-sync.
+          - Temp-target tests exercise profile sync against minimal and dogfood installs.
+          - User requested a pause before starting process-domain breadth.

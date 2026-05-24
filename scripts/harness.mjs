@@ -29,6 +29,7 @@ Usage:
   harness profiles list
   harness profiles inspect <profile>
   harness profiles switch <profile> --plan
+  harness profiles sync --plan
   harness metadata list
   harness metadata check
   harness metadata report

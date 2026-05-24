@@ -157,6 +157,12 @@ Current dogfood state:
   missing profile modules, updates the manifest profile only after installs
   succeed, refreshes manifest lock provenance, and retains modules outside the
   requested profile.
+- Profile sync planning exists via
+  `harness profiles sync --plan [--target <path>] [--json]`. It reads the
+  target manifest's active profile, reuses module-add preflight, reports
+  installed and clean missing active-profile modules, classifies collisions and
+  blockers, retains modules outside the active profile, and keeps sync apply
+  deferred.
 - `decisions-open-questions` is mechanically installable from the registry into
   a minimal target, and the broad temp-git test matrix now covers clean install,
   collisions, force install, missing source artifacts, doctor, and upgrade
@@ -202,9 +208,10 @@ Then open the relevant formal design or exploratory spec for the task.
 ## Near-term work
 
 The first v1.1 installed-instance upgrade-contract increment, profile switch
-planning, safe profile switch apply, template source lock-check correction, and
-clean template cascade apply baseline are implemented. The next useful step is
-profile sync planning.
+planning, safe profile switch apply, template source lock-check correction,
+clean template cascade apply baseline, and profile sync planning are
+implemented. The next useful step is remaining process-domain breadth, paused
+for operator confirmation.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -233,6 +240,5 @@ machinery, but public release is not the current product priority.
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: add profile sync planning, then pause before the remaining
-  process-domain baselines.
+- Next work: pause before the remaining process-domain baselines.
 - Keep `status.md` current after significant choices.

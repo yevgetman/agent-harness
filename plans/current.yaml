@@ -362,17 +362,36 @@ plans_status:
 
     - id: v1.1-profile-sync
       title: Add profile sync planning
-      status: active
+      status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: Add a read-only profile sync plan so installed targets can inspect whether their active profile modules and retained modules are aligned without switching profiles.
-      next_action: Implement `harness profiles sync --plan [--target <path>] [--json]`, classify missing active-profile modules through existing preflight, and keep apply behavior deferred.
+      summary: Read-only profile sync planning now lets installed targets inspect whether their active profile modules and retained modules are aligned without switching profiles.
+      next_action: Pause before starting the next process-domain breadth increment.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - profiles
-        - current
+        - complete
       references:
         - design/v1.1-installed-instance-roadmap.md
         - design/v1-module-profile-installation-design.md
+        - decisions/0032-adopt-plan-first-profile-sync-planning.md
+        - scripts/profiles.mjs
+        - status.md
+
+    - id: v1.1-process-domain-breadth
+      title: Add next process-domain baseline
+      status: planned
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: The next breadth step is one of the remaining v1.1 process-domain baselines, but implementation is paused for operator confirmation.
+      next_action: Select the next process domain from `design/v1.1-installed-instance-roadmap.md` before implementing.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - process-domain
+        - planned
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-process-domain-design.md
         - status.md

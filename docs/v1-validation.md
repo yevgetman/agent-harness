@@ -27,7 +27,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
 | Minimal profile install | `harness init --profile minimal` installs operating contract, status, index, context, manifest, lock, and bootstrap module definitions. | `npm test` covers fresh git-target init, doctor, upgrade plan, dry-run collisions, and force overwrite. |
 | Force init contract | Normal init warns/refuses when planned artifacts exist; `--force` definitively overwrites planned harness artifacts. | `npm test` covers warnings, collision reporting, and overwrite of an existing `AGENTS.md`. |
-| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, and safely apply-switchable for clean plans; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- dogfood`, `npm run profiles:switch -- dogfood --plan`, `npm run profiles:switch -- dogfood --apply`, and `npm run modules:list`. |
+| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- dogfood`, `npm run profiles:switch -- dogfood --plan`, `npm run profiles:switch -- dogfood --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
@@ -54,6 +54,7 @@ npm test
 npm run profiles:list
 npm run profiles:inspect -- dogfood
 npm run profiles:switch -- dogfood --plan
+npm run profiles:sync -- --plan
 npm run metadata:check
 npm run state:check
 npm run invariants:check
@@ -161,6 +162,18 @@ refreshes lock provenance for `.harness/manifest.yaml`. Modules outside the
 requested profile are recorded as `deferred/profile-module-retained` skips and
 never uninstalled. `safe/profile-noop` plans succeed as noops.
 
+The first v1.1 profile-sync increment is implemented.
+
+`harness profiles sync --plan [--target <path>] [--json]` builds a read-only
+sync plan from the target manifest's active profile. It does not accept an
+explicit profile argument and does not switch profiles. It reports installed
+active-profile modules as `safe/sync-module-present`, clean missing
+active-profile modules as `safe/sync-module-install`, collisions as
+`review/sync-module-install-collision`, unavailable required modules as
+blocked sync operations, retained modules outside the active profile as
+`deferred/profile-module-retained`, and sync apply as
+`deferred/sync-apply-not-implemented`.
+
 ## Next Work After V1
 
 Current post-v1 direction lives in
@@ -174,10 +187,10 @@ source fingerprints are checked against the executing harness source/package.
 
 The strongest remaining v1.1 candidates are:
 
-1. Add profile sync for installed targets.
+1. Add remaining process-domain baselines.
 2. Broaden generated-file, module-definition, merge-aware, and
    review-mediated file/template upgrades while preserving review boundaries.
-3. Add remaining process-domain baselines.
+3. Add profile sync apply after the read-only plan has more dogfood evidence.
 
 Public publication remains deferred unless a new decision intentionally resumes
 release work.

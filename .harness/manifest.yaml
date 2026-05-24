@@ -85,6 +85,7 @@ harness:
     profiles-list: node scripts/harness.mjs profiles list
     profiles-inspect: node scripts/harness.mjs profiles inspect
     profiles-switch: node scripts/harness.mjs profiles switch
+    profiles-sync: node scripts/harness.mjs profiles sync
     lock-refresh: npm run lock:refresh
     lock-check: npm run lock:check
     upgrade-plan: node scripts/harness.mjs upgrade --plan

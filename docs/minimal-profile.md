@@ -117,6 +117,7 @@ harness modules list
 harness modules add <module-id>
 harness profiles inspect <profile>
 harness profiles switch <profile> --plan
+harness profiles sync --plan
 ```
 
 The first mechanically installable follow-on module is
@@ -144,8 +145,8 @@ See `docs/install.md` for the local tarball install path.
   managed files yet.
 - Module installation is collision-averse and does not merge existing
   human-authored files.
-- Profile switch apply handles clean plans only; profile removal is not
-  implemented yet.
+- Profile switch apply handles clean plans only; profile sync is currently
+  plan-only, and profile removal is not implemented yet.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
 - Lock refresh rebuilds file fingerprints and semantic provenance, but

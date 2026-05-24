@@ -70,6 +70,7 @@ metadata:
         - cascade-upgrades
         - upgrade-guidance
         - profile-switch
+        - profile-sync
       depends_on:
         - product-spec
         - process-domain-design
@@ -371,6 +372,7 @@ metadata:
         - profiles
         - cli
         - profile-switch
+        - profile-sync
       depends_on:
         - profile-minimal
         - profile-dogfood
@@ -710,6 +712,19 @@ metadata:
         - template-lock-source-root-decision
         - upgrade-cli
         - installed-lock
+
+    - id: profile-sync-planning-decision
+      path: decisions/0032-adopt-plan-first-profile-sync-planning.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profiles
+        - profile-sync
+        - decision
+      depends_on:
+        - template-cascade-apply-decision
+        - profiles-cli
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

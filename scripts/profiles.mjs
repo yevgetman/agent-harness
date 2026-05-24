@@ -433,6 +433,107 @@ function buildSwitchPlan({ requestedProfile, target, modules }) {
   };
 }
 
+function buildSyncPlan({ activeProfile, target, modules }) {
+  const actions = [];
+  const warnings = [];
+  const blockers = [];
+  const notes = [
+    "sync reads the target manifest active profile; it does not switch profiles",
+    "sync is plan-only; apply is intentionally deferred",
+    "modules outside the active profile are retained by default",
+  ];
+  const operations = [];
+  const activeIds = new Set(activeProfile.modules);
+  const retainedModules = installedModuleIds(target.harness)
+    .filter((moduleId) => !activeIds.has(moduleId))
+    .sort();
+
+  for (const module of modules) {
+    if (module.target_status === "installed") {
+      addOperation(operations, {
+        code: "safe/sync-module-present",
+        subject_type: "module",
+        subject: module.id,
+        detail: "active-profile module is already installed in the target repo",
+      });
+      continue;
+    }
+
+    if (module.target_status === "clean-install") {
+      actions.push(`install active-profile module ${module.id}`);
+      addOperation(operations, {
+        code: "safe/sync-module-install",
+        subject_type: "module",
+        subject: module.id,
+        detail: "module is required by the active profile and install preflight found no collisions",
+        install: {
+          module_id: module.id,
+          artifacts: module.planned_artifacts ?? [],
+        },
+      });
+      continue;
+    }
+
+    if (module.target_status === "review-required") {
+      const detail = (module.errors ?? []).join("; ") || "module install needs review";
+      warnings.push(`active-profile module '${module.id}' needs review before sync: ${detail}`);
+      addOperation(operations, {
+        code: "review/sync-module-install-collision",
+        subject_type: "module",
+        subject: module.id,
+        detail,
+      });
+      continue;
+    }
+
+    if (module.target_status === "blocked") {
+      const detail = (module.errors ?? []).join("; ") || "module install is blocked";
+      blockers.push(`active-profile module '${module.id}' cannot be installed: ${detail}`);
+      addOperation(operations, {
+        code: "blocked/sync-module-install-unavailable",
+        subject_type: "module",
+        subject: module.id,
+        detail,
+      });
+      continue;
+    }
+
+    blockers.push(`active-profile module '${module.id}' has unsupported sync state '${module.target_status}'`);
+    addOperation(operations, {
+      code: "blocked/sync-module-state-unsupported",
+      subject_type: "module",
+      subject: module.id,
+      detail: `unsupported sync state '${module.target_status}'`,
+    });
+  }
+
+  for (const moduleId of retainedModules) {
+    addOperation(operations, {
+      code: "deferred/profile-module-retained",
+      subject_type: "module",
+      subject: moduleId,
+      detail: "installed module is outside the active profile and will be retained by default",
+    });
+  }
+
+  addOperation(operations, {
+    code: "deferred/sync-apply-not-implemented",
+    subject_type: "profile-sync",
+    subject: "harness profiles sync --apply",
+    detail: "profile sync apply is not implemented; this command is read-only",
+  });
+
+  return {
+    actions,
+    warnings,
+    blockers,
+    notes,
+    retained_modules: retainedModules,
+    operations,
+    operation_summary: summarizeOperations(operations),
+  };
+}
+
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -603,6 +704,7 @@ Usage:
   harness profiles inspect <profile> [--target <path>] [--json]
   harness profiles switch <profile> --plan [--target <path>] [--json]
   harness profiles switch <profile> --apply [--target <path>] [--json]
+  harness profiles sync --plan [--target <path>] [--json]
 `);
 }
 
@@ -680,6 +782,42 @@ function printSwitchPlan(result) {
   console.log(`  review_required: ${result.summary.review_required}`);
   console.log(`  blocked: ${result.summary.blocked}`);
   console.log(`  retained: ${result.summary.retained}`);
+  console.log("modules:");
+  for (const module of result.modules) {
+    console.log(`  ${module.id}: ${module.target_status}`);
+    if (module.errors.length > 0) {
+      console.log(`    errors: ${module.errors.join("; ")}`);
+    }
+  }
+  console.log("operations:");
+  console.log(`  total: ${result.operation_summary.total}`);
+  for (const [status, count] of Object.entries(result.operation_summary.by_status)) {
+    console.log(`  ${status}: ${count}`);
+  }
+  for (const operation of result.operations) {
+    console.log(`  ${operation.code}: ${operation.subject_type} ${operation.subject}`);
+    console.log(`    ${operation.detail}`);
+  }
+  printList("actions", result.actions);
+  printList("warnings", result.warnings);
+  printList("blockers", result.blockers);
+  printList("notes", result.notes);
+}
+
+function printSyncPlan(result) {
+  console.log("Harness profile sync plan");
+  console.log(`target: ${result.target.root}`);
+  console.log(`active_profile: ${result.target.active_profile}`);
+  console.log(`mode: ${result.mode}`);
+  console.log(`apply_available: ${result.apply_available ? "yes" : "no"}`);
+  console.log("summary:");
+  console.log(`  modules: ${result.summary.total}`);
+  console.log(`  installed: ${result.summary.installed}`);
+  console.log(`  clean_install: ${result.summary.clean_install}`);
+  console.log(`  review_required: ${result.summary.review_required}`);
+  console.log(`  blocked: ${result.summary.blocked}`);
+  console.log(`  retained: ${result.summary.retained}`);
+  console.log(`  in_sync: ${result.summary.in_sync ? "yes" : "no"}`);
   console.log("modules:");
   for (const module of result.modules) {
     console.log(`  ${module.id}: ${module.target_status}`);
@@ -868,6 +1006,90 @@ function runSwitch({ cwd, args, sourceRoot }) {
   return emitResult({ result: applyResult, wantsJson, print: printSwitchApply });
 }
 
+function runSync({ cwd, args, sourceRoot }) {
+  const positional = positionalArgs(args);
+  const wantsJson = args.includes("--json");
+  const wantsPlan = args.includes("--plan");
+  const targetMissing = missingFlagValue(args, "--target");
+  const targetRoot = resolve(cwd, argValue(args, "--target", cwd));
+
+  if (positional.length > 0) {
+    return emitFailure({ errors: ["profiles sync uses the target manifest profile and does not take a profile id"], wantsJson });
+  }
+
+  if (targetMissing) {
+    return emitFailure({ errors: ["profiles sync --target requires a path"], wantsJson });
+  }
+
+  if (!wantsPlan || args.includes("--apply")) {
+    return emitFailure({ errors: ["profiles sync requires --plan; apply is not implemented"], wantsJson });
+  }
+
+  const loadedTarget = loadTargetManifest(targetRoot);
+  if (loadedTarget.error) {
+    return emitFailure({ errors: [loadedTarget.error], wantsJson });
+  }
+
+  const activeProfileId = loadedTarget.harness.profile;
+  if (!activeProfileId) {
+    return emitFailure({ errors: ["target manifest missing harness.profile"], wantsJson });
+  }
+
+  const loaded = loadProfile(activeProfileId, sourceRoot);
+  if (loaded.error) {
+    return emitFailure({ errors: [loaded.error], wantsJson });
+  }
+
+  const target = {
+    inspected: true,
+    root: targetRoot,
+    profile: activeProfileId,
+    installedIds: installedIds(loadedTarget.harness),
+    harness: loadedTarget.harness,
+    detail: "manifest loaded",
+  };
+
+  const modules = loaded.profile.modules.map((moduleId) =>
+    inspectModule({ moduleId, sourceRoot, target }));
+  const syncPlan = buildSyncPlan({
+    activeProfile: loaded.profile,
+    target,
+    modules,
+  });
+  const inspectionSummary = summarizeInspection(modules);
+  const inSync = syncPlan.blockers.length === 0
+    && syncPlan.warnings.length === 0
+    && inspectionSummary.clean_install === 0;
+  const planResult = {
+    ok: true,
+    mode: "plan",
+    plan_schema_version: 1,
+    apply_available: false,
+    target: {
+      root: target.root,
+      active_profile: target.profile,
+      manifest: ".harness/manifest.yaml",
+    },
+    active_profile: loaded.profile,
+    summary: {
+      ...inspectionSummary,
+      retained: syncPlan.retained_modules.length,
+      ready: syncPlan.blockers.length === 0 && syncPlan.warnings.length === 0,
+      in_sync: inSync,
+    },
+    modules,
+    retained_modules: syncPlan.retained_modules,
+    operation_summary: syncPlan.operation_summary,
+    operations: syncPlan.operations,
+    actions: syncPlan.actions,
+    warnings: syncPlan.warnings,
+    blockers: syncPlan.blockers,
+    notes: syncPlan.notes,
+  };
+
+  return emitResult({ result: planResult, wantsJson, print: printSyncPlan });
+}
+
 export function runProfiles({ cwd = process.cwd(), args = [], sourceRoot = SOURCE_ROOT } = {}) {
   const [subcommand, ...rest] = args;
 
@@ -886,6 +1108,10 @@ export function runProfiles({ cwd = process.cwd(), args = [], sourceRoot = SOURC
 
   if (subcommand === "switch") {
     return runSwitch({ cwd, args: rest, sourceRoot });
+  }
+
+  if (subcommand === "sync") {
+    return runSync({ cwd, args: rest, sourceRoot });
   }
 
   console.error(`fail unknown profiles command '${subcommand}'`);
