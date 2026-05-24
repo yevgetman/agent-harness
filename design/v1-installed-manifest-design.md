@@ -62,7 +62,7 @@ harness:
   manifest_version: 1
   installed_at: 2026-05-14
   harness_version: 0.1.0
-  profile: dogfood
+  profile: full
   source:
     type: local
     path: ~/code/harness
@@ -184,7 +184,7 @@ Initial source fields:
 - `package` — package name for package-installed targets.
 - `registry_tag` — npm dist tag to inspect for package-installed targets when
   registry discovery is available.
-- `path` — local source path for source-checkout dogfood targets.
+- `path` — local source path for source-checkout full-profile targets.
 
 For the dogfood source repo, upgrade planning uses a local version source:
 

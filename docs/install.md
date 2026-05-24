@@ -28,8 +28,8 @@ npm install --save-dev /tmp/harness-pack/portable-harness-0.1.0.tgz
 ./node_modules/.bin/harness upgrade --plan
 ```
 
-Use `--profile dogfood` only for target repos that should install all current
-dogfood process-domain modules.
+Use `--profile full` only for target repos that should install all current
+process-domain modules.
 
 ## Installed-Instance Upgrade Flow
 

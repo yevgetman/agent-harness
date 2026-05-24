@@ -135,7 +135,7 @@ plans_status:
       status: complete
       priority: high
       owner_domain: harness-lifecycle
-      summary: The packed package now validates against the named `~/code/meetingly` repo for both minimal and dogfood profiles using forced init in the copied smoke target.
+      summary: The packed package now validates against the named `~/code/meetingly` repo for both minimal and full profiles using forced init in the copied smoke target.
       next_action: Treat Phase 5 as complete for v1 local-tarball distribution while npm publication remains deferred.
       canonical_state_id: product-spec
       tags:
@@ -377,6 +377,24 @@ plans_status:
         - design/v1-module-profile-installation-design.md
         - decisions/0032-adopt-plan-first-profile-sync-planning.md
         - scripts/profiles.mjs
+        - status.md
+
+    - id: v1.1-complete-profile-rename
+      title: Rename complete profile to full
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: The complete profile is now `full`; dogfood remains the term for using the harness source repo as its first installed target.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - profiles
+        - complete
+      references:
+        - decisions/0033-rename-complete-profile-to-full.md
+        - profiles/full.yaml
+        - .harness/manifest.yaml
+        - docs/v1-validation.md
         - status.md
 
     - id: v1.1-process-domain-breadth

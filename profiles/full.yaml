@@ -1,5 +1,5 @@
 profile:
-  id: dogfood
+  id: full
   status: active
   modules:
     - agent-operating-contract

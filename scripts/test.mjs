@@ -526,13 +526,13 @@ withTempDir((root) => {
 
   const targetInspect = quiet(() => runProfiles({
     cwd: root,
-    args: ["inspect", "dogfood", "--target", gitTarget],
+    args: ["inspect", "full", "--target", gitTarget],
   }));
   assert.equal(targetInspect.ok, true, "profiles inspect should pass against an initialized target");
   assert.equal(targetInspect.target.inspected, true, "profiles inspect should load explicit target manifests");
   assert.equal(targetInspect.target.profile, "minimal", "profiles inspect should report the target's active profile");
-  assert.equal(targetInspect.summary.installed, 2, "minimal target should have two dogfood profile modules installed");
-  assert.equal(targetInspect.summary.clean_install, 5, "dogfood inspect should identify five clean missing modules");
+  assert.equal(targetInspect.summary.installed, 2, "minimal target should have two full profile modules installed");
+  assert.equal(targetInspect.summary.clean_install, 5, "full inspect should identify five clean missing modules");
   assert.equal(
     targetInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
     "clean-install",
@@ -546,22 +546,22 @@ withTempDir((root) => {
 
   const jsonInspect = JSON.parse(execFileSync(
     process.execPath,
-    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "inspect", "dogfood", "--target", gitTarget, "--json"],
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "inspect", "full", "--target", gitTarget, "--json"],
     { cwd: root, encoding: "utf8" },
   ));
-  assert.equal(jsonInspect.profile.id, "dogfood", "profiles inspect --json should emit the inspected profile");
+  assert.equal(jsonInspect.profile.id, "full", "profiles inspect --json should emit the inspected profile");
   assert.equal(jsonInspect.summary.clean_install, 5, "profiles inspect --json should emit target summary counts");
 
   const switchPlan = quiet(() => runProfiles({
     cwd: root,
-    args: ["switch", "dogfood", "--target", gitTarget, "--plan"],
+    args: ["switch", "full", "--target", gitTarget, "--plan"],
   }));
   assert.equal(switchPlan.ok, true, "profiles switch --plan should pass against an initialized target");
   assert.equal(switchPlan.mode, "plan", "profiles switch should report plan mode");
   assert.equal(switchPlan.apply_available, true, "profiles switch --plan should report that apply is available");
   assert.equal(switchPlan.target.current_profile, "minimal", "profiles switch should report current target profile");
-  assert.equal(switchPlan.requested_profile.id, "dogfood", "profiles switch should report requested profile");
-  assert.equal(switchPlan.summary.clean_install, 5, "minimal to dogfood switch should plan five clean module installs");
+  assert.equal(switchPlan.requested_profile.id, "full", "profiles switch should report requested profile");
+  assert.equal(switchPlan.summary.clean_install, 5, "minimal to full switch should plan five clean module installs");
   assert.equal(switchPlan.summary.ready, true, "clean switch plans should report readiness");
   assert.equal(
     hasOperation(switchPlan, "safe/profile-module-install", "decisions-open-questions"),
@@ -569,7 +569,7 @@ withTempDir((root) => {
     "profiles switch should plan clean missing profile modules as safe installs",
   );
   assert.equal(
-    hasOperation(switchPlan, "safe/profile-update", "minimal -> dogfood"),
+    hasOperation(switchPlan, "safe/profile-update", "minimal -> full"),
     true,
     "profiles switch should plan a safe profile update after clean module installs",
   );
@@ -582,10 +582,10 @@ withTempDir((root) => {
 
   const jsonSwitch = JSON.parse(execFileSync(
     process.execPath,
-    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "switch", "dogfood", "--target", gitTarget, "--plan", "--json"],
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "switch", "full", "--target", gitTarget, "--plan", "--json"],
     { cwd: root, encoding: "utf8" },
   ));
-  assert.equal(jsonSwitch.requested_profile.id, "dogfood", "profiles switch --json should emit requested profile");
+  assert.equal(jsonSwitch.requested_profile.id, "full", "profiles switch --json should emit requested profile");
   assert.equal(
     jsonSwitch.operation_summary.by_code["safe/profile-module-install"],
     5,
@@ -598,13 +598,13 @@ withTempDir((root) => {
   const missingTargetInspect = quiet(() => runProfiles({ cwd: root, args: ["inspect", "minimal", "--target"] }));
   assert.equal(missingTargetInspect.ok, false, "profiles inspect should fail when --target has no path");
 
-  const switchWithoutPlan = quiet(() => runProfiles({ cwd: root, args: ["switch", "dogfood", "--target", gitTarget] }));
+  const switchWithoutPlan = quiet(() => runProfiles({ cwd: root, args: ["switch", "full", "--target", gitTarget] }));
   assert.equal(switchWithoutPlan.ok, false, "profiles switch should require --plan or --apply");
 
   writeFileSync(join(gitTarget, "open-questions.yaml"), "# existing local file\n");
   const collisionInspect = quiet(() => runProfiles({
     cwd: root,
-    args: ["inspect", "dogfood", "--target", gitTarget],
+    args: ["inspect", "full", "--target", gitTarget],
   }));
   assert.equal(
     collisionInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
@@ -614,7 +614,7 @@ withTempDir((root) => {
   assert.equal(collisionInspect.summary.review_required, 1, "profiles inspect should summarize review-required modules");
   const collisionSwitch = quiet(() => runProfiles({
     cwd: root,
-    args: ["switch", "dogfood", "--target", gitTarget, "--plan"],
+    args: ["switch", "full", "--target", gitTarget, "--plan"],
   }));
   assert.equal(collisionSwitch.ok, true, "profiles switch should return review operations for collisions");
   assert.equal(collisionSwitch.summary.ready, false, "review-required switch plans should not be ready");
@@ -624,7 +624,7 @@ withTempDir((root) => {
     "profiles switch should classify module artifact collisions as review-required",
   );
   assert.equal(
-    hasOperation(collisionSwitch, "review/profile-update", "minimal -> dogfood"),
+    hasOperation(collisionSwitch, "review/profile-update", "minimal -> full"),
     true,
     "profiles switch should hold profile updates behind review-required operations",
   );
@@ -671,18 +671,18 @@ withTempDir((root) => {
   assert.equal(jsonSync.active_profile.id, "minimal", "profiles sync --json should emit the active profile");
   assert.equal(jsonSync.operation_summary.by_code["safe/sync-module-present"], 2, "profiles sync --json should summarize present modules");
 
-  setManifestProfile(target, "dogfood");
-  const dogfoodSync = quiet(() => runProfiles({
+  setManifestProfile(target, "full");
+  const fullSync = quiet(() => runProfiles({
     cwd: root,
     args: ["sync", "--target", target, "--plan"],
   }));
-  assert.equal(dogfoodSync.ok, true, "profiles sync should plan from the active manifest profile");
-  assert.equal(dogfoodSync.target.active_profile, "dogfood", "profiles sync should report changed active profile");
-  assert.equal(dogfoodSync.summary.clean_install, 5, "dogfood sync should find clean missing active-profile modules");
-  assert.equal(dogfoodSync.summary.ready, true, "clean missing modules should leave sync ready for future apply");
-  assert.equal(dogfoodSync.summary.in_sync, false, "missing active-profile modules should mean the target is not in sync");
+  assert.equal(fullSync.ok, true, "profiles sync should plan from the active manifest profile");
+  assert.equal(fullSync.target.active_profile, "full", "profiles sync should report changed active profile");
+  assert.equal(fullSync.summary.clean_install, 5, "full sync should find clean missing active-profile modules");
+  assert.equal(fullSync.summary.ready, true, "clean missing modules should leave sync ready for future apply");
+  assert.equal(fullSync.summary.in_sync, false, "missing active-profile modules should mean the target is not in sync");
   assert.equal(
-    hasOperation(dogfoodSync, "safe/sync-module-install", "decisions-open-questions"),
+    hasOperation(fullSync, "safe/sync-module-install", "decisions-open-questions"),
     true,
     "profiles sync should plan clean missing active-profile modules as safe installs",
   );
@@ -696,7 +696,7 @@ withTempDir((root) => {
 
   const syncWithProfileArg = quiet(() => runProfiles({
     cwd: root,
-    args: ["sync", "dogfood", "--target", target, "--plan"],
+    args: ["sync", "full", "--target", target, "--plan"],
   }));
   assert.equal(syncWithProfileArg.ok, false, "profiles sync should not accept an explicit profile id");
 
@@ -715,28 +715,28 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
-  const target = join(root, "dogfood-target");
+  const target = join(root, "full-target");
   initGitRepo(target);
 
   const init = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "dogfood"],
+    args: ["--target", target, "--profile", "full"],
   }));
-  assert.equal(init.ok, true, "dogfood init should pass before profile sync planning");
+  assert.equal(init.ok, true, "full init should pass before profile sync planning");
 
   const sync = quiet(() => runProfiles({
     cwd: root,
     args: ["sync", "--target", target, "--plan"],
   }));
-  assert.equal(sync.ok, true, "profiles sync should pass for a dogfood target");
-  assert.equal(sync.active_profile.id, "dogfood", "profiles sync should load the dogfood active profile");
-  assert.equal(sync.summary.installed, 7, "dogfood sync should report all active modules installed");
-  assert.equal(sync.summary.clean_install, 0, "dogfood sync should have no missing active modules");
-  assert.equal(sync.summary.in_sync, true, "dogfood target should be in sync after dogfood init");
+  assert.equal(sync.ok, true, "profiles sync should pass for a full target");
+  assert.equal(sync.active_profile.id, "full", "profiles sync should load the full active profile");
+  assert.equal(sync.summary.installed, 7, "full sync should report all active modules installed");
+  assert.equal(sync.summary.clean_install, 0, "full sync should have no missing active modules");
+  assert.equal(sync.summary.in_sync, true, "full target should be in sync after full init");
   assert.equal(
     hasOperation(sync, "safe/sync-module-present", "plans-and-status"),
     true,
-    "profiles sync should report installed dogfood modules",
+    "profiles sync should report installed full modules",
   );
 });
 
@@ -750,7 +750,7 @@ withTempDir((root) => {
   }));
   assert.equal(init.ok, true, "init should pass before profile-bounded upgrade apply");
 
-  setManifestProfile(target, "dogfood");
+  setManifestProfile(target, "full");
 
   const plan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(plan.ok, true, "upgrade --plan should pass for a clean missing profile module");
@@ -805,9 +805,9 @@ withTempDir((root) => {
   initGitRepo(target);
   const init = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "dogfood"],
+    args: ["--target", target, "--profile", "full"],
   }));
-  assert.equal(init.ok, true, "dogfood init should pass before template cascade apply");
+  assert.equal(init.ok, true, "full init should pass before template cascade apply");
 
   const sourcePath = "modules/decisions-open-questions/templates/open-questions.yaml";
   const targetPath = "open-questions.yaml";
@@ -870,9 +870,9 @@ withTempDir((root) => {
   initGitRepo(target);
   const init = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "dogfood"],
+    args: ["--target", target, "--profile", "full"],
   }));
-  assert.equal(init.ok, true, "dogfood init should pass before modified template cascade refusal");
+  assert.equal(init.ok, true, "full init should pass before modified template cascade refusal");
 
   const sourcePath = "modules/decisions-open-questions/templates/open-questions.yaml";
   const targetPath = "open-questions.yaml";
@@ -915,7 +915,7 @@ withTempDir((root) => {
   }));
   assert.equal(init.ok, true, "init should pass before profile module collision test");
 
-  setManifestProfile(target, "dogfood");
+  setManifestProfile(target, "full");
   writeFileSync(join(target, "open-questions.yaml"), "# existing local file\n");
 
   const plan = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
@@ -1369,14 +1369,14 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
-  const target = join(root, "dogfood-target");
+  const target = join(root, "full-target");
   initGitRepo(target);
 
   const init = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "dogfood"],
+    args: ["--target", target, "--profile", "full"],
   }));
-  assert.equal(init.ok, true, "dogfood profile init should pass in a git repo");
+  assert.equal(init.ok, true, "full profile init should pass in a git repo");
 
   for (const file of [
     "AGENTS.md",
@@ -1404,65 +1404,65 @@ withTempDir((root) => {
 
   assert.match(
     readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
-    /profile: dogfood/,
-    "dogfood profile init should record the installed profile",
+    /profile: full/,
+    "full profile init should record the installed profile",
   );
 
   const doctor = quiet(() => runDoctor({ cwd: target }));
-  assert.equal(doctor.ok, true, "doctor should pass after dogfood profile init");
+  assert.equal(doctor.ok, true, "doctor should pass after full profile init");
 
   const moduleList = quiet(() => runModules({ cwd: root, args: ["list", "--target", target] }));
   assert.equal(
     moduleList.modules.find((module) => module.id === "decisions-open-questions")?.installed,
     true,
-    "dogfood profile init should install decisions-open-questions",
+    "full profile init should install decisions-open-questions",
   );
   assert.equal(
     moduleList.modules.find((module) => module.id === "structured-metadata")?.installed,
     true,
-    "dogfood profile init should install structured-metadata",
+    "full profile init should install structured-metadata",
   );
   assert.equal(
     moduleList.modules.find((module) => module.id === "canonical-state")?.installed,
     true,
-    "dogfood profile init should install canonical-state",
+    "full profile init should install canonical-state",
   );
   assert.equal(
     moduleList.modules.find((module) => module.id === "invariants-golden-principles")?.installed,
     true,
-    "dogfood profile init should install invariants-golden-principles",
+    "full profile init should install invariants-golden-principles",
   );
   assert.equal(
     moduleList.modules.find((module) => module.id === "plans-and-status")?.installed,
     true,
-    "dogfood profile init should install plans-and-status",
+    "full profile init should install plans-and-status",
   );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
-  assert.equal(metadata.ok, true, "dogfood profile init should install valid metadata");
+  assert.equal(metadata.ok, true, "full profile init should install valid metadata");
   const metadataReport = quiet(() => runMetadata({ cwd: target, args: ["report"] }));
-  assert.equal(metadataReport.summary.total, 4, "dogfood profile init should support metadata report");
+  assert.equal(metadataReport.summary.total, 4, "full profile init should support metadata report");
   const state = quiet(() => runState({ cwd: target, args: ["check"] }));
-  assert.equal(state.ok, true, "dogfood profile init should install valid canonical state");
+  assert.equal(state.ok, true, "full profile init should install valid canonical state");
   const stateReport = quiet(() => runState({ cwd: target, args: ["report"] }));
-  assert.equal(stateReport.summary.total, 4, "dogfood profile init should support state report");
+  assert.equal(stateReport.summary.total, 4, "full profile init should support state report");
   const invariants = quiet(() => runInvariants({ cwd: target, args: ["check"] }));
-  assert.equal(invariants.ok, true, "dogfood profile init should install valid invariants");
+  assert.equal(invariants.ok, true, "full profile init should install valid invariants");
   const plans = quiet(() => runPlans({ cwd: target, args: ["check"] }));
-  assert.equal(plans.ok, true, "dogfood profile init should install valid plans");
+  assert.equal(plans.ok, true, "full profile init should install valid plans");
   const plansReport = quiet(() => runPlans({ cwd: target, args: ["report"] }));
-  assert.equal(plansReport.summary.total, 1, "dogfood profile init should support plans report");
+  assert.equal(plansReport.summary.total, 1, "full profile init should support plans report");
 
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
-  assert.equal(upgrade.ok, true, "upgrade --plan should pass after dogfood profile init");
-  assert.equal(upgrade.plan.blockers.length, 0, "dogfood profile upgrade plan should have no blockers");
-  assert.equal(upgrade.plan.warnings.length, 0, "dogfood profile upgrade plan should have no warnings");
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after full profile init");
+  assert.equal(upgrade.plan.blockers.length, 0, "full profile upgrade plan should have no blockers");
+  assert.equal(upgrade.plan.warnings.length, 0, "full profile upgrade plan should have no warnings");
 
   const switchToMinimal = quiet(() => runProfiles({
     cwd: root,
     args: ["switch", "minimal", "--target", target, "--plan"],
   }));
-  assert.equal(switchToMinimal.ok, true, "profiles switch --plan should pass from dogfood to minimal");
+  assert.equal(switchToMinimal.ok, true, "profiles switch --plan should pass from full to minimal");
   assert.equal(switchToMinimal.summary.retained, 5, "switching to a smaller profile should retain extra modules by default");
   assert.equal(
     hasOperation(switchToMinimal, "deferred/profile-module-retained", "decisions-open-questions"),
@@ -1470,7 +1470,7 @@ withTempDir((root) => {
     "profiles switch should report retained modules instead of removing them",
   );
   assert.equal(
-    hasOperation(switchToMinimal, "safe/profile-update", "dogfood -> minimal"),
+    hasOperation(switchToMinimal, "safe/profile-update", "full -> minimal"),
     true,
     "profiles switch should still plan the profile update when extra modules are retained",
   );
@@ -1491,7 +1491,7 @@ withTempDir((root) => {
 
   const apply = quiet(() => runProfiles({
     cwd: root,
-    args: ["switch", "dogfood", "--target", target, "--apply"],
+    args: ["switch", "full", "--target", target, "--apply"],
   }));
   assert.equal(apply.ok, true, "profiles switch --apply should pass for a clean switch plan");
   assert.equal(apply.mode, "apply", "profiles switch --apply should report apply mode");
@@ -1507,7 +1507,7 @@ withTempDir((root) => {
     "profiles switch apply should install every clean missing profile module",
   );
   assert.equal(
-    apply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> dogfood")),
+    apply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> full")),
     true,
     "profiles switch apply should report the profile update",
   );
@@ -1530,7 +1530,7 @@ withTempDir((root) => {
 
   assert.match(
     readFileSync(join(target, ".harness", "manifest.yaml"), "utf8"),
-    /profile: dogfood/,
+    /profile: full/,
     "profiles switch apply should update the manifest profile after installs succeed",
   );
 
@@ -1554,7 +1554,7 @@ withTempDir((root) => {
 
   const reapply = quiet(() => runProfiles({
     cwd: root,
-    args: ["switch", "dogfood", "--target", target, "--apply"],
+    args: ["switch", "full", "--target", target, "--apply"],
   }));
   assert.equal(reapply.ok, true, "profiles switch --apply should be idempotent for already-installed profile");
   assert.equal(reapply.apply.ok, true, "re-applying a satisfied profile switch should succeed");
@@ -1577,7 +1577,7 @@ withTempDir((root) => {
 
   const jsonApply = JSON.parse(execFileSync(
     process.execPath,
-    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "switch", "dogfood", "--target", target, "--apply", "--json"],
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "profiles", "switch", "full", "--target", target, "--apply", "--json"],
     { cwd: root, encoding: "utf8" },
   ));
   assert.equal(jsonApply.ok, true, "clean profiles switch --apply --json should emit parseable ok JSON");
@@ -1589,7 +1589,7 @@ withTempDir((root) => {
     "clean profiles switch --apply --json should include safe module install operations",
   );
   assert.equal(
-    jsonApply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> dogfood")),
+    jsonApply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> full")),
     true,
     "clean profiles switch --apply --json should report the profile update",
   );
@@ -1612,7 +1612,7 @@ withTempDir((root) => {
 
   const apply = quiet(() => runProfiles({
     cwd: root,
-    args: ["switch", "dogfood", "--target", target, "--apply"],
+    args: ["switch", "full", "--target", target, "--apply"],
   }));
   assert.equal(apply.ok, false, "profiles switch --apply should refuse review-required plans");
   assert.equal(apply.apply.ok, false, "profiles switch --apply should report review-required refusal");
@@ -1632,14 +1632,14 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
-  const target = join(root, "dogfood-target");
+  const target = join(root, "full-target");
   initGitRepo(target);
 
   const init = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "dogfood"],
+    args: ["--target", target, "--profile", "full"],
   }));
-  assert.equal(init.ok, true, "dogfood init should pass before smaller-profile switch apply");
+  assert.equal(init.ok, true, "full init should pass before smaller-profile switch apply");
 
   const apply = quiet(() => runProfiles({
     cwd: root,
@@ -1648,7 +1648,7 @@ withTempDir((root) => {
   assert.equal(apply.ok, true, "profiles switch --apply to a smaller profile should pass");
   assert.equal(apply.apply.ok, true, "smaller-profile switch apply should succeed");
   assert.equal(
-    apply.apply.applied.some((item) => item.includes("safe/profile-update: dogfood -> minimal")),
+    apply.apply.applied.some((item) => item.includes("safe/profile-update: full -> minimal")),
     true,
     "smaller-profile switch apply should update the manifest profile",
   );
@@ -1704,7 +1704,7 @@ withTempDir((root) => {
   assert.equal(check.ok, true, "distribution check should validate package contents");
   assert.equal(check.files.includes("scripts/harness.mjs"), true, "distribution package should include the harness binary");
   assert.equal(check.files.includes("scripts/test.mjs"), false, "distribution package should exclude repo-local tests");
-  assert.equal(check.files.includes("status.md"), false, "distribution package should exclude dogfood status");
+  assert.equal(check.files.includes("status.md"), false, "distribution package should exclude full status");
   assert.equal(check.errors.length, 0, "distribution check should not report package boundary errors");
 
   const release = quiet(() => runDistribution({ args: ["release", "--plan"] }));

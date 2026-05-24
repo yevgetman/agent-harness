@@ -4,7 +4,7 @@ updated: 2026-05-24
 harness:
   package: portable-harness
   version: 0.1.0
-  profile: dogfood
+  profile: full
 
 orientation:
   purpose: >
@@ -44,7 +44,7 @@ reading_order:
   - plans-current
   - module-registry
   - profile-minimal
-  - profile-dogfood
+  - profile-full
   - module-agent-operating-contract
   - module-progressive-orientation
   - module-decisions-open-questions
@@ -86,6 +86,7 @@ reading_order:
   - decision-0030
   - decision-0031
   - decision-0032
+  - decision-0033
   - decision-template
   - package
   - harness-cli
@@ -367,12 +368,12 @@ documents:
     depends_on:
       - v1-module-profile-installation-design
 
-  - doc_id: profile-dogfood
-    file: profiles/dogfood.yaml
-    title: Dogfood Profile
+  - doc_id: profile-full
+    file: profiles/full.yaml
+    title: Full Profile
     kind: profile-definition
     status: active
-    summary: Dogfood profile bundle used by the harness source repo.
+    summary: Complete profile bundle used by the harness source repo.
     depends_on:
       - v1-module-profile-installation-design
 
@@ -795,6 +796,17 @@ documents:
       - profiles-cli
       - decision-0031
 
+  - doc_id: decision-0033
+    file: decisions/0033-rename-complete-profile-to-full.md
+    title: Rename Complete Profile To Full
+    kind: decision
+    status: active
+    summary: Decision record renaming the complete install profile from dogfood to full while retaining dogfood as the source-repo practice.
+    depends_on:
+      - v1-module-profile-installation-design
+      - profile-full
+      - decision-0032
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -877,7 +889,7 @@ documents:
     depends_on:
       - v1-module-profile-installation-design
       - profile-minimal
-      - profile-dogfood
+      - profile-full
 
   - doc_id: metadata-cli
     file: scripts/metadata.mjs

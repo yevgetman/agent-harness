@@ -200,14 +200,14 @@ metadata:
       depends_on:
         - module-registry
 
-    - id: profile-dogfood
-      path: profiles/dogfood.yaml
+    - id: profile-full
+      path: profiles/full.yaml
       kind: profile-definition
       status: active
       owner_domain: harness-lifecycle
       tags:
         - profile
-        - dogfood
+        - full
       depends_on:
         - module-registry
 
@@ -375,7 +375,7 @@ metadata:
         - profile-sync
       depends_on:
         - profile-minimal
-        - profile-dogfood
+        - profile-full
         - module-registry
 
     - id: state-cli
@@ -725,6 +725,19 @@ metadata:
       depends_on:
         - template-cascade-apply-decision
         - profiles-cli
+
+    - id: complete-profile-rename-decision
+      path: decisions/0033-rename-complete-profile-to-full.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profiles
+        - full
+        - decision
+      depends_on:
+        - profile-sync-planning-decision
+        - profile-full
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

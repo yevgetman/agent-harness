@@ -358,7 +358,7 @@ Initial behavior:
 - `harness plans list`, `harness plans check`, and `harness plans report`
   expose and validate structured plan/status state.
 - `harness doctor` validates plans/status state when the module is installed.
-- The dogfood profile installs the Structured Metadata, Canonical State,
+- The full profile installs the Structured Metadata, Canonical State,
   Invariants And Golden Principles, and Plans And Status modules.
 
 Exit signal:
@@ -411,7 +411,7 @@ Initial behavior:
 - `harness distribution smoke --target <path> --force` passes forced init only
   inside the disposable copied target so real repo shapes with existing
   bootstrap files can be validated without mutating the source target.
-- Packed-package smoke validation covers the `minimal` and `dogfood` profiles
+- Packed-package smoke validation covers the `minimal` and `full` profiles
   by default.
 - Upgrade planning reports `version_source.type: package` when a target was
   initialized from the installed package and `local-checkout` for this dogfood
@@ -427,7 +427,7 @@ Initial behavior:
 - `docs/install.md` documents local tarball installation and records registry
   publication as deferred.
 - `~/code/meetingly` has passed named real-repo smoke for the `minimal` and
-  `dogfood` profiles using the packed package and forced init in the temporary
+  `full` profiles using the packed package and forced init in the temporary
   copy.
 
 Exit signal:

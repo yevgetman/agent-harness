@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
-const DEFAULT_PROFILES = ["minimal", "dogfood"];
+const DEFAULT_PROFILES = ["minimal", "full"];
 const REGISTRY_ACCESS = "public";
 const REQUIRED_PACKAGE_FILES = [
   "package.json",
@@ -41,7 +41,7 @@ const REQUIRED_PACKAGE_FILES = [
   "modules/plans-and-status/module.yaml",
   "modules/plans-and-status/templates/current.yaml",
   "profiles/minimal.yaml",
-  "profiles/dogfood.yaml",
+  "profiles/full.yaml",
   "docs/install.md",
   "docs/minimal-profile.md",
   "docs/v1-validation.md",
@@ -115,7 +115,7 @@ Commands:
   smoke    Pack the local npm package and validate installed target repos.
 
 Options:
-  --profile <profile>  Profile to smoke. May be repeated. Defaults to minimal and dogfood.
+  --profile <profile>  Profile to smoke. May be repeated. Defaults to minimal and full.
   --target <path>      Existing git target repo to copy into the smoke workspace. May be repeated.
   --force              Pass --force to harness init inside the temporary smoke target.
   --json               Emit JSON result.

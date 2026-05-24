@@ -21,7 +21,7 @@ generated_from:
 harness:
   package: portable-harness
   version: 0.1.0
-  profile: dogfood
+  profile: full
 ---
 
 # Harness Context Briefing
@@ -139,6 +139,8 @@ Current dogfood state:
 - Profiles are now executable install inputs: `npm run profiles:list` lists
   source profiles, and `harness init --profile <profile>` reads
   `profiles/*.yaml` instead of a hardcoded minimal bundle.
+  The complete profile is `full`; dogfood is the source repo's usage posture,
+  not a profile id.
 - Profile inspection exists via `npm run profiles:inspect -- <profile>` and
   `harness profiles inspect <profile> [--target <path>] [--json]`. It reports
   source profile modules and, for target repos, classifies modules as
@@ -186,7 +188,7 @@ Current dogfood state:
   confirmation remains blocked by private/license release blockers.
   External smoke supports `--force` for forced init inside the disposable copy.
   `~/code/meetingly` passed named real-repo smoke for both `minimal` and
-  `dogfood` profiles using the packed package and forced init in the copy.
+  `full` profiles using the packed package and forced init in the copy.
   Actual npm publication is deferred for now; Phase 5 is complete for v1 local
   tarball distribution. `docs/v1-validation.md` records the v1 validation
   matrix, closeout command set, behavior boundary, and deferred-scope summary.

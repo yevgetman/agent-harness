@@ -113,13 +113,13 @@ package scripts for local dogfood use, and doctor validation when
 `files` boundary, install docs, package-based upgrade version-source reporting,
 package-installed registry status reporting, release preflight blockers while
 the package is private, packed-package smoke validation for the `minimal` and
-`dogfood` profiles, copied external-target smoke validation, forced init inside
+`full` profiles, copied external-target smoke validation, forced init inside
 copied smoke targets, public npm access policy, guarded publish planning, and
 named `meetingly` smoke evidence.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
-Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
+Installed harness package: `portable-harness` 0.1.0, profile `full`.
 
 ## Current Decisions
 
@@ -146,6 +146,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   standalone installed-repo upgrade behavior, profile switching, remaining
   process-domain baselines, dogfood robustness, and real-repo evidence. Public
   publication is not the active priority.
+- The complete install profile is named `full`; dogfood remains the practice
+  of using the harness source repo as its first installed target.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1 closeout. It remains relevant context but no longer drives current
   post-v1 sequencing.
@@ -180,7 +182,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   `decisions-open-questions`, `structured-metadata`, `canonical-state`, and
   `invariants-golden-principles`, and `plans-and-status` are standalone
   `modules add` installable modules.
-- Profiles now exist under `profiles/` for `minimal` and `dogfood`.
+- Profiles now exist under `profiles/` for `minimal` and `full`.
 - `npm run profiles:list` lists available source profiles and their module
   bundles.
 - `npm run profiles:inspect -- <profile>` inspects source profile modules and,
@@ -301,11 +303,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   install, doctor after install, and upgrade plan after install.
 - Profile tests cover profile listing, source-only inspect, target inspect,
   JSON inspect, unsupported profile failure, collision classification, minimal
-  profile init, and dogfood profile init into real temp git targets.
+  profile init, and full profile init into real temp git targets.
 - `build/depth-gate.yaml` records `post-v1-profile-inspection` as the current
   complete depth pass.
 - `~/code/meetingly` has passed distribution smoke for both `minimal` and
-  `dogfood` profiles with forced init in a copied target; the original repo was
+  `full` profiles with forced init in a copied target; the original repo was
   not mutated.
 - `plans/current.yaml` records profile inspection complete, v1.1 installed
   instance roadmap adoption complete, and installed-instance upgrade-contract
@@ -431,9 +433,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `dogfood`.
   apply.
 - `decisions/0032-adopt-plan-first-profile-sync-planning.md` — decision record
   for adding read-only active-profile sync planning.
+- `decisions/0033-rename-complete-profile-to-full.md` — decision record for
+  renaming the complete install profile from `dogfood` to `full`.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
-- `profiles/minimal.yaml` / `profiles/dogfood.yaml` — current profile bundle
+- `profiles/minimal.yaml` / `profiles/full.yaml` — current profile bundle
   definitions.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /

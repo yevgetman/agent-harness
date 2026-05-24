@@ -11,7 +11,7 @@ outside v1.
 V1 is validated for local packed npm tarball distribution.
 
 The harness can be installed into target git repos from a packed package, can
-initialize `minimal` and `dogfood` profiles, can validate installed state with
+initialize `minimal` and `full` profiles, can validate installed state with
 doctor, can plan upgrades from installed manifest and lock state, and can add
 the current installable process-domain modules.
 
@@ -27,7 +27,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
 | Minimal profile install | `harness init --profile minimal` installs operating contract, status, index, context, manifest, lock, and bootstrap module definitions. | `npm test` covers fresh git-target init, doctor, upgrade plan, dry-run collisions, and force overwrite. |
 | Force init contract | Normal init warns/refuses when planned artifacts exist; `--force` definitively overwrites planned harness artifacts. | `npm test` covers warnings, collision reporting, and overwrite of an existing `AGENTS.md`. |
-| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- dogfood`, `npm run profiles:switch -- dogfood --plan`, `npm run profiles:switch -- dogfood --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
+| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
@@ -35,7 +35,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
 | Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. | `npm run distribution:smoke`. |
 | External target smoke | A caller-supplied git target is copied into the smoke workspace and validated without mutating the source repo. | `npm test` and `node scripts/harness.mjs distribution smoke --target <path> --profile minimal --force`. |
-| Named real-repo smoke | `~/code/meetingly` validates as a named target for both `minimal` and `dogfood` profiles. | `node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force` and the same command with `--profile dogfood`. |
+| Named real-repo smoke | `~/code/meetingly` validates as a named target for both `minimal` and `full` profiles. | `node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force` and the same command with `--profile full`. |
 | Release preflight | Release planning runs package validation and `npm publish --dry-run --json` without publishing. | `npm run distribution:release-plan`; expected v1 status is blocked. |
 | Guarded publish planning | Publish planning reports readiness without publishing; confirmation refuses blocked plans. | `npm run distribution:publish-plan`; expected v1 status is blocked. |
 
@@ -52,8 +52,8 @@ node --check scripts/upgrade.mjs
 node --check scripts/test.mjs
 npm test
 npm run profiles:list
-npm run profiles:inspect -- dogfood
-npm run profiles:switch -- dogfood --plan
+npm run profiles:inspect -- full
+npm run profiles:switch -- full --plan
 npm run profiles:sync -- --plan
 npm run metadata:check
 npm run state:check
@@ -67,7 +67,7 @@ npm run distribution:release-plan
 npm run distribution:publish-plan
 npm run distribution:smoke
 node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force
-node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile dogfood --force
+node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile full --force
 git diff --check
 ```
 
@@ -84,7 +84,7 @@ V1 includes:
 
 - Local packed npm tarball distribution.
 - Install, minimal-profile, and v1 validation docs in the package.
-- `minimal` and `dogfood` profile installation.
+- `minimal` and `full` profile installation.
 - Registry-backed module listing and module add.
 - Dogfooded Decisions And Open Questions, Structured Metadata, Canonical State,
   Invariants And Golden Principles, and Plans And Status.

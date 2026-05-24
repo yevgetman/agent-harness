@@ -57,4 +57,4 @@ surfaces init collisions.
 - Forced smoke is only an installation compatibility check; it does not mean
   force-install should be the default recommendation for real target adoption.
 - The next Phase 5 check should rerun `meetingly` smoke with `--force` for the
-  minimal profile, then the dogfood profile if appropriate.
+  minimal profile, then the complete `full` profile if appropriate.

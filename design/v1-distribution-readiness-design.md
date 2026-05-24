@@ -104,13 +104,13 @@ package uses npm's public default.
 Default profiles:
 
 - `minimal`
-- `dogfood`
+- `full`
 
 Supported options:
 
 ```bash
 harness distribution smoke --profile minimal
-harness distribution smoke --profile dogfood
+harness distribution smoke --profile full
 harness distribution smoke --target ../some-target --profile minimal
 harness distribution smoke --target ../some-target --profile minimal --force
 harness distribution smoke --json
@@ -247,7 +247,7 @@ Current release preflight evidence:
 - `harness distribution publish --plan` reports the same blockers without
   publishing.
 - Named real-repo smoke passes against `~/code/meetingly` for the `minimal` and
-  `dogfood` profiles using `--force` in the copied target.
+  `full` profiles using `--force` in the copied target.
 
 ## Doctor And Test Relationship
 
