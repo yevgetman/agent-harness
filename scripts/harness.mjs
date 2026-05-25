@@ -57,74 +57,48 @@ Usage:
 
 if (!command || command === "help" || command === "--help" || command === "-h") {
   printHelp();
-  process.exit(0);
-}
-
-if (command === "doctor") {
+  process.exitCode = 0;
+} else if (command === "doctor") {
   const result = runDoctor({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "init") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "init") {
   const result = runInit({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "decisions") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "decisions") {
   const result = runDecisions({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "questions") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "questions") {
   const result = runQuestions({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "upgrade") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "upgrade") {
   const result = runUpgrade({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "modules") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "modules") {
   const result = runModules({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "profiles") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "profiles") {
   const result = runProfiles({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "metadata") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "metadata") {
   const result = runMetadata({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "state") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "state") {
   const result = runState({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "invariants") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "invariants") {
   const result = runInvariants({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "plans") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "plans") {
   const result = runPlans({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "distribution") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "distribution") {
   const result = runDistribution({ args });
-  process.exit(result.ok ? 0 : 2);
-}
-
-if (command === "lock") {
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "lock") {
   const result = runLock({ cwd: process.cwd(), args });
-  process.exit(result.ok ? 0 : 2);
+  process.exitCode = result.ok ? 0 : 2;
+} else {
+  console.error(`Unknown command: ${command}`);
+  printHelp();
+  process.exitCode = 2;
 }
-
-console.error(`Unknown command: ${command}`);
-printHelp();
-process.exit(2);

@@ -10,6 +10,7 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
 const DEFAULT_PROFILES = ["minimal", "full"];
 const REGISTRY_ACCESS = "public";
+const COMMAND_MAX_BUFFER = 1024 * 1024;
 const REQUIRED_PACKAGE_FILES = [
   "package.json",
   "scripts/harness.mjs",
@@ -71,6 +72,7 @@ const FORBIDDEN_PACKAGE_FILES = [
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
     encoding: "utf8",
+    maxBuffer: COMMAND_MAX_BUFFER,
     stdio: ["ignore", "pipe", "pipe"],
     ...options,
   });
@@ -79,6 +81,7 @@ function run(command, args, options = {}) {
 function runCaptured(command, args, options = {}) {
   const result = spawnSync(command, args, {
     encoding: "utf8",
+    maxBuffer: COMMAND_MAX_BUFFER,
     stdio: ["ignore", "pipe", "pipe"],
     ...options,
   });

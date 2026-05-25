@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-05-24
+Last updated: 2026-05-25
 
 ## Current Phase
 
@@ -121,7 +121,8 @@ package-installed registry status reporting, release preflight blockers while
 the package is private, packed-package smoke validation for the `minimal` and
 `full` profiles, copied external-target smoke validation, merge-safe force
 compatibility inside copied smoke targets, public npm access policy, guarded
-publish planning, and named `meetingly` smoke evidence.
+publish planning, named `meetingly` smoke evidence, and a CLI dispatcher that
+lets large JSON output flush before process exit.
 
 Remote: `git@github.com:yevgetman/agent-harness.git`
 
