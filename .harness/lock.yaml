@@ -44,7 +44,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: 6e463b766820c2f570583486daf40824167f6abb77f3e61bc43b4da6c3b1b748
+      sha256: 940d906689ce2adc935b3f2c32872ddc138d84bd35230d834c16a54f9b9914b9
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -64,7 +64,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 456993860a2f7bc9408b9d7c5eb53176bf1265697587feaad859d1d200ab877f
+      sha256: dc8bfe889b5b0e5f02f7a553cf1b8c876523f7739189be2cbdaca848ed98ea9e
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -88,7 +88,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 08d4d76ea125e44c13277de21a61c267c16c80619a6d49516a462e8975380d30
+      sha256: 875fcaa5d2ba6c1f8ddd59d2b20930aa4827ac584266e3b9d044f9b50fd03594
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -218,7 +218,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: d011bcedf8fdad2e3558423315b38482df710ecaceadb7a236e6dd05d56b0b98
+      sha256: 9c4508b7dce2c0015035b187ad8dc585b10b92e3097163dc41df04dc78f388ba
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -228,7 +228,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 912fafdf072bd6882a165e263f1a3b4d0cd2d2b6b832869daa89d14fdacff13a
+      sha256: b2704edbda5b57e9adae9dd6bf4755f0cc1f3abed2816a545fca02ab2694b8d2
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

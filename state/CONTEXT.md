@@ -115,6 +115,9 @@ Current dogfood state:
   reads `profiles/*.yaml`, has dry-run and non-git safety, records installed
   metadata, and preserves existing human-authored content through
   harness-owned marked sections or safe structured merges.
+- The teardown surface exists as `harness destroy`; bare destroy is read-only,
+  and `harness destroy --confirm` removes installed harness artifacts while
+  preserving `.git/` and local content outside marked harness sections.
 - The first upgrade surface exists as `npm run upgrade:plan`; it is read-only,
   uses a `local-checkout` version source in the dogfood repo, reads
   `.harness/lock.yaml`, and reports no blockers or warnings for this dogfood

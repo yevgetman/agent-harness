@@ -15,6 +15,7 @@ const REQUIRED_PACKAGE_FILES = [
   "package.json",
   "scripts/harness.mjs",
   "scripts/init.mjs",
+  "scripts/destroy.mjs",
   "scripts/doctor.mjs",
   "scripts/modules.mjs",
   "scripts/profiles.mjs",

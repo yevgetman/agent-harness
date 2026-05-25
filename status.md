@@ -39,16 +39,20 @@ the `full` profile and preserves existing human-authored content by adding or
 updating harness-owned sections. Init now creates a git repo when the target
 does not already have one and installs a merge-safe `.gitignore` harness
 section that ignores only local/transient `.harness/` state while keeping
-durable harness artifacts tracked. The next v1.1 build step is process-domain
-breadth, paused for operator confirmation.
+durable harness artifacts tracked. `harness destroy` now provides
+confirm-gated teardown: bare destroy prints a read-only plan, while
+`harness destroy --confirm` removes installed harness artifacts, preserves
+`.git/`, and surgically removes marked harness sections from files such as
+`AGENTS.md`, `status.md`, `state/CONTEXT.md`, and `.gitignore`. The next v1.1
+build step is process-domain breadth, paused for operator confirmation.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
 lock file, seven active module definitions, a runnable `harness doctor`
 command, a profile-backed, git-initializing, and merge-safe `harness init` installer, a
-repo-local depth gate, a read-only `harness upgrade --plan` command, and bare
-`harness upgrade` safe apply. The
+repo-local depth gate, a read-only `harness upgrade --plan` command, bare
+`harness upgrade` safe apply, and confirm-gated `harness destroy` teardown. The
 first module/profile installation surface exists through `modules/registry.yaml`,
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
 `harness profiles list`, `harness profiles inspect <profile>`,
@@ -164,6 +168,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   package globally, `cd` into a repo, run `harness init` for the default
   `full` profile, and run `harness upgrade` for supported safe apply.
   `--force` no longer authorizes overwriting human-authored content.
+- The destroy lifecycle contract is active: `harness destroy` is read-only by
+  default, `harness destroy --confirm` removes installed harness artifacts,
+  `.git/` is preserved, and marked harness sections are removed from
+  human-facing files instead of deleting unrelated local content.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1 closeout. It remains relevant context but no longer drives current
   post-v1 sequencing.
@@ -216,11 +224,16 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   remains available for bootstrap-only installs. Existing human-authored
   files are preserved through harness-owned marked sections or safe structured
   merges.
+- `npm run destroy` plans installed-harness teardown without writing; pass
+  `-- --confirm` to remove `.harness/`, installed module definitions, module
+  artifacts, and managed files while preserving `.git/` and local content
+  outside marked harness sections.
 - `npm test` covers default full init, explicit minimal init, doctor success,
   merge-safe existing `AGENTS.md`, no-overwrite `--force` compatibility,
-  unsupported profile failure, profile inspection, profile switch plan/apply,
-  profile sync planning, decisions/questions, upgrade-plan scenarios, bare
-  upgrade apply, global CLI smoke, and module list/add scenarios.
+  destroy planning and confirmed teardown, unsupported profile failure, profile
+  inspection, profile switch plan/apply, profile sync planning,
+  decisions/questions, upgrade-plan scenarios, bare upgrade apply, global CLI
+  smoke, and module list/add scenarios.
 - `npm run decisions:new -- "<title>"` creates the next decision record under
   `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
@@ -457,6 +470,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `decisions/0034-adopt-global-cli-and-merge-safe-init.md` — decision record
   for global CLI installation, default full init, merge-safe init, and bare
   `harness upgrade` safe apply.
+- `decisions/0035-adopt-confirm-gated-harness-destroy.md` — decision record
+  for read-only destroy planning, confirm-gated teardown, `.git/`
+  preservation, and marker-based cleanup for human-facing files.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/full.yaml` — current profile bundle

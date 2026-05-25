@@ -2,6 +2,7 @@
 
 import { runDoctor } from "./doctor.mjs";
 import { runInit } from "./init.mjs";
+import { runDestroy } from "./destroy.mjs";
 import { runDecisions } from "./decisions.mjs";
 import { runQuestions } from "./questions.mjs";
 import { runUpgrade } from "./upgrade.mjs";
@@ -21,6 +22,7 @@ function printHelp() {
 
 Usage:
   harness init     Install the full harness into the current target repo
+  harness destroy  Plan or confirm removal of installed harness artifacts
   harness decisions new "<title>"
   harness decisions list
   harness questions list
@@ -63,6 +65,9 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "init") {
   const result = runInit({ cwd: process.cwd(), args });
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "destroy") {
+  const result = runDestroy({ cwd: process.cwd(), args });
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "decisions") {
   const result = runDecisions({ cwd: process.cwd(), args });

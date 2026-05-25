@@ -24,6 +24,7 @@
   },
   "files": [
     "scripts/decisions.mjs",
+    "scripts/destroy.mjs",
     "scripts/distribution.mjs",
     "scripts/doctor.mjs",
     "scripts/harness.mjs",
@@ -47,6 +48,7 @@
   "scripts": {
     "doctor": "node scripts/harness.mjs doctor",
     "init": "node scripts/harness.mjs init",
+    "destroy": "node scripts/harness.mjs destroy",
     "decisions:new": "node scripts/harness.mjs decisions new",
     "decisions:list": "node scripts/harness.mjs decisions list",
     "questions:list": "node scripts/harness.mjs questions list",

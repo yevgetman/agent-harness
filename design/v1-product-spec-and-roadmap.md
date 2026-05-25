@@ -151,6 +151,8 @@ Current commands:
 
 - `harness init`
 - `harness init --profile <profile>`
+- `harness destroy`
+- `harness destroy --confirm`
 - `harness doctor`
 - `harness decisions new`
 - `harness decisions list`

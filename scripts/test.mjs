@@ -16,6 +16,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { runDecisions } from "./decisions.mjs";
+import { runDestroy } from "./destroy.mjs";
 import { runDistribution } from "./distribution.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runInvariants } from "./invariants.mjs";
@@ -456,7 +457,7 @@ withTempDir((root) => {
     "available registry version changes should be review-required operations",
   );
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 11, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 12, "upgrade plan should include command states");
   assert.equal(upgrade.plan.operation_summary.by_status.safe > 0, true, "upgrade plan should summarize safe operations");
   assert.equal(
     upgrade.plan.operation_summary.by_code["deferred/apply-not-implemented"],
@@ -666,6 +667,96 @@ withTempDir((root) => {
     "profiles switch should hold profile updates behind review-required operations",
   );
   assertNotExists(gitTarget, "modules/decisions-open-questions/module.yaml");
+});
+
+withTempDir((root) => {
+  const target = join(root, "destroy-target");
+  initGitRepo(target);
+  writeFileSync(join(target, "AGENTS.md"), "# Existing local process\n\nKeep this local rule.\n");
+  writeFileSync(join(target, ".gitignore"), "node_modules/\n");
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "full"],
+  }));
+  assert.equal(init.ok, true, "full init should pass before destroy");
+  assertExists(target, ".git");
+  assertExists(target, ".harness/manifest.yaml");
+  assertExists(target, "metadata/artifacts.yaml");
+  assert.match(
+    readFileSync(join(target, "AGENTS.md"), "utf8"),
+    /harness:start agents-md/,
+    "init should add a marked AGENTS.md section before destroy",
+  );
+
+  const plan = quiet(() => runDestroy({ cwd: root, args: ["--target", target] }));
+  assert.equal(plan.ok, true, "destroy without --confirm should produce a plan");
+  assert.equal(plan.mode, "plan", "destroy without --confirm should be plan mode");
+  assert.equal(plan.applied, false, "destroy plan should not apply changes");
+  assert.equal(plan.requires_confirm, true, "destroy plan should require explicit confirmation");
+  assert.equal(plan.git_preserved, true, "destroy plan should preserve git metadata");
+  assert.equal(
+    plan.edits.some((edit) => edit.path === "AGENTS.md" && edit.action === "remove-harness-section"),
+    true,
+    "destroy should plan surgical AGENTS.md cleanup when local content remains",
+  );
+  assert.equal(
+    plan.delete_directories.includes(".harness"),
+    true,
+    "destroy should plan removal of harness lifecycle state",
+  );
+  assertExists(target, ".harness/manifest.yaml");
+
+  const jsonPlan = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "destroy", "--target", target, "--json"],
+    { cwd: root, encoding: "utf8" },
+  ));
+  assert.equal(jsonPlan.requires_confirm, true, "destroy --json should emit a plan before confirmation");
+  assert.equal(jsonPlan.applied, false, "destroy --json plan should not mutate");
+
+  const destroy = quiet(() => runDestroy({ cwd: root, args: ["--target", target, "--confirm"] }));
+  assert.equal(destroy.ok, true, "destroy --confirm should pass");
+  assert.equal(destroy.applied, true, "destroy --confirm should apply changes");
+  assertExists(target, ".git");
+  assertNotExists(target, ".harness");
+  assertNotExists(target, "metadata");
+  assertNotExists(target, "invariants");
+  assertNotExists(target, "plans");
+  assertNotExists(target, "decisions");
+  assertNotExists(target, "open-questions.yaml");
+  assertNotExists(target, "templates/decision.md");
+  assertNotExists(target, "modules/agent-operating-contract/module.yaml");
+  const agents = readFileSync(join(target, "AGENTS.md"), "utf8");
+  assert.match(agents, /Existing local process/, "destroy should preserve human AGENTS.md content");
+  assert.doesNotMatch(agents, /\bharness\b/i, "destroy should remove harness references from AGENTS.md markers");
+  const gitignore = readFileSync(join(target, ".gitignore"), "utf8");
+  assert.match(gitignore, /node_modules\//, "destroy should preserve human .gitignore entries");
+  assert.doesNotMatch(gitignore, /\bharness\b/i, "destroy should remove the harness .gitignore section");
+
+  const missing = quiet(() => runDestroy({ cwd: root, args: ["--target", target, "--confirm"] }));
+  assert.equal(missing.ok, false, "destroy should fail once the manifest has been removed");
+});
+
+withTempDir((root) => {
+  const target = join(root, "generated-only-destroy-target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "minimal init should pass before generated-only destroy");
+
+  const destroy = quiet(() => runDestroy({ cwd: root, args: ["--target", target, "--confirm"] }));
+  assert.equal(destroy.ok, true, "destroy should remove generated-only harness files");
+  assertExists(target, ".git");
+  assertNotExists(target, "AGENTS.md");
+  assertNotExists(target, "status.md");
+  assertNotExists(target, "index.yaml");
+  assertNotExists(target, "state/CONTEXT.md");
+  assertNotExists(target, ".gitignore");
+  assertNotExists(target, ".harness");
 });
 
 withTempDir((root) => {
@@ -1040,7 +1131,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after structured metadata install");
   assert.equal(upgrade.plan.managed_files.length, 5, "structured metadata should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 14, "structured metadata should add three command records");
+  assert.equal(upgrade.plan.commands.length, 15, "structured metadata should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "structured-metadata")?.status,
     "unchanged",
@@ -1160,7 +1251,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after canonical-state install");
   assert.equal(upgrade.plan.managed_files.length, 6, "canonical-state should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 17, "canonical-state should add three command records");
+  assert.equal(upgrade.plan.commands.length, 18, "canonical-state should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "canonical-state")?.status,
     "unchanged",
@@ -1249,7 +1340,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after invariants install");
   assert.equal(upgrade.plan.managed_files.length, 6, "invariants should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 15, "invariants should add one command record");
+  assert.equal(upgrade.plan.commands.length, 16, "invariants should add one command record");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "invariants-golden-principles")?.status,
     "unchanged",
@@ -1354,7 +1445,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after plans install");
   assert.equal(upgrade.plan.managed_files.length, 6, "plans should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 17, "plans should add three command records");
+  assert.equal(upgrade.plan.commands.length, 18, "plans should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "plans-and-status")?.status,
     "unchanged",
@@ -1933,7 +2024,7 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
   assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
-  assert.equal(upgrade.plan.commands.length, 14, "module add should extend command state");
+  assert.equal(upgrade.plan.commands.length, 15, "module add should extend command state");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
     "unchanged",

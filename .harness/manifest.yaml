@@ -77,6 +77,7 @@ harness:
       mode: merge
   commands:
     init: npm run init
+    destroy: npm run destroy
     decisions-new: node scripts/harness.mjs decisions new
     decisions-list: node scripts/harness.mjs decisions list
     questions-list: node scripts/harness.mjs questions list

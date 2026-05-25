@@ -93,6 +93,7 @@ harness:
       owner: progressive-orientation
       mode: merge
   commands:
+    destroy: harness destroy
     doctor: npm run doctor
     upgrade-plan: npm run upgrade:plan
   upgrade:
@@ -142,6 +143,17 @@ with older commands, but it does not authorize overwriting human-authored
 content. Harness-owned lifecycle files such as `.harness/manifest.yaml` and
 `.harness/lock.yaml` may be refreshed by init.
 
+`harness destroy` is the inverse lifecycle operation for an installed target.
+Bare `harness destroy` is read-only and prints the teardown plan; `harness
+destroy --confirm` permanently removes installed harness artifacts while
+preserving `.git/`. It reads the installed manifest and lock, removes
+`.harness/`, installed module definitions, module artifacts, and harness-managed
+files. Human-facing files with harness-owned marker sections, such as
+`AGENTS.md`, `status.md`, `state/CONTEXT.md`, and `.gitignore`, are surgically
+edited to remove only those sections when local content remains; generated-only
+files are deleted. Files without a safe section boundary are treated as harness
+artifacts and deleted on confirmed teardown.
+
 The current implementation exposes only:
 
 ```text
@@ -149,6 +161,8 @@ harness upgrade --plan
 harness upgrade --plan --json
 harness upgrade
 harness upgrade apply
+harness destroy
+harness destroy --confirm
 ```
 
 The plan command reads installed state and reports a plan. The JSON form is the

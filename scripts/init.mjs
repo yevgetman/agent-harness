@@ -493,6 +493,7 @@ function moduleRefsFor(modules) {
 function commandsFor(modules) {
   const commands = {
     doctor: "harness doctor",
+    destroy: "harness destroy",
     "modules-list": "harness modules list",
     "modules-add": "harness modules add",
     "profiles-list": "harness profiles list",

@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-24
+updated: 2026-05-25
 harness:
   package: portable-harness
   version: 0.1.0
@@ -89,10 +89,12 @@ reading_order:
   - decision-0032
   - decision-0033
   - decision-0034
+  - decision-0035
   - decision-template
   - package
   - harness-cli
   - init
+  - destroy
   - install-docs
   - minimal-profile
   - modules-cli
@@ -831,6 +833,17 @@ documents:
       - decision-0033
       - decision-0021
 
+  - doc_id: decision-0035
+    file: decisions/0035-adopt-confirm-gated-harness-destroy.md
+    title: Adopt Confirm Gated Harness Destroy
+    kind: decision
+    status: active
+    summary: Decision record adopting read-only destroy planning, confirm-gated teardown, git preservation, and surgical marker cleanup for human-facing files.
+    depends_on:
+      - v1-installed-manifest-design
+      - destroy
+      - decision-0034
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -845,7 +858,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -855,7 +868,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -870,6 +883,18 @@ documents:
       - v1-installed-manifest-design
       - v1-module-profile-installation-design
       - v1-lock-provenance-design
+
+  - doc_id: destroy
+    file: scripts/destroy.mjs
+    title: Harness Destroy
+    kind: cli
+    status: active
+    summary: Confirm-gated installed-harness teardown command that plans removals by default, preserves .git, removes installed artifacts, and surgically removes marked harness sections from human-facing files.
+    depends_on:
+      - v1-installed-manifest-design
+      - init
+      - installed-manifest
+      - installed-lock
 
   - doc_id: minimal-profile
     file: docs/minimal-profile.md

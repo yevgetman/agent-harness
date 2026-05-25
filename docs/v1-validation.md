@@ -27,6 +27,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
 | Full default install | Bare `harness init` installs the complete `full` profile; `--profile minimal` remains available for bootstrap-only targets. | `npm test` covers default full init, explicit minimal init, doctor, and upgrade plan. |
 | Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
+| Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown, generated-only cleanup, and human-content preservation. |
 | Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
@@ -46,6 +47,7 @@ Run this set before claiming the v1 baseline is still healthy:
 
 ```bash
 node --check scripts/init.mjs
+node --check scripts/destroy.mjs
 node --check scripts/modules.mjs
 node --check scripts/profiles.mjs
 node --check scripts/distribution.mjs

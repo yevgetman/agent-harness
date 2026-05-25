@@ -152,12 +152,24 @@ as `AGENTS.md`, `status.md`, `index.yaml`, `state/CONTEXT.md`, and `.gitignore`
 is preserved where the harness has a merge strategy. If a structured file
 cannot be merged safely, init refuses instead of overwriting it.
 
+Remove an installed harness after reviewing the plan:
+
+```bash
+harness destroy
+harness destroy --confirm
+```
+
+Destroy preserves `.git/`, removes installed harness artifacts, and surgically
+removes marked harness sections from files such as `AGENTS.md` and `.gitignore`
+when local content remains.
+
 ## Common Commands
 
 Health and lifecycle:
 
 ```bash
 harness doctor
+harness destroy
 harness lock check
 harness lock refresh
 harness upgrade --plan

@@ -59,6 +59,24 @@ harness artifacts are intended to be committed, including `.harness/manifest.yam
 installed `.gitignore` section ignores only local/transient operator state:
 `.harness/tmp/`, `.harness/cache/`, `.harness/reports/`, and `.harness/*.local.*`.
 
+To remove the harness from a target repo, inspect the teardown plan first:
+
+```bash
+harness destroy
+```
+
+Apply the teardown explicitly:
+
+```bash
+harness destroy --confirm
+```
+
+Destroy preserves `.git/`. It removes installed harness lifecycle state,
+module definitions, module artifacts, and managed files. Files with
+harness-owned marker sections, such as `AGENTS.md`, `status.md`,
+`state/CONTEXT.md`, and `.gitignore`, are edited to remove those sections when
+local content remains; generated-only files are deleted.
+
 ## Repo-Local Package Install
 
 The older repo-local install path still works when a target repo should carry

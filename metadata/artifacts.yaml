@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-24
+  updated: 2026-05-25
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -418,6 +418,20 @@ metadata:
         - profile-full
         - module-registry
 
+    - id: destroy-cli
+      path: scripts/destroy.mjs
+      kind: cli
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - lifecycle
+        - destroy
+        - cli
+        - installed-instance
+      depends_on:
+        - installed-manifest
+        - installed-lock
+
     - id: state-cli
       path: scripts/state.mjs
       kind: cli
@@ -796,6 +810,20 @@ metadata:
         - complete-profile-rename-decision
         - force-init-overwrite-decision
         - distribution-cli
+
+    - id: confirm-gated-destroy-decision
+      path: decisions/0035-adopt-confirm-gated-harness-destroy.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - destroy
+        - lifecycle
+        - installed-instance
+        - decision
+      depends_on:
+        - global-cli-merge-safe-init-decision
+        - destroy-cli
         - upgrade-cli
 
     - id: v1.1-private-fleet-roadmap-decision
