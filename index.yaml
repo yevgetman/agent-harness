@@ -18,6 +18,7 @@ orientation:
   rule: Start with the boot_order, then read only the relevant deeper docs.
 
 reading_order:
+  - readme
   - agents
   - status
   - context
@@ -112,6 +113,17 @@ reading_order:
   - portability-model
 
 documents:
+  - doc_id: readme
+    file: README.md
+    title: Portable Harness
+    kind: project-readme
+    status: active
+    summary: Public-facing overview of what Portable Harness is, why it exists, what it installs, how to use it, current maturity, and release limitations.
+    depends_on:
+      - package
+      - install-docs
+      - v1.1-installed-instance-roadmap
+
   - doc_id: agents
     file: AGENTS.md
     title: Harness Agent Instructions

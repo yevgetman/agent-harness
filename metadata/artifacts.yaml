@@ -224,6 +224,21 @@ metadata:
       depends_on:
         - product-spec
 
+    - id: readme
+      path: README.md
+      kind: project-readme
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - readme
+        - docs
+        - open-source
+        - orientation
+      depends_on:
+        - package
+        - install-docs
+        - v1.1-installed-instance-roadmap
+
     - id: install-docs
       path: docs/install.md
       kind: install-guide

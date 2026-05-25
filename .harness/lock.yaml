@@ -64,7 +64,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: a95ec92bee07ad64ac610a3071fa5c075a6a49ea43d499fea51a5a1bfe710494
+      sha256: 456993860a2f7bc9408b9d7c5eb53176bf1265697587feaad859d1d200ab877f
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -88,7 +88,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: b31054a4828cbe95ce563436bb88284572516d4d8ef8e675108759b16345955b
+      sha256: 08d4d76ea125e44c13277de21a61c267c16c80619a6d49516a462e8975380d30
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -228,7 +228,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: aa7de8ac6685b008a5ccddc8997014f9e30b4cea99d5f09d822cb6481ec4edac
+      sha256: 912fafdf072bd6882a165e263f1a3b4d0cd2d2b6b832869daa89d14fdacff13a
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

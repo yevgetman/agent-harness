@@ -18,8 +18,10 @@ Distribution is supporting validation machinery for v1.1, not the product
 priority. Packed-package smoke, global CLI smoke, package-boundary validation,
 release preflight planning, registry version discovery, external-target smoke,
 merge-safe force-compatible external-smoke init, guarded publish planning, and
-named `meetingly` smoke all exist. Public npm publication and the
-release-license decision remain deferred.
+named `meetingly` smoke all exist. A public-facing `README.md` now explains
+the harness purpose, utility, install flow, target-repo usage, git policy,
+project status, and current release limitations. Public npm publication and
+the release-license decision remain deferred.
 The v1.1 installed-instance upgrade contract now has a narrow baseline:
 manifests record installed-instance source/channel metadata, upgrade plans emit
 `upgrade_guidance`, and install docs describe the private per-repo operator
