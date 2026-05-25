@@ -34,14 +34,17 @@ updates through `harness upgrade apply`. Bare `harness upgrade` now runs the
 safe apply path after planning internally. Profile sync planning now exists
 through `harness profiles sync --plan`. Bare `harness init` now defaults to
 the `full` profile and preserves existing human-authored content by adding or
-updating harness-owned sections. The next v1.1 build step is process-domain
+updating harness-owned sections. Init now creates a git repo when the target
+does not already have one and installs a merge-safe `.gitignore` harness
+section that ignores only local/transient `.harness/` state while keeping
+durable harness artifacts tracked. The next v1.1 build step is process-domain
 breadth, paused for operator confirmation.
 
 The repo currently has exploratory specs, thirteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
 lock file, seven active module definitions, a runnable `harness doctor`
-command, a profile-backed and merge-safe `harness init` installer, a
+command, a profile-backed, git-initializing, and merge-safe `harness init` installer, a
 repo-local depth gate, a read-only `harness upgrade --plan` command, and bare
 `harness upgrade` safe apply. The
 first module/profile installation surface exists through `modules/registry.yaml`,

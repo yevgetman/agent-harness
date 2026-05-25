@@ -383,7 +383,7 @@ documents:
     title: Agent Operating Contract Module
     kind: module-definition
     status: active
-    summary: Module definition for the Agent Operating Contract process domain.
+    summary: Module definition for the Agent Operating Contract process domain, including AGENTS/status setup and the merge-safe target .gitignore template.
     depends_on:
       - v1-process-domain-design
       - v1-installed-manifest-design
@@ -852,7 +852,7 @@ documents:
     title: Harness Init
     kind: cli
     status: active
-    summary: Profile-backed installer with default full profile, dry-run, non-git guard, merge-safe existing-file handling, compatibility-only force, installed-instance metadata, and lock generation.
+    summary: Profile-backed installer with default full profile, dry-run, automatic git init for non-git targets, merge-safe .gitignore and existing-file handling, compatibility-only force, installed-instance metadata, and lock generation.
     depends_on:
       - v1-incremental-build-strategy
       - v1-installed-manifest-design

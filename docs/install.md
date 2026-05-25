@@ -26,7 +26,7 @@ Install the CLI globally on the machine:
 npm install -g /tmp/harness-pack/portable-harness-0.1.0.tgz
 ```
 
-From a target git repo:
+From a target repo:
 
 ```bash
 cd ~/code/sitekit
@@ -41,11 +41,23 @@ harness upgrade
 target repos that should receive the bootstrap harness files without the
 additional process-domain modules.
 
+If the target directory is not already a git repository, init creates one with
+`git init`. If the target already has a git repository, init runs inside the
+existing repo. `--allow-non-git` is retained only as a deprecated escape hatch
+for installing without automatic git initialization.
+
 Init is merge-safe. If files such as `AGENTS.md`, `status.md`, `index.yaml`,
 or `state/CONTEXT.md` already exist, init preserves their content and adds or
 updates harness-owned sections. If a structured file cannot be merged safely,
 init refuses instead of overwriting it. `--force` remains accepted for older
 commands, but it no longer authorizes overwriting human-authored content.
+
+Init also creates or updates a harness-owned section in `.gitignore`. Durable
+harness artifacts are intended to be committed, including `.harness/manifest.yaml`,
+`.harness/lock.yaml`, `AGENTS.md`, `status.md`, `index.yaml`, `state/`,
+`metadata/`, `invariants/`, `plans/`, `decisions/`, and `modules/`. The
+installed `.gitignore` section ignores only local/transient operator state:
+`.harness/tmp/`, `.harness/cache/`, `.harness/reports/`, and `.harness/*.local.*`.
 
 ## Repo-Local Package Install
 

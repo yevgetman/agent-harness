@@ -239,6 +239,30 @@ metadata:
         - package
         - v1-validation
 
+    - id: agent-operating-contract-module
+      path: modules/agent-operating-contract/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: agent-operating-contract
+      tags:
+        - module
+        - agent-operating-contract
+        - gitignore
+      depends_on:
+        - module-registry
+
+    - id: agent-operating-contract-gitignore-template
+      path: modules/agent-operating-contract/templates/gitignore
+      kind: module-template
+      status: active
+      owner_domain: agent-operating-contract
+      tags:
+        - template
+        - gitignore
+        - git
+      depends_on:
+        - agent-operating-contract-module
+
     - id: v1-validation
       path: docs/v1-validation.md
       kind: validation-baseline

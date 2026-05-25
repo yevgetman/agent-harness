@@ -12,11 +12,17 @@ module:
   creates:
     - AGENTS.md
     - status.md
+    - .gitignore
   managed_files:
     - path: AGENTS.md
       mode: merge
     - path: status.md
       mode: merge
+  install:
+    artifacts:
+      - path: .gitignore
+        type: template
+        source: modules/agent-operating-contract/templates/gitignore
   validates:
     - AGENTS.md exists
     - status.md exists

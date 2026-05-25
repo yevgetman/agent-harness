@@ -241,13 +241,21 @@ withTempDir((root) => {
 
   const dryRun = quiet(() => runInit({
     cwd: root,
-    args: ["--target", target, "--profile", "minimal", "--dry-run", "--allow-non-git"],
+    args: ["--target", target, "--profile", "minimal", "--dry-run"],
   }));
   assert.equal(dryRun.ok, true, "init --dry-run should pass");
+  assert.equal(dryRun.git.planned_init, true, "dry-run should report planned git init for non-git targets");
   assertNotExists(target, "AGENTS.md");
 
   const nonGit = quiet(() => runInit({ cwd: root, args: ["--target", target, "--profile", "minimal"] }));
-  assert.equal(nonGit.ok, false, "init should refuse non-git targets by default");
+  assert.equal(nonGit.ok, true, "init should initialize non-git targets by default");
+  assert.equal(nonGit.git.initialized, true, "init should report automatic git init");
+  assertExists(target, ".git");
+  assertExists(target, ".gitignore");
+  const initializedGitignore = readFileSync(join(target, ".gitignore"), "utf8");
+  assert.match(initializedGitignore, /\.harness\/tmp\//, "init should ignore harness tmp state");
+  assert.match(initializedGitignore, /\.harness\/\*\.local\.yaml/, "init should ignore local harness overrides");
+  assert.doesNotMatch(initializedGitignore, /^\.harness\/$/m, "init should not ignore durable harness state wholesale");
 
   const gitTarget = join(root, "git-target");
   initGitRepo(gitTarget);
@@ -270,6 +278,7 @@ withTempDir((root) => {
 
   for (const file of [
     "AGENTS.md",
+    ".gitignore",
     "status.md",
     "index.yaml",
     "state/CONTEXT.md",
@@ -318,7 +327,7 @@ withTempDir((root) => {
     args: ["--target", gitTarget, "--profile", "minimal", "--dry-run"],
   }));
   assert.equal(dryRunCollision.ok, true, "init --dry-run should report existing artifacts without failing");
-  assert.equal(dryRunCollision.existing.length, 8, "dry-run should report planned existing artifacts");
+  assert.equal(dryRunCollision.existing.length, 9, "dry-run should report planned existing artifacts");
   assert.equal(dryRunCollision.collisions.length, 0, "merge-safe dry-run should not report overwrite collisions");
   assert.equal(
     dryRunCollision.warnings.some((warning) => warning.includes("init will merge")),
@@ -1408,6 +1417,7 @@ withTempDir((root) => {
 
   for (const file of [
     "AGENTS.md",
+    ".gitignore",
     "status.md",
     "index.yaml",
     "state/CONTEXT.md",

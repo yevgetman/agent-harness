@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,7 +49,7 @@ Options:
   --target <path>       Target repository root. Defaults to the current dir.
   --force               Deprecated compatibility flag; init remains merge-safe.
   --dry-run             Print the install plan without writing files.
-  --allow-non-git       Permit installation into a directory without .git.
+  --allow-non-git       Deprecated: skip automatic git init for non-git dirs.
   -h, --help            Show this help.
 `);
 }
@@ -93,6 +94,20 @@ function markerPattern(path) {
   return new RegExp(`${start}[\\s\\S]*?${end}`);
 }
 
+function gitignoreMarkerStart() {
+  return "# harness:start gitignore";
+}
+
+function gitignoreMarkerEnd() {
+  return "# harness:end gitignore";
+}
+
+function gitignoreMarkerPattern() {
+  const start = gitignoreMarkerStart().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const end = gitignoreMarkerEnd().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`${start}[\\s\\S]*?${end}`);
+}
+
 function stripLeadingHeading(markdown) {
   return markdown.replace(/^# .*\n+/, "").trim();
 }
@@ -119,6 +134,34 @@ ${markerEnd(path)}`;
 function mergeMarkedMarkdown(path, existingContent, incomingContent) {
   const section = sectionForMarkdown(path, incomingContent);
   const pattern = markerPattern(path);
+
+  if (pattern.test(existingContent)) {
+    return {
+      ok: true,
+      content: `${existingContent.replace(pattern, section).replace(/\s+$/, "")}\n`,
+      action: "updated-section",
+    };
+  }
+
+  return {
+    ok: true,
+    content: `${existingContent.replace(/\s+$/, "")}\n\n${section}\n`,
+    action: "appended-section",
+  };
+}
+
+function sectionForGitignore(incomingContent) {
+  const existingSection = incomingContent.match(gitignoreMarkerPattern())?.[0];
+  if (existingSection) return existingSection;
+
+  return `${gitignoreMarkerStart()}
+${incomingContent.trim()}
+${gitignoreMarkerEnd()}`;
+}
+
+function mergeGitignore(existingContent, incomingContent) {
+  const section = sectionForGitignore(incomingContent);
+  const pattern = gitignoreMarkerPattern();
 
   if (pattern.test(existingContent)) {
     return {
@@ -241,6 +284,10 @@ function mergeYamlContent(path, existingContent, incomingContent) {
 }
 
 export function mergeManagedContent({ path, existingContent, incomingContent }) {
+  if (path === ".gitignore") {
+    return mergeGitignore(existingContent, incomingContent);
+  }
+
   if (["AGENTS.md", "status.md", "state/CONTEXT.md"].includes(path)) {
     return mergeMarkedMarkdown(path, existingContent, incomingContent);
   }
@@ -250,6 +297,24 @@ export function mergeManagedContent({ path, existingContent, incomingContent }) 
   }
 
   return { ok: true, content: existingContent, action: "preserved-existing" };
+}
+
+function hasGitRepo(targetRoot) {
+  return existsSync(join(targetRoot, ".git"));
+}
+
+function initGitRepo(targetRoot) {
+  mkdirSync(targetRoot, { recursive: true });
+  const result = spawnSync("git", ["init"], {
+    cwd: targetRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  return {
+    ok: result.status === 0,
+    error: result.stderr?.trim() || result.stdout?.trim() || result.error?.message || `git init exited ${result.status}`,
+  };
 }
 
 function shouldReplaceExisting(path) {
@@ -583,6 +648,13 @@ Use \`harness lock check\` to inspect installed-file provenance drift.
 
 After intentional changes to harness-managed files, use
 \`harness lock refresh\` before final validation.
+
+## Git Discipline
+
+Harness init creates a git repo when one is not already present. Durable
+harness artifacts are intended to be committed with the repo. The harness
+\`.gitignore\` section ignores only local/transient operator state under
+\`.harness/\`.
 ${markerEnd("AGENTS.md")}
 `,
       },
@@ -744,22 +816,25 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
   const allowNonGit = args.includes("--allow-non-git");
   const date = todayIso();
   const errors = [];
+  const gitAlreadyPresent = hasGitRepo(targetRoot);
+  const shouldInitGit = !gitAlreadyPresent && !allowNonGit;
 
   const plan = buildFiles({ targetRoot, profile, date });
   errors.push(...plan.errors);
-
-  if (!allowNonGit && !existsSync(join(targetRoot, ".git"))) {
-    errors.push(`${targetRoot}: target is not a git repo (pass --allow-non-git to override)`);
-  }
 
   const existingArtifacts = errors.length === 0 ? collectExistingArtifacts(targetRoot, plan.entries) : [];
   const warnings = [
     ...(existingArtifacts.length > 0 ? [collisionWarning(existingArtifacts.length)] : []),
     ...(force ? [forceWarning()] : []),
+    ...(allowNonGit && !gitAlreadyPresent ? ["--allow-non-git is deprecated; default init now creates a git repo when needed"] : []),
   ];
 
   if (dryRun && errors.length === 0) {
     printPlan({ targetRoot, profile, entries: plan.entries, dryRun, existing: existingArtifacts, warnings });
+    if (shouldInitGit) {
+      console.log("git:");
+      console.log("  would run git init");
+    }
     console.log("");
     console.log("Harness init: dry run complete; no files written");
     return {
@@ -772,6 +847,11 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
       default_profile: !args.includes("--profile"),
       merge_safe: true,
       force_deprecated: force,
+      git: {
+        present: gitAlreadyPresent,
+        initialized: false,
+        planned_init: shouldInitGit,
+      },
       collisions: [],
       overwrites: [],
     };
@@ -787,6 +867,28 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
       existing: existingArtifacts,
       collisions: [],
     };
+  }
+
+  if (shouldInitGit) {
+    const gitInit = initGitRepo(targetRoot);
+    if (!gitInit.ok) {
+      const gitErrors = [`${targetRoot}: git init failed: ${gitInit.error}`];
+      printFailure(gitErrors, warnings);
+      return {
+        ok: false,
+        targetRoot,
+        errors: gitErrors,
+        warnings,
+        existing: existingArtifacts,
+        collisions: [],
+        overwrites: [],
+        git: {
+          present: false,
+          initialized: false,
+          planned_init: true,
+        },
+      };
+    }
   }
 
   printPlan({ targetRoot, profile, entries: plan.entries, dryRun, existing: existingArtifacts, warnings });
@@ -834,6 +936,11 @@ export function runInit({ cwd = process.cwd(), args = [] } = {}) {
     default_profile: !args.includes("--profile"),
     merge_safe: true,
     force_deprecated: force,
+    git: {
+      present: gitAlreadyPresent || shouldInitGit,
+      initialized: shouldInitGit,
+      planned_init: shouldInitGit,
+    },
     collisions: [],
     overwrites: [],
   };
