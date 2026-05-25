@@ -1,7 +1,10 @@
 # Portable Harness
 
 Portable Harness is a CLI and repository scaffold for making software projects
-more legible and safer for AI coding agents to work in over time.
+more legible and safer for AI coding agents to work in over time. It organizes
+agent-facing repository operations into **process domains**: durable areas of
+concern such as orientation, current state, decision memory, structured
+metadata, invariants, plans, validation, and lifecycle management.
 
 It installs a small operating layer into a target repository: agent
 instructions, current-state documents, structured metadata, decision records,
