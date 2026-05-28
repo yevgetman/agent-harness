@@ -232,6 +232,7 @@ The package excludes dogfood and source-repo-local artifacts:
 - `.harness/`
 - `AGENTS.md`
 - `build/`
+- `capture/`
 - `decisions/`
 - `fixtures/`
 - `index.yaml`

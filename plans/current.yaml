@@ -443,16 +443,39 @@ plans_status:
 
     - id: v1.1-capture-triage-breadth
       title: Add Capture And Triage process-domain baseline
-      status: planned
+      status: complete
       priority: high
-      owner_domain: harness-lifecycle
-      summary: Capture And Triage is the next recommended process-domain breadth candidate after Durable Memory.
-      next_action: Define the narrow baseline artifacts and executable behavior before implementation.
+      owner_domain: capture-and-triage
+      summary: Capture And Triage is now installed in the full profile with capture inbox, triage register, list/add/triage/check/report commands, doctor validation, tests, and dogfood state.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - process-domain
         - capture-triage
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-capture-triage-design.md
+        - design/v1-process-domain-design.md
+        - decisions/0037-adopt-capture-and-triage-baseline-module.md
+        - modules/capture-triage/module.yaml
+        - scripts/capture.mjs
+        - capture/inbox.yaml
+        - capture/triage.yaml
+        - status.md
+
+    - id: v1.1-application-legibility-breadth
+      title: Add Application / Corpus Legibility process-domain baseline
+      status: planned
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Application / Corpus Legibility is the next recommended process-domain breadth candidate after Capture And Triage.
+      next_action: Define the narrow baseline artifacts and executable behavior before implementation.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - process-domain
+        - application-legibility
         - planned
       references:
         - design/v1.1-installed-instance-roadmap.md

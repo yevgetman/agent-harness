@@ -316,8 +316,8 @@ Exit signal:
 ### Phase 4: Additional Process Domains
 
 Status: active; Structured Metadata, Canonical State, Invariants And Golden
-Principles, Plans And Status, and Durable Memory breadth increments are
-implemented and dogfooded.
+Principles, Plans And Status, Durable Memory, and Capture And Triage breadth
+increments are implemented and dogfooded.
 
 Purpose:
 
@@ -336,6 +336,7 @@ Initial implemented modules:
 - `invariants-golden-principles`
 - `plans-and-status`
 - `durable-memory`
+- `capture-triage`
 
 Initial behavior:
 
@@ -371,9 +372,15 @@ Initial behavior:
 - `harness memory list`, `harness memory check`, and `harness memory report`
   expose and validate Durable Memory state.
 - `harness doctor` validates Durable Memory when the module is installed.
+- `capture/inbox.yaml` and `capture/triage.yaml` record captured items,
+  triage state, and promotion targets.
+- `harness capture list`, `harness capture add`, `harness capture triage`,
+  `harness capture check`, and `harness capture report` expose and validate
+  Capture And Triage state.
+- `harness doctor` validates Capture And Triage when the module is installed.
 - The full profile installs the Structured Metadata, Canonical State,
-  Invariants And Golden Principles, Plans And Status, and Durable Memory
-  modules.
+  Invariants And Golden Principles, Plans And Status, Durable Memory, and
+  Capture And Triage modules.
 
 Exit signal:
 

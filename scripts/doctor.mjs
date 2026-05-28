@@ -7,6 +7,7 @@ import { validateMetadata } from "./metadata.mjs";
 import { validateCanonicalState } from "./state.mjs";
 import { validateInvariants } from "./invariants.mjs";
 import { validatePlansStatus } from "./plans.mjs";
+import { validateCapture } from "./capture.mjs";
 import { validateMemory } from "./memory.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
@@ -820,6 +821,21 @@ function checkDurableMemory(root, installedModules, diagnostics) {
   }
 }
 
+function checkCaptureTriage(root, installedModules, diagnostics) {
+  if (!installedModules.has("capture-triage")) return;
+
+  const result = validateCapture(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `capture/inbox.yaml: ${result.items.length} capture item(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -964,6 +980,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkInvariants(root, installedModules, diagnostics);
   checkPlansStatus(root, installedModules, diagnostics);
   checkDurableMemory(root, installedModules, diagnostics);
+  checkCaptureTriage(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

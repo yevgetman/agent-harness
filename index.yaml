@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-25
+updated: 2026-05-28
 harness:
   package: portable-harness
   version: 0.1.0
@@ -36,6 +36,7 @@ reading_order:
   - v1-invariants-golden-principles-design
   - v1-plans-status-design
   - v1-durable-memory-design
+  - v1-capture-triage-design
   - v1-distribution-readiness-design
   - v1-validation
   - installed-manifest
@@ -45,6 +46,7 @@ reading_order:
   - invariants-golden-principles
   - plans-current
   - durable-memory
+  - capture-triage
   - module-registry
   - profile-minimal
   - profile-full
@@ -56,6 +58,7 @@ reading_order:
   - module-invariants-golden-principles
   - module-plans-and-status
   - module-durable-memory
+  - module-capture-triage
   - depth-gate
   - open-questions
   - decision-0001
@@ -94,6 +97,7 @@ reading_order:
   - decision-0034
   - decision-0035
   - decision-0036
+  - decision-0037
   - decision-template
   - package
   - harness-cli
@@ -107,6 +111,7 @@ reading_order:
   - state-cli
   - invariants-cli
   - plans-cli
+  - capture-cli
   - memory-cli
   - distribution-cli
   - lock-cli
@@ -144,7 +149,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, profile switch apply, cascade apply, profile sync planning, and the pause before process-domain breadth. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, Durable Memory, Capture And Triage, and next process-domain breadth. Not a changelog.
     depends_on:
       - agents
 
@@ -300,6 +305,16 @@ documents:
       - v1-process-domain-design
       - v1-plans-status-design
 
+  - doc_id: v1-capture-triage-design
+    file: design/v1-capture-triage-design.md
+    title: "Formal Design: V1 Capture And Triage"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the sixth Phase 4 process-domain module: capture inbox, triage register, promotion target metadata, capture list/add/triage/check/report commands, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-durable-memory-design
+
   - doc_id: v1-distribution-readiness-design
     file: design/v1-distribution-readiness-design.md
     title: "Formal Design: V1 Distribution Readiness"
@@ -389,6 +404,16 @@ documents:
     depends_on:
       - v1-durable-memory-design
       - plans-current
+
+  - doc_id: capture-triage
+    file: capture/inbox.yaml
+    title: Capture And Triage
+    kind: capture-registry
+    status: active
+    summary: Machine-readable capture inbox plus triage register for not-yet-authoritative items and promotion targets.
+    depends_on:
+      - v1-capture-triage-design
+      - durable-memory
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -495,6 +520,16 @@ documents:
     summary: Module definition for durable operator preferences, repo notes, session summaries, and memory list/check/report commands.
     depends_on:
       - v1-durable-memory-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-capture-triage
+    file: modules/capture-triage/module.yaml
+    title: Capture And Triage Module
+    kind: module-definition
+    status: active
+    summary: Module definition for capture inbox, triage register, promotion target metadata, and capture list/add/triage/check/report commands.
+    depends_on:
+      - v1-capture-triage-design
       - v1-installed-manifest-design
 
   - doc_id: open-questions
@@ -889,6 +924,17 @@ documents:
       - module-durable-memory
       - decision-0034
 
+  - doc_id: decision-0037
+    file: decisions/0037-adopt-capture-and-triage-baseline-module.md
+    title: Adopt Capture And Triage Baseline Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Capture And Triage as the next process-domain breadth module after Durable Memory.
+    depends_on:
+      - v1-capture-triage-design
+      - module-capture-triage
+      - decision-0036
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -903,7 +949,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -913,7 +959,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -1025,6 +1071,16 @@ documents:
       - v1-plans-status-design
       - plans-current
 
+  - doc_id: capture-cli
+    file: scripts/capture.mjs
+    title: Harness Capture CLI
+    kind: cli
+    status: active
+    summary: Capture And Triage command implementation for inbox validation, filters, adding items, recording triage state, JSON output, and summary reports.
+    depends_on:
+      - v1-capture-triage-design
+      - capture-triage
+
   - doc_id: memory-cli
     file: scripts/memory.mjs
     title: Harness Memory CLI
@@ -1096,6 +1152,7 @@ documents:
       - v1-canonical-state-design
       - v1-invariants-golden-principles-design
       - v1-plans-status-design
+      - v1-capture-triage-design
       - v1-durable-memory-design
 
   - doc_id: test
@@ -1103,7 +1160,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
@@ -1111,6 +1168,7 @@ documents:
       - state-cli
       - invariants-cli
       - plans-cli
+      - capture-cli
       - memory-cli
       - distribution-cli
       - lock-cli

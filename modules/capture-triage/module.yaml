@@ -1,0 +1,61 @@
+module:
+  id: capture-triage
+  version: 0.1.0
+  status: active
+  process_domains:
+    - capture-and-triage
+  provides:
+    - capture-inbox
+    - triage-register
+    - promotion-target-metadata
+    - capture-list-command
+    - capture-add-command
+    - capture-triage-command
+    - capture-check-command
+    - capture-report-command
+    - capture-shape-validation
+  creates:
+    - capture/
+    - capture/README.md
+    - capture/inbox.yaml
+    - capture/triage.yaml
+  managed_files:
+    - path: capture/README.md
+      mode: merge
+    - path: capture/inbox.yaml
+      mode: merge
+    - path: capture/triage.yaml
+      mode: merge
+  commands:
+    capture-list: harness capture list
+    capture-add: harness capture add
+    capture-triage: harness capture triage
+    capture-check: harness capture check
+    capture-report: harness capture report
+  install:
+    artifacts:
+      - path: capture/
+        type: directory
+      - path: capture/README.md
+        type: template
+        source: modules/capture-triage/templates/README.md
+      - path: capture/inbox.yaml
+        type: template
+        source: modules/capture-triage/templates/inbox.yaml
+      - path: capture/triage.yaml
+        type: template
+        source: modules/capture-triage/templates/triage.yaml
+  validates:
+    - capture/inbox.yaml parses as YAML
+    - capture/triage.yaml parses as YAML
+    - capture registries use supported versions
+    - inbox item IDs are unique
+    - inbox item statuses, kinds, and promotion targets are allowed
+    - triage records reference existing inbox items
+    - promoted triage records include a promotion target
+    - capture items can be filtered and summarized
+  instructions:
+    - Use Capture And Triage for unpromoted observations, possible tasks, issues, and follow-up ideas.
+    - Promote selected work into plans, decisions, open questions, canonical state, or durable memory.
+    - Do not let the inbox become authoritative state.
+    - Close or defer stale captured items instead of preserving scratch indefinitely.

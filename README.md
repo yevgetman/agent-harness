@@ -63,6 +63,9 @@ The default `full` profile installs the current complete baseline:
 - `invariants/golden-principles.yaml`: rules future agents should preserve.
 - `plans/current.yaml`: structured active, planned, blocked, deferred, and
   completed work.
+- `capture/`: inbox and triage register for material that is not yet
+  authoritative.
+- `memory/`: durable operator preferences, repo notes, and session summaries.
 - `modules/*/module.yaml`: local records for installed harness process-domain
   modules.
 
@@ -79,6 +82,8 @@ work:
   crawling the repo blindly.
 - **State discipline:** `status.md` and `plans/current.yaml` separate current
   state from history.
+- **Capture discipline:** rough observations and follow-up ideas can land in a
+  triage inbox before promotion.
 - **Decision memory:** important choices and unresolved questions become
   durable files that can be listed and validated.
 - **Structured retrieval:** metadata and canonical-state registries make
@@ -205,6 +210,11 @@ harness state check
 harness invariants check
 harness plans list
 harness plans check
+harness capture list
+harness capture add "Follow up on fixture coverage"
+harness capture triage --id follow-up-on-fixture-coverage --status triaged --promote-to plans
+harness memory list
+harness memory check
 ```
 
 ## Git And Tracked State
@@ -224,6 +234,8 @@ Tracked by default:
 - `metadata/`
 - `invariants/`
 - `plans/`
+- `capture/`
+- `memory/`
 - `decisions/`
 - `modules/`
 

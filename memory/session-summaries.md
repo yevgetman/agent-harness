@@ -9,7 +9,9 @@
   apply, profile sync planning, and clean template cascade apply are built.
 - Durable Memory is implemented and validated as the first remaining
   process-domain breadth increment after the lifecycle depth work.
-- The next recommended breadth candidate is Capture And Triage.
+- Capture And Triage is implemented and validated as the next process-domain
+  breadth increment.
+- The next recommended breadth candidate is Application / Corpus Legibility.
 
 ## Archive
 

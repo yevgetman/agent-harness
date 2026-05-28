@@ -1,0 +1,12 @@
+# Harness managed file: capture-triage
+capture_triage:
+  version: 1
+  updated: 2026-05-28
+  scope: harness-source-repo
+  records:
+    - id: triage-capture-triage-baseline
+      item_id: capture-triage-baseline
+      status: triaged
+      promote_to: plans
+      note: Selected as the next breadth-depth-breadth process-domain increment after Durable Memory.
+      updated: 2026-05-28

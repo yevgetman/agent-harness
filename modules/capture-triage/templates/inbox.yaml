@@ -1,0 +1,6 @@
+# Harness managed file: capture-triage
+capture_inbox:
+  version: 1
+  updated: 2026-05-28
+  scope: target-repo
+  items: []

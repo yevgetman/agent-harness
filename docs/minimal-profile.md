@@ -45,7 +45,7 @@ Use `--dry-run` to inspect the install plan without writing files.
 Bare `harness init` now defaults to the `full` profile. Use
 `harness init --profile minimal` when the target should receive only the
 bootstrap harness files. The `full` profile includes the additional process
-domain modules, including Durable Memory.
+domain modules, including Durable Memory and Capture And Triage.
 
 When planned harness artifacts already exist, `harness init` preserves existing
 human-authored content and adds or updates harness-owned sections where it can
@@ -138,6 +138,11 @@ and `harness metadata report`. `canonical-state` adds
 `invariants/golden-principles.yaml` and `harness invariants check`.
 `plans-and-status` adds `plans/current.yaml`, `harness plans list`,
 `harness plans check`, and `harness plans report`.
+`durable-memory` adds `memory/`, `harness memory list`,
+`harness memory check`, and `harness memory report`.
+`capture-triage` adds `capture/`, `harness capture list`,
+`harness capture add`, `harness capture triage`, `harness capture check`, and
+`harness capture report`.
 
 Distribution readiness is checked from the source repo with
 `npm run distribution:check`, which validates explicit npm package contents,

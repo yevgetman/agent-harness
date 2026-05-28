@@ -13,6 +13,7 @@ import { runMetadata } from "./metadata.mjs";
 import { runState } from "./state.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runPlans } from "./plans.mjs";
+import { runCapture } from "./capture.mjs";
 import { runMemory } from "./memory.mjs";
 import { runDistribution } from "./distribution.mjs";
 
@@ -43,6 +44,11 @@ Usage:
   harness plans list
   harness plans check
   harness plans report
+  harness capture list
+  harness capture add "<title>"
+  harness capture triage --id <item-id> --status <status>
+  harness capture check
+  harness capture report
   harness memory list
   harness memory check
   harness memory report
@@ -100,6 +106,9 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "plans") {
   const result = runPlans({ cwd: process.cwd(), args });
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "capture") {
+  const result = runCapture({ cwd: process.cwd(), args });
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "memory") {
   const result = runMemory({ cwd: process.cwd(), args });

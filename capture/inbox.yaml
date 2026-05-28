@@ -1,0 +1,34 @@
+# Harness managed file: capture-triage
+capture_inbox:
+  version: 1
+  updated: 2026-05-28
+  scope: harness-source-repo
+  items:
+    - id: capture-triage-baseline
+      title: Implement Capture And Triage baseline
+      status: triaged
+      kind: task
+      summary: Add capture inbox, triage register, commands, validation, profile wiring, tests, and dogfood state.
+      source: operator
+      created: 2026-05-28
+      promote_to: plans
+      tags:
+        - v1.1
+        - process-domain
+        - dogfood
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+
+    - id: application-legibility-next
+      title: Consider Application / Corpus Legibility as the next breadth candidate
+      status: open
+      kind: idea
+      summary: After Capture And Triage is validated, the next likely process-domain baseline is repo legibility for app and corpus inspection.
+      source: roadmap
+      created: 2026-05-28
+      promote_to: plans
+      tags:
+        - v1.1
+        - process-domain
+      references:
+        - design/v1.1-installed-instance-roadmap.md

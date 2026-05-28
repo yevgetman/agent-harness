@@ -177,6 +177,15 @@ work changes.
 Use `npm run plans:check` after changing `status.md`, current plans, or
 plan-referenced artifacts.
 
+## Capture And Triage Discipline
+
+Use `npm run capture:check` to validate captured inbox and triage state.
+
+Use `node scripts/harness.mjs capture add "<title>"` for useful but
+not-yet-authoritative material. Promote selected items into plans, decisions,
+open questions, canonical state, status, or durable memory instead of letting
+the inbox become authoritative state.
+
 ## Distribution Readiness Discipline
 
 Use `npm run distribution:check` after changing package contents or package

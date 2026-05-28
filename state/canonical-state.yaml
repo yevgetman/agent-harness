@@ -231,6 +231,37 @@ canonical_state:
       depends_on:
         - durable-memory-preferences
 
+    - id: capture-triage-design
+      path: design/v1-capture-triage-design.md
+      metadata_id: capture-triage-design
+      state_role: source
+      status: active
+      owner_domain: capture-and-triage
+      refresh: manual
+      depends_on:
+        - process-domain-design
+        - durable-memory-design
+
+    - id: capture-inbox
+      path: capture/inbox.yaml
+      metadata_id: capture-inbox
+      state_role: registry
+      status: active
+      owner_domain: capture-and-triage
+      refresh: command
+      depends_on:
+        - capture-triage-design
+
+    - id: capture-triage-register
+      path: capture/triage.yaml
+      metadata_id: capture-triage-register
+      state_role: registry
+      status: active
+      owner_domain: capture-and-triage
+      refresh: command
+      depends_on:
+        - capture-inbox
+
     - id: installed-manifest
       path: .harness/manifest.yaml
       metadata_id: installed-manifest
@@ -315,6 +346,17 @@ canonical_state:
         - durable-memory-design
         - module-registry
 
+    - id: capture-triage-module
+      path: modules/capture-triage/module.yaml
+      metadata_id: capture-triage-module
+      state_role: source
+      status: active
+      owner_domain: capture-and-triage
+      refresh: manual
+      depends_on:
+        - capture-triage-design
+        - module-registry
+
     - id: state-cli
       path: scripts/state.mjs
       metadata_id: state-cli
@@ -358,6 +400,17 @@ canonical_state:
       depends_on:
         - durable-memory-module
         - durable-memory-preferences
+
+    - id: capture-cli
+      path: scripts/capture.mjs
+      metadata_id: capture-cli
+      state_role: source
+      status: active
+      owner_domain: capture-and-triage
+      refresh: manual
+      depends_on:
+        - capture-triage-module
+        - capture-inbox
 
     - id: distribution-cli
       path: scripts/distribution.mjs

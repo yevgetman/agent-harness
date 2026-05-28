@@ -49,6 +49,11 @@ harness:
       status: active
       process_domains:
         - durable-memory
+    - id: capture-triage
+      version: 0.1.0
+      status: active
+      process_domains:
+        - capture-and-triage
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -92,6 +97,15 @@ harness:
     - path: memory/session-summaries.md
       owner: durable-memory
       mode: merge
+    - path: capture/README.md
+      owner: capture-triage
+      mode: merge
+    - path: capture/inbox.yaml
+      owner: capture-triage
+      mode: merge
+    - path: capture/triage.yaml
+      owner: capture-triage
+      mode: merge
   commands:
     init: npm run init
     destroy: npm run destroy
@@ -120,6 +134,11 @@ harness:
     plans-list: npm run plans:list
     plans-check: npm run plans:check
     plans-report: npm run plans:report
+    capture-list: npm run capture:list
+    capture-add: npm run capture:add
+    capture-triage: npm run capture:triage
+    capture-check: npm run capture:check
+    capture-report: npm run capture:report
     memory-list: npm run memory:list
     memory-check: npm run memory:check
     memory-report: npm run memory:report

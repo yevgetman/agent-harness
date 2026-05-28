@@ -38,3 +38,8 @@ modules:
     path: modules/durable-memory/module.yaml
     status: active
     installable: true
+
+  - id: capture-triage
+    path: modules/capture-triage/module.yaml
+    status: active
+    installable: true

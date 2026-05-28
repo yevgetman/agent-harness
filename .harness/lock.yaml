@@ -26,6 +26,8 @@ lock:
       version: 0.1.0
     - id: durable-memory
       version: 0.1.0
+    - id: capture-triage
+      version: 0.1.0
   files:
     - path: .gitignore
       owner: harness-lifecycle
@@ -46,7 +48,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: 648f3714e63bdee091f83f4912ca4a8912cc9ca529593a42ef72b4652fcc6169
+      sha256: 6862662e1f1043f16ffd12cb638ed7dd31bb5d0b9ee93a19f7925fee07191ede
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -56,7 +58,43 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: e284e2633e3be3b6e9ecd45748aed331a2d1c44a133c87218b003a83b7c9e9a3
+      sha256: e268e66b193a47d657aff997e88c8da753741ffffdbb878ef1fa8aabe745af62
+    - path: capture/inbox.yaml
+      owner: capture-triage
+      owner_type: module
+      module_id: capture-triage
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/capture-triage/templates/inbox.yaml
+      source_sha256: 02332b176f1a72f4ad7cb0c9817d9cf0f00b87d0b5d8ad7e30bb5398f416338d
+      sha256: 9a0cbf6a004ac61e8952303ded49b27b3ac463f45e5f35f1ba9906c2bcca5719
+    - path: capture/README.md
+      owner: capture-triage
+      owner_type: module
+      module_id: capture-triage
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/capture-triage/templates/README.md
+      source_sha256: 141e71285cd71a817f29c21d00a1e3050176781c41dc771e34fce264c9760ef6
+      sha256: 498e49667e924574b3c4345d4ddf036b7390957b5148a102742266ec1a9ed1dc
+    - path: capture/triage.yaml
+      owner: capture-triage
+      owner_type: module
+      module_id: capture-triage
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/capture-triage/templates/triage.yaml
+      source_sha256: 84d91bec960ea982abc64822641dd7e6dc2ba77815ec97c7574d6c2cf2098a85
+      sha256: a0feed058886aeb4bc5679dfad10b23a97b3c8d1f1fb3d1145f23e3f9e5ce625
     - path: index.yaml
       owner: progressive-orientation
       owner_type: module
@@ -66,7 +104,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: debc110a2ac5e6fdf8d7f252e99f3ed0dc84e5a6a20eb417d47a112f9fb06f65
+      sha256: dec4b63be5723a28301dc44a19d0e957117d96f4da4cc5167b56476b87ff2cf8
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -126,7 +164,7 @@ lock:
       source_kind: module-template
       source_path: modules/durable-memory/templates/session-summaries.md
       source_sha256: 81726c34f7a1dfa7f9316d6dbdcd85051b6e8cbab2d707f887bb72d7137fc019
-      sha256: ccd552ee527fa16f11f612a553a7475d57376af7634e823111b0312333ec1f55
+      sha256: d2d1d4bbd0ef13c36ba27e086155eb79e64b79f22c4fde5bc5dc71aa8702a278
     - path: metadata/artifacts.yaml
       owner: structured-metadata
       owner_type: module
@@ -138,7 +176,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: c64647e3c520fe1d5f3e13f2d56288c801166c175446d224a896e24b6396a65a
+      sha256: 96d4e94d354647d5be90246972f98cb6964c56ddf44f08cc66d8a07af2976f05
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -163,6 +201,18 @@ lock:
       source_path: modules/canonical-state/module.yaml
       source_sha256: d311a5ecbc512fa5d7b96b98c2dccd08c2c8a5ae37bc22b5f4924c3433c17b7a
       sha256: d311a5ecbc512fa5d7b96b98c2dccd08c2c8a5ae37bc22b5f4924c3433c17b7a
+    - path: modules/capture-triage/module.yaml
+      owner: capture-triage
+      owner_type: module
+      module_id: capture-triage
+      mode: replace
+      merge_strategy: replace
+      artifact_role: module-definition
+      source: module-definition
+      source_kind: module-definition
+      source_path: modules/capture-triage/module.yaml
+      source_sha256: e981d3f53868f1664d2f8b11c9476dff6eae3869006492eb25a3f3b43436b3ad
+      sha256: e981d3f53868f1664d2f8b11c9476dff6eae3869006492eb25a3f3b43436b3ad
     - path: modules/decisions-open-questions/module.yaml
       owner: decisions-open-questions
       owner_type: module
@@ -258,7 +308,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: 1cf16f49ff98c64da93aa9ca9b47ecc78f6e726a1401a75e1890de1e95104781
+      sha256: 383cfb4295b40650ab078af7fa46051d83a24678889bb1ae98f0876abc8d82b2
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -270,7 +320,7 @@ lock:
       source_kind: module-template
       source_path: modules/canonical-state/templates/canonical-state.yaml
       source_sha256: cf3ca0adef922711b744cbed03adbd19e8824cf5c6908eebc3edbef68a20f1c5
-      sha256: b0ed8c3c7eabc9f9098a483eead349c6d9ae229c6d2646e80022b24c0a0397da
+      sha256: d31337b4c33406c8a61b69b33d0b928b7158092caeec181312a96f4942092614
     - path: state/CONTEXT.md
       owner: progressive-orientation
       owner_type: module
@@ -280,7 +330,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 576ee175b7ede4060ba7d30195ff57df31052ab80dff4d9fbf66d5d60bc7a1ad
+      sha256: e8283613bf27546ac8ebc9dd7b674306ac0473b40cc0b6c879ca312f8b906115
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -290,7 +340,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 3701eef429ea583c60be9e5a49966209d2b50e0c7f91f552c9f4c82e2b148b38
+      sha256: 06a177e8de6716dbf95cd821278356757eee15813bb52d91e2d624fc227d1fe3
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module
