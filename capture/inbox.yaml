@@ -21,9 +21,23 @@ capture_inbox:
 
     - id: application-legibility-next
       title: Consider Application / Corpus Legibility as the next breadth candidate
-      status: open
+      status: promoted
       kind: idea
       summary: After Capture And Triage is validated, the next likely process-domain baseline is repo legibility for app and corpus inspection.
+      source: roadmap
+      created: 2026-05-28
+      promote_to: plans
+      tags:
+        - v1.1
+        - process-domain
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+
+    - id: reports-retrieval-next
+      title: Consider Reports And Retrieval as the next breadth candidate
+      status: open
+      kind: idea
+      summary: After Application / Corpus Legibility is validated, the next likely process-domain baseline is cross-domain reporting and retrieval.
       source: roadmap
       created: 2026-05-28
       promote_to: plans

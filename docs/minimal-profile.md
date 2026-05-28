@@ -143,6 +143,9 @@ and `harness metadata report`. `canonical-state` adds
 `capture-triage` adds `capture/`, `harness capture list`,
 `harness capture add`, `harness capture triage`, `harness capture check`, and
 `harness capture report`.
+`application-corpus-legibility` adds `legibility/`,
+`harness legibility list`, `harness legibility check`, and
+`harness legibility report`.
 
 Distribution readiness is checked from the source repo with
 `npm run distribution:check`, which validates explicit npm package contents,

@@ -43,3 +43,8 @@ modules:
     path: modules/capture-triage/module.yaml
     status: active
     installable: true
+
+  - id: application-corpus-legibility
+    path: modules/application-corpus-legibility/module.yaml
+    status: active
+    installable: true

@@ -37,6 +37,7 @@ reading_order:
   - v1-plans-status-design
   - v1-durable-memory-design
   - v1-capture-triage-design
+  - v1-application-corpus-legibility-design
   - v1-distribution-readiness-design
   - v1-validation
   - installed-manifest
@@ -47,6 +48,7 @@ reading_order:
   - plans-current
   - durable-memory
   - capture-triage
+  - legibility
   - module-registry
   - profile-minimal
   - profile-full
@@ -59,6 +61,7 @@ reading_order:
   - module-plans-and-status
   - module-durable-memory
   - module-capture-triage
+  - module-application-corpus-legibility
   - depth-gate
   - open-questions
   - decision-0001
@@ -98,6 +101,7 @@ reading_order:
   - decision-0035
   - decision-0036
   - decision-0037
+  - decision-0038
   - decision-template
   - package
   - harness-cli
@@ -112,6 +116,7 @@ reading_order:
   - invariants-cli
   - plans-cli
   - capture-cli
+  - legibility-cli
   - memory-cli
   - distribution-cli
   - lock-cli
@@ -149,7 +154,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, Durable Memory, Capture And Triage, and next process-domain breadth. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, Durable Memory, Capture And Triage, Application / Corpus Legibility, and next process-domain breadth. Not a changelog.
     depends_on:
       - agents
 
@@ -315,6 +320,16 @@ documents:
       - v1-process-domain-design
       - v1-durable-memory-design
 
+  - doc_id: v1-application-corpus-legibility-design
+    file: design/v1-application-corpus-legibility-design.md
+    title: "Formal Design: V1 Application / Corpus Legibility"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the seventh Phase 4 process-domain module: legibility inventory, inspection notes, legibility list/check/report commands, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-capture-triage-design
+
   - doc_id: v1-distribution-readiness-design
     file: design/v1-distribution-readiness-design.md
     title: "Formal Design: V1 Distribution Readiness"
@@ -414,6 +429,16 @@ documents:
     depends_on:
       - v1-capture-triage-design
       - durable-memory
+
+  - doc_id: legibility
+    file: legibility/inventory.yaml
+    title: Application / Corpus Legibility
+    kind: legibility-registry
+    status: active
+    summary: Machine-readable inventory of repo inspection surfaces plus legibility notes for application and corpus inspection.
+    depends_on:
+      - v1-application-corpus-legibility-design
+      - capture-triage
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -530,6 +555,16 @@ documents:
     summary: Module definition for capture inbox, triage register, promotion target metadata, and capture list/add/triage/check/report commands.
     depends_on:
       - v1-capture-triage-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-application-corpus-legibility
+    file: modules/application-corpus-legibility/module.yaml
+    title: Application / Corpus Legibility Module
+    kind: module-definition
+    status: active
+    summary: Module definition for legibility inventory, inspection notes, and legibility list/check/report commands.
+    depends_on:
+      - v1-application-corpus-legibility-design
       - v1-installed-manifest-design
 
   - doc_id: open-questions
@@ -935,6 +970,17 @@ documents:
       - module-capture-triage
       - decision-0036
 
+  - doc_id: decision-0038
+    file: decisions/0038-adopt-application-corpus-legibility-baseline-module.md
+    title: Adopt Application Corpus Legibility Baseline Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Application / Corpus Legibility as the next process-domain breadth module after Capture And Triage.
+    depends_on:
+      - v1-application-corpus-legibility-design
+      - module-application-corpus-legibility
+      - decision-0037
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -949,7 +995,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -959,7 +1005,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -1081,6 +1127,16 @@ documents:
       - v1-capture-triage-design
       - capture-triage
 
+  - doc_id: legibility-cli
+    file: scripts/legibility.mjs
+    title: Harness Legibility CLI
+    kind: cli
+    status: active
+    summary: Application / Corpus Legibility command implementation for inventory validation, filters, JSON output, and summary reports.
+    depends_on:
+      - v1-application-corpus-legibility-design
+      - legibility
+
   - doc_id: memory-cli
     file: scripts/memory.mjs
     title: Harness Memory CLI
@@ -1153,6 +1209,7 @@ documents:
       - v1-invariants-golden-principles-design
       - v1-plans-status-design
       - v1-capture-triage-design
+      - v1-application-corpus-legibility-design
       - v1-durable-memory-design
 
   - doc_id: test
@@ -1160,7 +1217,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
@@ -1169,6 +1226,7 @@ documents:
       - invariants-cli
       - plans-cli
       - capture-cli
+      - legibility-cli
       - memory-cli
       - distribution-cli
       - lock-cli

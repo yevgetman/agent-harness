@@ -1,0 +1,57 @@
+module:
+  id: application-corpus-legibility
+  version: 0.1.0
+  status: active
+  process_domains:
+    - application-corpus-legibility
+  provides:
+    - legibility-inventory
+    - legibility-notes
+    - inspection-surface-metadata
+    - legibility-list-command
+    - legibility-check-command
+    - legibility-report-command
+    - legibility-shape-validation
+  creates:
+    - legibility/
+    - legibility/README.md
+    - legibility/inventory.yaml
+    - legibility/notes.md
+  managed_files:
+    - path: legibility/README.md
+      mode: merge
+    - path: legibility/inventory.yaml
+      mode: merge
+    - path: legibility/notes.md
+      mode: merge
+  commands:
+    legibility-list: harness legibility list
+    legibility-check: harness legibility check
+    legibility-report: harness legibility report
+  install:
+    artifacts:
+      - path: legibility/
+        type: directory
+      - path: legibility/README.md
+        type: template
+        source: modules/application-corpus-legibility/templates/README.md
+      - path: legibility/inventory.yaml
+        type: template
+        source: modules/application-corpus-legibility/templates/inventory.yaml
+      - path: legibility/notes.md
+        type: template
+        source: modules/application-corpus-legibility/templates/notes.md
+  validates:
+    - legibility/inventory.yaml parses as YAML
+    - legibility registry version is supported
+    - inspection surface IDs are unique
+    - inspection surface statuses and kinds are allowed
+    - required title, summary, and how_to_inspect fields are present
+    - commands, references, and tags are lists when present
+    - local references are reported when missing
+    - legibility inventory can be filtered and summarized
+  instructions:
+    - Use Application / Corpus Legibility to record how agents inspect the repo's actual subject matter.
+    - Record app commands, tests, health checks, fixtures, logs, runtime notes, corpus indexes, source maps, and generated reports as inspection surfaces.
+    - Keep validation pass/fail authority in Mechanical Validation; this domain records how to inspect.
+    - Keep cross-domain summaries in Reports And Retrieval when that domain exists.

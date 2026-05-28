@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-25
+  updated: 2026-05-28
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -537,6 +537,68 @@ metadata:
         - capture-inbox
         - capture-triage-design
 
+    - id: application-legibility-design
+      path: design/v1-application-corpus-legibility-design.md
+      kind: formal-design
+      status: active
+      owner_domain: application-corpus-legibility
+      tags:
+        - application-legibility
+        - corpus-legibility
+        - phase-4
+        - process-domain
+      depends_on:
+        - process-domain-design
+        - capture-triage-design
+
+    - id: application-legibility-module
+      path: modules/application-corpus-legibility/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: application-corpus-legibility
+      tags:
+        - module
+        - application-legibility
+        - corpus-legibility
+      depends_on:
+        - application-legibility-design
+        - module-registry
+
+    - id: legibility-readme
+      path: legibility/README.md
+      kind: legibility-doc
+      status: active
+      owner_domain: application-corpus-legibility
+      tags:
+        - legibility
+        - application-legibility
+      depends_on:
+        - application-legibility-design
+
+    - id: legibility-inventory
+      path: legibility/inventory.yaml
+      kind: legibility-registry
+      status: active
+      owner_domain: application-corpus-legibility
+      tags:
+        - legibility
+        - inventory
+        - application-legibility
+      depends_on:
+        - application-legibility-design
+
+    - id: legibility-notes
+      path: legibility/notes.md
+      kind: legibility-notes
+      status: active
+      owner_domain: application-corpus-legibility
+      tags:
+        - legibility
+        - notes
+        - corpus-legibility
+      depends_on:
+        - application-legibility-design
+
     - id: profiles-cli
       path: scripts/profiles.mjs
       kind: cli
@@ -634,6 +696,20 @@ metadata:
         - capture-triage-module
         - capture-inbox
         - capture-triage-register
+
+    - id: legibility-cli
+      path: scripts/legibility.mjs
+      kind: cli
+      status: active
+      owner_domain: application-corpus-legibility
+      tags:
+        - legibility
+        - application-legibility
+        - cli
+        - validation
+      depends_on:
+        - application-legibility-module
+        - legibility-inventory
 
     - id: distribution-cli
       path: scripts/distribution.mjs
@@ -1018,6 +1094,21 @@ metadata:
         - capture-triage-design
         - capture-triage-module
         - durable-memory-decision
+
+    - id: application-legibility-decision
+      path: decisions/0038-adopt-application-corpus-legibility-baseline-module.md
+      kind: decision
+      status: active
+      owner_domain: application-corpus-legibility
+      tags:
+        - application-legibility
+        - corpus-legibility
+        - process-domain
+        - decision
+      depends_on:
+        - application-legibility-design
+        - application-legibility-module
+        - capture-triage-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

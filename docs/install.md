@@ -56,7 +56,7 @@ Init also creates or updates a harness-owned section in `.gitignore`. Durable
 harness artifacts are intended to be committed, including `.harness/manifest.yaml`,
 `.harness/lock.yaml`, `AGENTS.md`, `status.md`, `index.yaml`, `state/`,
 `metadata/`, `invariants/`, `plans/`, `capture/`, `memory/`, `decisions/`,
-and `modules/`. The
+`legibility/`, and `modules/`. The
 installed `.gitignore` section ignores only local/transient operator state:
 `.harness/tmp/`, `.harness/cache/`, `.harness/reports/`, and `.harness/*.local.*`.
 
@@ -123,7 +123,7 @@ or local checkout, and next operator action without central coordination.
 The package intentionally includes the CLI scripts, module definitions, module
 templates, profiles, install/minimal/v1-validation docs, and Distribution
 Readiness design. Repo-local dogfood state such as `.harness/`, `build/`,
-`capture/`, `decisions/`, `memory/`, `metadata/`, `plans/`, `state/`,
+`capture/`, `decisions/`, `legibility/`, `memory/`, `metadata/`, `plans/`, `state/`,
 `status.md`, and test fixtures is not part of the runtime package.
 
 `npm run distribution:check` validates this boundary with `npm pack --dry-run`.

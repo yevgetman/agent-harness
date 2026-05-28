@@ -1,0 +1,90 @@
+# Harness managed file: application-corpus-legibility
+legibility:
+  version: 1
+  updated: 2026-05-28
+  scope: harness-source-repo
+  surfaces:
+    - id: harness-cli-entrypoint
+      title: Harness CLI entrypoint
+      kind: entrypoint
+      status: active
+      summary: The `harness` command dispatcher exposes install, lifecycle, profile, module, validation, memory, capture, legibility, and distribution surfaces.
+      how_to_inspect: Run the CLI help and inspect the dispatcher before changing command routing.
+      commands:
+        - node scripts/harness.mjs --help
+      references:
+        - scripts/harness.mjs
+        - package.json
+      tags:
+        - cli
+        - lifecycle
+
+    - id: module-profile-registry
+      title: Module and profile registry
+      kind: source-map
+      status: active
+      summary: The module registry and profile files define what can be installed into target repos and what the full profile includes.
+      how_to_inspect: List modules and profiles, then inspect module definitions before changing profile-backed install behavior.
+      commands:
+        - npm run modules:list
+        - npm run profiles:list
+        - npm run profiles:inspect -- full
+      references:
+        - modules/registry.yaml
+        - profiles/full.yaml
+        - profiles/minimal.yaml
+      tags:
+        - modules
+        - profiles
+
+    - id: dogfood-validation-stack
+      title: Dogfood validation stack
+      kind: health-check
+      status: active
+      summary: Doctor, focused domain checks, and the test suite are the primary deterministic inspection path for the harness source repo.
+      how_to_inspect: Run doctor and tests after changing installed artifacts, modules, CLI entrypoints, or package contents.
+      commands:
+        - npm run doctor
+        - npm test
+        - npm run lock:check
+      references:
+        - scripts/doctor.mjs
+        - scripts/test.mjs
+        - docs/v1-validation.md
+      tags:
+        - validation
+        - dogfood
+
+    - id: distribution-smoke-surface
+      title: Distribution smoke surface
+      kind: check
+      status: active
+      summary: Distribution checks prove the package boundary, packed package install, global CLI install, and copied target smoke behavior.
+      how_to_inspect: Run package validation and smoke commands after changing package contents, CLI entrypoints, profile installation, or distribution behavior.
+      commands:
+        - npm run distribution:check
+        - npm run distribution:smoke
+        - npm run distribution:global-smoke
+      references:
+        - scripts/distribution.mjs
+        - docs/install.md
+        - design/v1-distribution-readiness-design.md
+      tags:
+        - distribution
+        - smoke
+
+    - id: meetingly-copied-smoke
+      title: Meetingly copied real-repo smoke
+      kind: smoke-target
+      status: active
+      summary: "`~/code/meetingly` is the first named real-repo smoke target, exercised through disposable copies rather than source-owned installation tracking."
+      how_to_inspect: Run copied external-target distribution smoke for minimal and full profiles when lifecycle behavior changes.
+      commands:
+        - node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force
+        - node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile full --force
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - docs/v1-validation.md
+      tags:
+        - real-repo
+        - smoke

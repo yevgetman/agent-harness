@@ -4,14 +4,17 @@ Portable Harness is a CLI and repository scaffold for making software projects
 more legible and safer for AI coding agents to work in over time. It organizes
 agent-facing repository operations into **process domains**: durable areas of
 concern such as orientation, current state, decision memory, structured
-metadata, invariants, plans, validation, and lifecycle management.
+metadata, invariants, plans, capture, legibility, validation, and lifecycle
+management.
 
 It installs a small operating layer into a target repository: agent
 instructions, current-state documents, structured metadata, decision records,
-open questions, invariants, plans, validation commands, and lifecycle state for
-safe upgrades. The goal is not to replace project-specific docs or tooling. The
-goal is to give agents a consistent way to orient, record durable decisions,
-validate repo state, and avoid rediscovering the same context on every session.
+open questions, invariants, plans, capture and legibility inventories,
+validation commands, and lifecycle state for safe upgrades. The goal is not to
+replace project-specific docs or tooling. The goal is to give agents a
+consistent way to orient, record durable decisions, inspect the repo's subject
+matter, validate repo state, and avoid rediscovering the same context on every
+session.
 
 This repository is both the source code for the harness and the first dogfood
 target. It uses its own process domains while the CLI is being developed.
@@ -39,6 +42,7 @@ repo-local operating artifacts. A harnessed repo can tell a future agent:
 - which files are canonical state versus projections,
 - which rules should be preserved,
 - what work is active or blocked,
+- how to inspect the repo's application or corpus surfaces,
 - which harness-managed files have drifted,
 - and which lifecycle upgrades are safe, review-required, or blocked.
 
@@ -65,6 +69,8 @@ The default `full` profile installs the current complete baseline:
   completed work.
 - `capture/`: inbox and triage register for material that is not yet
   authoritative.
+- `legibility/`: inventory and notes for inspecting the repo's app, runtime,
+  validation, smoke, source-map, report, or corpus surfaces.
 - `memory/`: durable operator preferences, repo notes, and session summaries.
 - `modules/*/module.yaml`: local records for installed harness process-domain
   modules.
@@ -84,6 +90,9 @@ work:
   state from history.
 - **Capture discipline:** rough observations and follow-up ideas can land in a
   triage inbox before promotion.
+- **Legibility discipline:** app commands, checks, fixtures, smoke targets,
+  source maps, report surfaces, and corpus inspection notes are visible in one
+  repo-local inventory.
 - **Decision memory:** important choices and unresolved questions become
   durable files that can be listed and validated.
 - **Structured retrieval:** metadata and canonical-state registries make
@@ -213,6 +222,8 @@ harness plans check
 harness capture list
 harness capture add "Follow up on fixture coverage"
 harness capture triage --id follow-up-on-fixture-coverage --status triaged --promote-to plans
+harness legibility list
+harness legibility check
 harness memory list
 harness memory check
 ```
@@ -235,6 +246,7 @@ Tracked by default:
 - `invariants/`
 - `plans/`
 - `capture/`
+- `legibility/`
 - `memory/`
 - `decisions/`
 - `modules/`

@@ -948,10 +948,53 @@ build_strategy:
             - The dogfood manifest exposes memory-list, memory-check, and memory-report.
             - Durable Memory preferences record current operator-relevant harness direction.
 
+    - id: v1.1-capture-triage-baseline
+      breadth_unit: >
+        Add the Capture And Triage process-domain baseline.
+      status: complete
+      completed_on: 2026-05-28
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - capture-triage is an installable module.
+            - The full profile includes capture-triage.
+            - harness capture list/add/triage/check/report provide executable behavior.
+            - The dogfood repo has a capture inbox and triage register.
+        - id: validation
+          status: satisfied
+          evidence:
+            - capture check validates item shape, statuses, kinds, promotion targets, triage references, and required capture files.
+            - doctor validates Capture And Triage when the module is installed.
+            - distribution package contents include the capture CLI and capture-triage templates.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers capture-triage module add.
+            - npm test covers capture list/add/triage/check/report and JSON output.
+            - npm test covers full profile init with Capture And Triage.
+            - npm test covers profile switch and upgrade apply installing Capture And Triage.
+        - id: docs
+          status: satisfied
+          evidence:
+            - decisions/0037-adopt-capture-and-triage-baseline-module.md records the Capture And Triage decision.
+            - design/v1-capture-triage-design.md defines the baseline.
+            - design/v1.1-installed-instance-roadmap.md records Capture And Triage as implemented.
+            - docs/v1-validation.md includes Capture And Triage in the validation matrix.
+            - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run capture:check passes against the dogfood repo.
+            - npm run capture:report summarizes dogfood capture items and triage records.
+            - The dogfood manifest exposes capture-list, capture-add, capture-triage, capture-check, and capture-report.
+            - Capture inbox items record the current process-domain increment and next candidate.
+
   current_depth_pass:
-    id: v1.1-capture-triage-baseline
+    id: v1.1-application-corpus-legibility-baseline
     breadth_unit: >
-      Add the Capture And Triage process-domain baseline.
+      Add the Application / Corpus Legibility process-domain baseline.
     status: complete
     completed_on: 2026-05-28
     ready_for_next_breadth: true
@@ -959,35 +1002,35 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - capture-triage is an installable module.
-          - The full profile includes capture-triage.
-          - harness capture list/add/triage/check/report provide executable behavior.
-          - The dogfood repo has a capture inbox and triage register.
+          - application-corpus-legibility is an installable module.
+          - The full profile includes application-corpus-legibility.
+          - harness legibility list/check/report provide executable behavior.
+          - The dogfood repo has a legibility inventory and legibility notes.
       - id: validation
         status: satisfied
         evidence:
-          - capture check validates item shape, statuses, kinds, promotion targets, triage references, and required capture files.
-          - doctor validates Capture And Triage when the module is installed.
-          - distribution package contents include the capture CLI and capture-triage templates.
+          - legibility check validates inspection surface shape, statuses, kinds, local references, and required legibility files.
+          - doctor validates Application / Corpus Legibility when the module is installed.
+          - distribution package contents include the legibility CLI and application-corpus-legibility templates.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers capture-triage module add.
-          - npm test covers capture list/add/triage/check/report and JSON output.
-          - npm test covers full profile init with Capture And Triage.
-          - npm test covers profile switch and upgrade apply installing Capture And Triage.
+          - npm test covers application-corpus-legibility module add.
+          - npm test covers legibility list/check/report and JSON output.
+          - npm test covers full profile init with Application / Corpus Legibility.
+          - npm test covers profile switch and upgrade apply installing Application / Corpus Legibility.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0037-adopt-capture-and-triage-baseline-module.md records the Capture And Triage decision.
-          - design/v1-capture-triage-design.md defines the baseline.
-          - design/v1.1-installed-instance-roadmap.md records Capture And Triage as implemented.
-          - docs/v1-validation.md includes Capture And Triage in the validation matrix.
+          - decisions/0038-adopt-application-corpus-legibility-baseline-module.md records the Application / Corpus Legibility decision.
+          - design/v1-application-corpus-legibility-design.md defines the baseline.
+          - design/v1.1-installed-instance-roadmap.md records Application / Corpus Legibility as implemented.
+          - docs/v1-validation.md includes Application / Corpus Legibility in the validation matrix.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run capture:check passes against the dogfood repo.
-          - npm run capture:report summarizes dogfood capture items and triage records.
-          - The dogfood manifest exposes capture-list, capture-add, capture-triage, capture-check, and capture-report.
-          - Capture inbox items record the current process-domain increment and next candidate.
+          - npm run legibility:check passes against the dogfood repo.
+          - npm run legibility:report summarizes dogfood inspection surfaces.
+          - The dogfood manifest exposes legibility-list, legibility-check, and legibility-report.
+          - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.

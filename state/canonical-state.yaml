@@ -1,7 +1,7 @@
 # Harness managed file: canonical-state
 canonical_state:
   version: 1
-  updated: 2026-05-22
+  updated: 2026-05-28
   scope: harness-source-repo
   entries:
     - id: agents
@@ -262,6 +262,37 @@ canonical_state:
       depends_on:
         - capture-inbox
 
+    - id: application-legibility-design
+      path: design/v1-application-corpus-legibility-design.md
+      metadata_id: application-legibility-design
+      state_role: source
+      status: active
+      owner_domain: application-corpus-legibility
+      refresh: manual
+      depends_on:
+        - process-domain-design
+        - capture-triage-design
+
+    - id: legibility-inventory
+      path: legibility/inventory.yaml
+      metadata_id: legibility-inventory
+      state_role: registry
+      status: active
+      owner_domain: application-corpus-legibility
+      refresh: command
+      depends_on:
+        - application-legibility-design
+
+    - id: legibility-notes
+      path: legibility/notes.md
+      metadata_id: legibility-notes
+      state_role: source
+      status: active
+      owner_domain: application-corpus-legibility
+      refresh: manual
+      depends_on:
+        - application-legibility-design
+
     - id: installed-manifest
       path: .harness/manifest.yaml
       metadata_id: installed-manifest
@@ -357,6 +388,17 @@ canonical_state:
         - capture-triage-design
         - module-registry
 
+    - id: application-legibility-module
+      path: modules/application-corpus-legibility/module.yaml
+      metadata_id: application-legibility-module
+      state_role: source
+      status: active
+      owner_domain: application-corpus-legibility
+      refresh: manual
+      depends_on:
+        - application-legibility-design
+        - module-registry
+
     - id: state-cli
       path: scripts/state.mjs
       metadata_id: state-cli
@@ -411,6 +453,17 @@ canonical_state:
       depends_on:
         - capture-triage-module
         - capture-inbox
+
+    - id: legibility-cli
+      path: scripts/legibility.mjs
+      metadata_id: legibility-cli
+      state_role: source
+      status: active
+      owner_domain: application-corpus-legibility
+      refresh: manual
+      depends_on:
+        - application-legibility-module
+        - legibility-inventory
 
     - id: distribution-cli
       path: scripts/distribution.mjs

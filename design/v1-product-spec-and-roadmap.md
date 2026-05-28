@@ -324,10 +324,11 @@ Purpose:
 - Add v1 process-domain breadth only when the module/profile lifecycle can
   install and validate it.
 
-Remaining likely candidates:
+Remaining post-v1 process-domain candidates:
 
-- None currently identified for Phase 4; the next likely roadmap move is Phase
-  5 Distribution Readiness unless Plans And Status needs another depth pass.
+- Reports And Retrieval
+- Reconciliation And Drift Detection
+- Gardening And Entropy Management
 
 Initial implemented modules:
 
@@ -337,6 +338,7 @@ Initial implemented modules:
 - `plans-and-status`
 - `durable-memory`
 - `capture-triage`
+- `application-corpus-legibility`
 
 Initial behavior:
 
@@ -378,9 +380,17 @@ Initial behavior:
   `harness capture check`, and `harness capture report` expose and validate
   Capture And Triage state.
 - `harness doctor` validates Capture And Triage when the module is installed.
+- `legibility/inventory.yaml` and `legibility/notes.md` record application,
+  runtime, validation, fixture, smoke, source-map, report, and corpus
+  inspection surfaces.
+- `harness legibility list`, `harness legibility check`, and
+  `harness legibility report` expose and validate Application / Corpus
+  Legibility state.
+- `harness doctor` validates Application / Corpus Legibility when the module is
+  installed.
 - The full profile installs the Structured Metadata, Canonical State,
-  Invariants And Golden Principles, Plans And Status, Durable Memory, and
-  Capture And Triage modules.
+  Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
+  And Triage, and Application / Corpus Legibility modules.
 
 Exit signal:
 

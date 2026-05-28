@@ -44,18 +44,19 @@ confirm-gated teardown: bare destroy prints a read-only plan, while
 `harness destroy --confirm` removes installed harness artifacts, preserves
 `.git/`, and surgically removes marked harness sections from files such as
 `AGENTS.md`, `status.md`, `state/CONTEXT.md`, and `.gitignore`. Durable
-Memory and Capture And Triage are now installed process-domain breadth
-baselines: the `full` profile includes `durable-memory` and
-`capture-triage`, the dogfood repo has memory and capture artifacts, and
-`harness memory list/check/report` plus
-`harness capture list/add/triage/check/report` provide executable behavior.
-After this depth pass, the next breadth candidate is Application / Corpus
-Legibility.
+Memory, Capture And Triage, and Application / Corpus Legibility are now
+installed process-domain breadth baselines: the `full` profile includes
+`durable-memory`, `capture-triage`, and `application-corpus-legibility`; the
+dogfood repo has memory, capture, and legibility artifacts; and
+`harness memory list/check/report`, `harness capture
+list/add/triage/check/report`, and `harness legibility list/check/report`
+provide executable behavior. After this depth pass, the next breadth candidate
+is Reports And Retrieval.
 
-The repo currently has exploratory specs, fifteen formal v1 documents, a root
+The repo currently has exploratory specs, sixteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
-lock file, nine active module definitions, a runnable `harness doctor`
+lock file, ten active module definitions, a runnable `harness doctor`
 command, a profile-backed, git-initializing, and merge-safe `harness init`
 installer, a repo-local depth gate, a read-only `harness upgrade --plan`
 command, bare `harness upgrade` safe apply, and confirm-gated
@@ -135,7 +136,11 @@ doctor validation when `durable-memory` is installed. Capture And Triage
 exists via `capture/inbox.yaml`, `capture/triage.yaml`,
 `harness capture list`, `harness capture add`, `harness capture triage`,
 `harness capture check`, `harness capture report`, local package scripts, and
-doctor validation when `capture-triage` is installed. Distribution Readiness exists via
+doctor validation when `capture-triage` is installed. Application / Corpus
+Legibility exists via `legibility/inventory.yaml`, `legibility/notes.md`,
+`harness legibility list`, `harness legibility check`,
+`harness legibility report`, local package scripts, and doctor validation when
+`application-corpus-legibility` is installed. Distribution Readiness exists via
 `harness distribution check`, `npm run distribution:check`,
 `harness distribution release --plan`, `npm run distribution:release-plan`,
 `harness distribution smoke`, `npm run distribution:smoke`,
@@ -163,8 +168,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
 - Phase 4 Additional Process Domains has Structured Metadata, Canonical State,
-  Invariants And Golden Principles, Plans And Status, Durable Memory, and
-  Capture And Triage installed as breadth units.
+  Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
+  And Triage, and Application / Corpus Legibility installed as breadth units.
 - Phase 5 Distribution Readiness is complete for v1; packed-package smoke
   validation, explicit npm package-boundary validation, release preflight
   planning, registry version discovery, external-target smoke, guarded publish
@@ -213,15 +218,16 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - Installed-file provenance is recorded at `.harness/lock.yaml`.
 - Active module definitions are `agent-operating-contract`,
   `progressive-orientation`, `decisions-open-questions`,
-  `structured-metadata`, `canonical-state`, and
-  `invariants-golden-principles`, `plans-and-status`, `durable-memory`, and
-  `capture-triage`.
+  `structured-metadata`, `canonical-state`,
+  `invariants-golden-principles`, `plans-and-status`, `durable-memory`,
+  `capture-triage`, and `application-corpus-legibility`.
 - `modules/registry.yaml` is the source registry for available modules.
   `agent-operating-contract` and `progressive-orientation` are bootstrap
   modules installed by `harness init --profile minimal`;
   `decisions-open-questions`, `structured-metadata`, `canonical-state`,
-  `invariants-golden-principles`, `plans-and-status`, `durable-memory`, and
-  `capture-triage` are standalone `modules add` installable modules.
+  `invariants-golden-principles`, `plans-and-status`, `durable-memory`,
+  `capture-triage`, and `application-corpus-legibility` are standalone
+  `modules add` installable modules.
 - Profiles now exist under `profiles/` for `minimal` and `full`.
 - `npm run profiles:list` lists available source profiles and their module
   bundles.
@@ -249,7 +255,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   destroy planning and confirmed teardown, unsupported profile failure, profile
   inspection, profile switch plan/apply, profile sync planning,
   decisions/questions, upgrade-plan scenarios, bare upgrade apply, global CLI
-  smoke, durable memory, and module list/add scenarios.
+  smoke, durable memory, capture/triage, application/corpus legibility, and
+  module list/add scenarios.
 - `npm run decisions:new -- "<title>"` creates the next decision record under
   `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
@@ -389,6 +396,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `design/v1-plans-status-design.md` — formal Plans And Status design.
 - `design/v1-durable-memory-design.md` — formal Durable Memory design.
 - `design/v1-capture-triage-design.md` — formal Capture And Triage design.
+- `design/v1-application-corpus-legibility-design.md` — formal Application /
+  Corpus Legibility design.
 - `design/v1-distribution-readiness-design.md` — formal Distribution
   Readiness design.
 - `build/depth-gate.yaml` — repo-local depth gate for the current build
@@ -408,6 +417,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `memory/` — dogfood durable memory artifacts for preferences, repo notes,
   and session summaries.
 - `capture/` — dogfood capture inbox and triage register.
+- `legibility/` — dogfood application/corpus inspection inventory and notes.
 - `modules/*/module.yaml` — active module definitions.
 - `open-questions.yaml` — structured unresolved questions.
 - `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
@@ -502,17 +512,18 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
   `scripts/profiles.mjs` / `scripts/metadata.mjs` / `scripts/lock.mjs` /
   `scripts/state.mjs` / `scripts/invariants.mjs` / `scripts/plans.mjs` /
-  `scripts/capture.mjs` / `scripts/memory.mjs` /
+  `scripts/capture.mjs` / `scripts/legibility.mjs` / `scripts/memory.mjs` /
   `scripts/distribution.mjs` /
   `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
   metadata commands, canonical state validation, invariants validation, plans
-  validation/reporting, capture and durable memory validation/reporting,
+  validation/reporting, capture, legibility, and durable memory
+  validation/reporting,
   distribution contents/smoke/global-smoke/external-target/publish validation,
   lock command/helpers, registry-aware upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, structured metadata, canonical state, invariants, plans/status,
-  capture/triage, durable memory,
+  capture/triage, application/corpus legibility, durable memory,
   distribution package contents and smoke validation, semantic lock provenance,
   registry discovery, external-target smoke, guarded publish workflow, upgrade
   planning/apply behavior, depth-gate validation, and doctor fixtures.
@@ -524,9 +535,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 
 ## Next Work
 
-- Start Application / Corpus Legibility as the next process-domain breadth
-  candidate, beginning with a narrow design, decision record, artifacts,
-  validation, and dogfood usage.
+- Start Reports And Retrieval as the next process-domain breadth candidate,
+  beginning with a narrow cross-domain report design, decision record,
+  artifacts, validation, and dogfood usage.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

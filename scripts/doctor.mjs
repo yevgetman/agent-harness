@@ -8,6 +8,7 @@ import { validateCanonicalState } from "./state.mjs";
 import { validateInvariants } from "./invariants.mjs";
 import { validatePlansStatus } from "./plans.mjs";
 import { validateCapture } from "./capture.mjs";
+import { validateLegibility } from "./legibility.mjs";
 import { validateMemory } from "./memory.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
@@ -836,6 +837,21 @@ function checkCaptureTriage(root, installedModules, diagnostics) {
   }
 }
 
+function checkApplicationCorpusLegibility(root, installedModules, diagnostics) {
+  if (!installedModules.has("application-corpus-legibility")) return;
+
+  const result = validateLegibility(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `legibility/inventory.yaml: ${result.surfaces.length} inspection surface(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -981,6 +997,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkPlansStatus(root, installedModules, diagnostics);
   checkDurableMemory(root, installedModules, diagnostics);
   checkCaptureTriage(root, installedModules, diagnostics);
+  checkApplicationCorpusLegibility(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

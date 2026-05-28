@@ -10,3 +10,10 @@ capture_triage:
       promote_to: plans
       note: Selected as the next breadth-depth-breadth process-domain increment after Durable Memory.
       updated: 2026-05-28
+
+    - id: triage-application-legibility-next
+      item_id: application-legibility-next
+      status: promoted
+      promote_to: plans
+      note: Promoted into the Application / Corpus Legibility breadth increment.
+      updated: 2026-05-28

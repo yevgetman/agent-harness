@@ -466,16 +466,39 @@ plans_status:
 
     - id: v1.1-application-legibility-breadth
       title: Add Application / Corpus Legibility process-domain baseline
-      status: planned
+      status: complete
       priority: high
-      owner_domain: harness-lifecycle
-      summary: Application / Corpus Legibility is the next recommended process-domain breadth candidate after Capture And Triage.
-      next_action: Define the narrow baseline artifacts and executable behavior before implementation.
+      owner_domain: application-corpus-legibility
+      summary: Application / Corpus Legibility is now installed in the full profile with legibility inventory, notes, list/check/report commands, doctor validation, tests, and dogfood state.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - process-domain
         - application-legibility
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-application-corpus-legibility-design.md
+        - design/v1-process-domain-design.md
+        - decisions/0038-adopt-application-corpus-legibility-baseline-module.md
+        - modules/application-corpus-legibility/module.yaml
+        - scripts/legibility.mjs
+        - legibility/inventory.yaml
+        - status.md
+
+    - id: v1.1-reports-retrieval-breadth
+      title: Add Reports And Retrieval process-domain baseline
+      status: planned
+      priority: high
+      owner_domain: reports-and-retrieval
+      summary: Reports And Retrieval is the next recommended process-domain breadth candidate after Application / Corpus Legibility.
+      next_action: Define a narrow cross-domain report baseline that composes existing metadata, state, plans, memory, capture, and legibility surfaces.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - process-domain
+        - reports
+        - retrieval
         - planned
       references:
         - design/v1.1-installed-instance-roadmap.md

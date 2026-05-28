@@ -54,6 +54,11 @@ harness:
       status: active
       process_domains:
         - capture-and-triage
+    - id: application-corpus-legibility
+      version: 0.1.0
+      status: active
+      process_domains:
+        - application-corpus-legibility
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -106,6 +111,15 @@ harness:
     - path: capture/triage.yaml
       owner: capture-triage
       mode: merge
+    - path: legibility/README.md
+      owner: application-corpus-legibility
+      mode: merge
+    - path: legibility/inventory.yaml
+      owner: application-corpus-legibility
+      mode: merge
+    - path: legibility/notes.md
+      owner: application-corpus-legibility
+      mode: merge
   commands:
     init: npm run init
     destroy: npm run destroy
@@ -139,6 +153,9 @@ harness:
     capture-triage: npm run capture:triage
     capture-check: npm run capture:check
     capture-report: npm run capture:report
+    legibility-list: npm run legibility:list
+    legibility-check: npm run legibility:check
+    legibility-report: npm run legibility:report
     memory-list: npm run memory:list
     memory-check: npm run memory:check
     memory-report: npm run memory:report

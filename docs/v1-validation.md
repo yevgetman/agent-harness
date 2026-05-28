@@ -29,7 +29,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
 | Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown, generated-only cleanup, and human-content preservation. |
 | Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
-| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, and Capture And Triage are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, and `npm run doctor`. |
+| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, and Application / Corpus Legibility are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
 | Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations. | `npm test` covers safe apply, bare upgrade apply, clean profile module install, merge-safe template cascade apply, blocked plans, and review-required refusal. |
@@ -51,6 +51,7 @@ node --check scripts/destroy.mjs
 node --check scripts/modules.mjs
 node --check scripts/profiles.mjs
 node --check scripts/capture.mjs
+node --check scripts/legibility.mjs
 node --check scripts/distribution.mjs
 node --check scripts/upgrade.mjs
 node --check scripts/test.mjs
@@ -64,6 +65,7 @@ npm run state:check
 npm run invariants:check
 npm run plans:check
 npm run capture:check
+npm run legibility:check
 npm run memory:check
 npm run lock:check
 npm run doctor
@@ -203,6 +205,13 @@ profile now includes `capture-triage`, which installs `capture/README.md`,
 `capture/inbox.yaml`, and `capture/triage.yaml`. `harness capture
 list/add/triage/check/report` provide the first executable intake and triage
 behavior, and doctor validates the capture module when installed.
+
+The Application / Corpus Legibility process-domain baseline is implemented.
+The `full` profile now includes `application-corpus-legibility`, which installs
+`legibility/README.md`, `legibility/inventory.yaml`, and
+`legibility/notes.md`. `harness legibility list/check/report` provide the
+first executable inspection-inventory behavior, and doctor validates the
+legibility module when installed.
 
 ## Next Work After V1
 

@@ -186,6 +186,15 @@ not-yet-authoritative material. Promote selected items into plans, decisions,
 open questions, canonical state, status, or durable memory instead of letting
 the inbox become authoritative state.
 
+## Application / Corpus Legibility Discipline
+
+Use `npm run legibility:check` to validate the repo inspection inventory.
+
+Keep `legibility/inventory.yaml` current when durable application, runtime,
+validation, fixture, smoke, source-map, report, or corpus inspection surfaces
+change. Keep `legibility/notes.md` concise and promote stable inspection
+surfaces into the structured inventory.
+
 ## Distribution Readiness Discipline
 
 Use `npm run distribution:check` after changing package contents or package

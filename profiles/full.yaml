@@ -11,3 +11,4 @@ profile:
     - plans-and-status
     - durable-memory
     - capture-triage
+    - application-corpus-legibility

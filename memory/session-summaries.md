@@ -11,7 +11,9 @@
   process-domain breadth increment after the lifecycle depth work.
 - Capture And Triage is implemented and validated as the next process-domain
   breadth increment.
-- The next recommended breadth candidate is Application / Corpus Legibility.
+- Application / Corpus Legibility is implemented and validated as the next
+  process-domain breadth increment.
+- The next recommended breadth candidate is Reports And Retrieval.
 
 ## Archive
 
