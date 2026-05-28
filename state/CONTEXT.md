@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-24
+generated_on: 2026-05-28
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -15,6 +15,7 @@ generated_from:
   - design/v1-canonical-state-design.md
   - design/v1-invariants-golden-principles-design.md
   - design/v1-plans-status-design.md
+  - design/v1-durable-memory-design.md
   - design/v1-distribution-readiness-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
@@ -105,6 +106,11 @@ Current dogfood state:
   `invariants/golden-principles.yaml`, `npm run invariants:check`, simple
   file existence/content checks, canonical-state reference validation, and
   doctor validation.
+- Durable Memory exists in first dogfood form via
+  `memory/operator-preferences.yaml`, `memory/repo-notes.md`,
+  `memory/session-summaries.md`, `npm run memory:list`,
+  `npm run memory:check`, `npm run memory:report`, preference filtering,
+  report summaries, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -221,9 +227,9 @@ Then open the relevant formal design or exploratory spec for the task.
 
 The first v1.1 installed-instance upgrade-contract increment, profile switch
 planning, safe profile switch apply, template source lock-check correction,
-clean template cascade apply baseline, and profile sync planning are
-implemented. The next useful step is remaining process-domain breadth, paused
-for operator confirmation.
+clean template cascade apply baseline, profile sync planning, and Durable
+Memory baseline are implemented. The next useful breadth candidate after this
+depth pass is Capture And Triage.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -237,8 +243,8 @@ machinery, but public release is not the current product priority.
   sequencing reference. Use `design/v1-product-spec-and-roadmap.md` for the v1
   closeout baseline.
 - Phase 4 has Structured Metadata, Canonical State, Invariants And Golden
-  Principles, and Plans And Status installed as additional process-domain
-  modules.
+  Principles, Plans And Status, and Durable Memory installed as additional
+  process-domain modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
 - Canonical State now has list/report queries, role/status/owner-domain
@@ -246,11 +252,16 @@ machinery, but public release is not the current product priority.
 - Plans And Status now has list/report queries, status/owner/priority
   filtering, JSON output, status-projection validation, plan-reference
   validation, and report summaries.
+- Durable Memory now has list/report queries, status/category/tag filtering,
+  JSON output, preference validation, memory file validation, and report
+  summaries.
 - Distribution Readiness now has explicit package contents validation, release
   preflight planning, registry discovery, local tarball install docs,
   packed-package smoke validation for package install/init/doctor/upgrade plan,
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: pause before the remaining process-domain baselines.
+- Next work: start Capture And Triage as the next process-domain breadth
+  baseline, beginning with a narrow design, decision record, artifacts,
+  validation, and dogfood usage.
 - Keep `status.md` current after significant choices.

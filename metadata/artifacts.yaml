@@ -403,6 +403,77 @@ metadata:
         - status
         - canonical-state-registry
 
+    - id: durable-memory-design
+      path: design/v1-durable-memory-design.md
+      kind: formal-design
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - durable-memory
+        - phase-4
+        - process-domain
+      depends_on:
+        - process-domain-design
+
+    - id: durable-memory-module
+      path: modules/durable-memory/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - module
+        - durable-memory
+      depends_on:
+        - durable-memory-design
+        - module-registry
+
+    - id: durable-memory-readme
+      path: memory/README.md
+      kind: memory-doc
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - durable-memory
+        - memory
+      depends_on:
+        - durable-memory-design
+
+    - id: durable-memory-preferences
+      path: memory/operator-preferences.yaml
+      kind: memory-registry
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - durable-memory
+        - preferences
+        - memory
+      depends_on:
+        - durable-memory-design
+
+    - id: durable-memory-repo-notes
+      path: memory/repo-notes.md
+      kind: memory-notes
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - durable-memory
+        - notes
+        - memory
+      depends_on:
+        - durable-memory-design
+
+    - id: durable-memory-session-summaries
+      path: memory/session-summaries.md
+      kind: memory-summary
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - durable-memory
+        - summaries
+        - memory
+      depends_on:
+        - durable-memory-design
+
     - id: profiles-cli
       path: scripts/profiles.mjs
       kind: cli
@@ -471,6 +542,20 @@ metadata:
       depends_on:
         - plans-status-module
         - plans-current
+
+    - id: memory-cli
+      path: scripts/memory.mjs
+      kind: cli
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - durable-memory
+        - memory
+        - cli
+        - validation
+      depends_on:
+        - durable-memory-module
+        - durable-memory-preferences
 
     - id: distribution-cli
       path: scripts/distribution.mjs
@@ -825,6 +910,21 @@ metadata:
         - global-cli-merge-safe-init-decision
         - destroy-cli
         - upgrade-cli
+
+    - id: durable-memory-decision
+      path: decisions/0036-adopt-durable-memory-baseline-module.md
+      kind: decision
+      status: active
+      owner_domain: durable-memory
+      tags:
+        - durable-memory
+        - memory
+        - process-domain
+        - decision
+      depends_on:
+        - durable-memory-design
+        - durable-memory-module
+        - global-cli-merge-safe-init-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

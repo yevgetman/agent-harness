@@ -236,6 +236,7 @@ The package excludes dogfood and source-repo-local artifacts:
 - `fixtures/`
 - `index.yaml`
 - `invariants/`
+- `memory/`
 - `metadata/`
 - `open-questions.yaml`
 - `plans/`

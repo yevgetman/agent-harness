@@ -35,6 +35,7 @@ reading_order:
   - v1-canonical-state-design
   - v1-invariants-golden-principles-design
   - v1-plans-status-design
+  - v1-durable-memory-design
   - v1-distribution-readiness-design
   - v1-validation
   - installed-manifest
@@ -43,6 +44,7 @@ reading_order:
   - canonical-state-registry
   - invariants-golden-principles
   - plans-current
+  - durable-memory
   - module-registry
   - profile-minimal
   - profile-full
@@ -53,6 +55,7 @@ reading_order:
   - module-canonical-state
   - module-invariants-golden-principles
   - module-plans-and-status
+  - module-durable-memory
   - depth-gate
   - open-questions
   - decision-0001
@@ -90,6 +93,7 @@ reading_order:
   - decision-0033
   - decision-0034
   - decision-0035
+  - decision-0036
   - decision-template
   - package
   - harness-cli
@@ -103,6 +107,7 @@ reading_order:
   - state-cli
   - invariants-cli
   - plans-cli
+  - memory-cli
   - distribution-cli
   - lock-cli
   - decisions-cli
@@ -285,6 +290,16 @@ documents:
       - v1-process-domain-design
       - v1-canonical-state-design
 
+  - doc_id: v1-durable-memory-design
+    file: design/v1-durable-memory-design.md
+    title: "Formal Design: V1 Durable Memory"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the fifth Phase 4 process-domain module: operator preferences, repo notes, session summaries, memory list/check/report commands, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-plans-status-design
+
   - doc_id: v1-distribution-readiness-design
     file: design/v1-distribution-readiness-design.md
     title: "Formal Design: V1 Distribution Readiness"
@@ -364,6 +379,16 @@ documents:
       - v1-plans-status-design
       - status
       - canonical-state-registry
+
+  - doc_id: durable-memory
+    file: memory/operator-preferences.yaml
+    title: Durable Memory
+    kind: memory-registry
+    status: active
+    summary: Machine-readable operator preferences plus memory directory for repo notes and session summaries.
+    depends_on:
+      - v1-durable-memory-design
+      - plans-current
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -460,6 +485,16 @@ documents:
     summary: Module definition for structured plans/status registry and plans list/check/report commands.
     depends_on:
       - v1-plans-status-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-durable-memory
+    file: modules/durable-memory/module.yaml
+    title: Durable Memory Module
+    kind: module-definition
+    status: active
+    summary: Module definition for durable operator preferences, repo notes, session summaries, and memory list/check/report commands.
+    depends_on:
+      - v1-durable-memory-design
       - v1-installed-manifest-design
 
   - doc_id: open-questions
@@ -842,6 +877,16 @@ documents:
     depends_on:
       - v1-installed-manifest-design
       - destroy
+
+  - doc_id: decision-0036
+    file: decisions/0036-adopt-durable-memory-baseline-module.md
+    title: Adopt Durable Memory Baseline Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Durable Memory as the next process-domain breadth module.
+    depends_on:
+      - v1-durable-memory-design
+      - module-durable-memory
       - decision-0034
 
   - doc_id: decision-template
@@ -858,7 +903,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -868,7 +913,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -980,6 +1025,16 @@ documents:
       - v1-plans-status-design
       - plans-current
 
+  - doc_id: memory-cli
+    file: scripts/memory.mjs
+    title: Harness Memory CLI
+    kind: cli
+    status: active
+    summary: Durable Memory command implementation for operator preference validation, filters, JSON output, and summary reports.
+    depends_on:
+      - v1-durable-memory-design
+      - durable-memory
+
   - doc_id: distribution-cli
     file: scripts/distribution.mjs
     title: Harness Distribution CLI
@@ -1041,13 +1096,14 @@ documents:
       - v1-canonical-state-design
       - v1-invariants-golden-principles-design
       - v1-plans-status-design
+      - v1-durable-memory-design
 
   - doc_id: test
     file: scripts/test.mjs
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
@@ -1055,6 +1111,7 @@ documents:
       - state-cli
       - invariants-cli
       - plans-cli
+      - memory-cli
       - distribution-cli
       - lock-cli
       - decisions-cli

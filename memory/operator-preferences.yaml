@@ -1,0 +1,42 @@
+# Harness managed file: durable-memory
+memory:
+  version: 1
+  updated: 2026-05-28
+  scope: harness-source-repo
+  preferences:
+    - id: practical-private-harness-first
+      category: product-direction
+      status: active
+      statement: Optimize the harness for private, practical use across Julie's repos before public distribution polish.
+      source: operator
+      tags:
+        - v1.1
+        - product
+
+    - id: no-central-install-registry
+      category: architecture
+      status: active
+      statement: The harness source repo defines the tool and should not track where the tool is installed.
+      source: operator
+      tags:
+        - installed-instance
+        - lifecycle
+
+    - id: preserve-human-authored-content
+      category: safety
+      status: active
+      statement: Init and upgrade behavior should preserve human-authored target content unless a future reviewed workflow explicitly handles replacement.
+      source: operator
+      tags:
+        - merge-safe
+        - upgrade
+
+    - id: breadth-depth-breadth
+      category: build-strategy
+      status: active
+      statement: Add a narrow process-domain breadth unit, deepen it with executable behavior and validation, then move to the next breadth unit.
+      source: operator
+      tags:
+        - build
+        - process-domains
+        - dogfood

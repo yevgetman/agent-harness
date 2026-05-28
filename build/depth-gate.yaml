@@ -861,47 +861,90 @@ build_strategy:
             - Temp-target tests exercise profile sync against minimal and full-profile installs.
             - User requested a pause before starting process-domain breadth.
 
+    - id: v1.1-global-cli-merge-safe-init
+      breadth_unit: >
+        Add global CLI validation, default full-profile init, merge-safe init,
+        and bare harness upgrade safe apply.
+      status: complete
+      completed_on: 2026-05-24
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - The package bin exposes a global `harness` command.
+            - harness init defaults to the full profile.
+            - Existing AGENTS.md content is preserved while harness-owned sections are appended or updated.
+            - harness upgrade with no subcommand runs the supported safe apply path.
+        - id: validation
+          status: satisfied
+          evidence:
+            - --force is compatibility-only and no longer overwrites human-authored content.
+            - Structured merge failures are refused instead of overwritten.
+            - Merge-managed template updates use merge-safe content handling.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers default full init.
+            - npm test covers idempotent existing AGENTS.md section updates.
+            - npm test covers no-overwrite --force compatibility.
+            - npm test covers bare harness upgrade safe apply.
+            - npm test covers distribution global-smoke.
+        - id: docs
+          status: satisfied
+          evidence:
+            - decisions/0034-adopt-global-cli-and-merge-safe-init.md records the lifecycle contract change.
+            - docs/install.md documents global CLI installation and bare init/upgrade.
+            - design/v1.1-installed-instance-roadmap.md records the global CLI and merge-safe init baseline.
+            - docs/v1-validation.md includes global CLI smoke and merge-safe init in validation.
+            - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run distribution:global-smoke validates global CLI usage from a temporary target.
+            - npm test validates the global CLI smoke path.
+            - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:global-smoke, npm run distribution:smoke, and npm test pass against the dogfood repo.
+
   current_depth_pass:
-    id: v1.1-global-cli-merge-safe-init
+    id: v1.1-durable-memory-baseline
     breadth_unit: >
-      Add global CLI validation, default full-profile init, merge-safe init,
-      and bare harness upgrade safe apply.
+      Add the Durable Memory process-domain baseline.
     status: complete
-    completed_on: 2026-05-24
+    completed_on: 2026-05-28
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - The package bin exposes a global `harness` command.
-          - harness init defaults to the full profile.
-          - Existing AGENTS.md content is preserved while harness-owned sections are appended or updated.
-          - harness upgrade with no subcommand runs the supported safe apply path.
+          - durable-memory is an installable module.
+          - The full profile includes durable-memory.
+          - harness memory list/check/report provide executable behavior.
+          - The dogfood repo has operator preferences, repo notes, and session summaries.
       - id: validation
         status: satisfied
         evidence:
-          - --force is compatibility-only and no longer overwrites human-authored content.
-          - Structured merge failures are refused instead of overwritten.
-          - Merge-managed template updates use merge-safe content handling.
+          - memory check validates preference shape, statuses, unique IDs, and required memory files.
+          - doctor validates Durable Memory when the module is installed.
+          - distribution package contents include the memory CLI and durable-memory templates.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers default full init.
-          - npm test covers idempotent existing AGENTS.md section updates.
-          - npm test covers no-overwrite --force compatibility.
-          - npm test covers bare harness upgrade safe apply.
-          - npm test covers distribution global-smoke.
+          - npm test covers durable-memory module add.
+          - npm test covers memory list/check/report and JSON report.
+          - npm test covers full profile init with durable memory.
+          - npm test covers profile switch and upgrade apply installing durable memory.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0034-adopt-global-cli-and-merge-safe-init.md records the lifecycle contract change.
-          - docs/install.md documents global CLI installation and bare init/upgrade.
-          - design/v1.1-installed-instance-roadmap.md records the global CLI and merge-safe init baseline.
-          - docs/v1-validation.md includes global CLI smoke and merge-safe init in validation.
+          - decisions/0036-adopt-durable-memory-baseline-module.md records the Durable Memory decision.
+          - design/v1-durable-memory-design.md defines the baseline.
+          - design/v1.1-installed-instance-roadmap.md records Durable Memory as implemented.
+          - docs/v1-validation.md includes Durable Memory in the validation matrix.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run distribution:global-smoke validates global CLI usage from a temporary target.
-          - npm test validates the global CLI smoke path.
-          - npm run doctor, npm run upgrade:plan, npm run plans:check, npm run metadata:check, npm run state:check, npm run lock:check, npm run distribution:check, npm run distribution:global-smoke, npm run distribution:smoke, and npm test pass against the dogfood repo.
+          - npm run memory:check passes against the dogfood repo.
+          - npm run memory:report summarizes dogfood preferences and memory files.
+          - The dogfood manifest exposes memory-list, memory-check, and memory-report.
+          - Durable Memory preferences record current operator-relevant harness direction.

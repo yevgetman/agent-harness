@@ -13,6 +13,7 @@ import { runMetadata } from "./metadata.mjs";
 import { runState } from "./state.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runPlans } from "./plans.mjs";
+import { runMemory } from "./memory.mjs";
 import { runDistribution } from "./distribution.mjs";
 
 const [, , command, ...args] = process.argv;
@@ -42,7 +43,11 @@ Usage:
   harness plans list
   harness plans check
   harness plans report
+  harness memory list
+  harness memory check
+  harness memory report
   harness distribution check
+  harness distribution global-smoke
   harness distribution release --plan
   harness distribution publish --plan
   harness distribution smoke
@@ -95,6 +100,9 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "plans") {
   const result = runPlans({ cwd: process.cwd(), args });
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "memory") {
+  const result = runMemory({ cwd: process.cwd(), args });
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "distribution") {
   const result = runDistribution({ args });

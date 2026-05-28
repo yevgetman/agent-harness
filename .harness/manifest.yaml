@@ -44,6 +44,11 @@ harness:
       status: active
       process_domains:
         - plans-and-status
+    - id: durable-memory
+      version: 0.1.0
+      status: active
+      process_domains:
+        - durable-memory
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -75,6 +80,18 @@ harness:
     - path: plans/current.yaml
       owner: plans-and-status
       mode: merge
+    - path: memory/README.md
+      owner: durable-memory
+      mode: merge
+    - path: memory/operator-preferences.yaml
+      owner: durable-memory
+      mode: merge
+    - path: memory/repo-notes.md
+      owner: durable-memory
+      mode: merge
+    - path: memory/session-summaries.md
+      owner: durable-memory
+      mode: merge
   commands:
     init: npm run init
     destroy: npm run destroy
@@ -103,6 +120,9 @@ harness:
     plans-list: npm run plans:list
     plans-check: npm run plans:check
     plans-report: npm run plans:report
+    memory-list: npm run memory:list
+    memory-check: npm run memory:check
+    memory-report: npm run memory:report
     distribution-check: npm run distribution:check
     distribution-release-plan: npm run distribution:release-plan
     distribution-publish-plan: npm run distribution:publish-plan

@@ -33,3 +33,8 @@ modules:
     path: modules/plans-and-status/module.yaml
     status: active
     installable: true
+
+  - id: durable-memory
+    path: modules/durable-memory/module.yaml
+    status: active
+    installable: true

@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-05-25
+Last updated: 2026-05-28
 
 ## Current Phase
 
@@ -43,16 +43,21 @@ durable harness artifacts tracked. `harness destroy` now provides
 confirm-gated teardown: bare destroy prints a read-only plan, while
 `harness destroy --confirm` removes installed harness artifacts, preserves
 `.git/`, and surgically removes marked harness sections from files such as
-`AGENTS.md`, `status.md`, `state/CONTEXT.md`, and `.gitignore`. The next v1.1
-build step is process-domain breadth, paused for operator confirmation.
+`AGENTS.md`, `status.md`, `state/CONTEXT.md`, and `.gitignore`. Durable
+Memory is now the first remaining process-domain breadth baseline: the
+`full` profile includes
+`durable-memory`, the dogfood repo has memory artifacts, and
+`harness memory list/check/report` provide executable behavior. After this
+depth pass, the next breadth candidate is Capture And Triage.
 
-The repo currently has exploratory specs, thirteen formal v1 documents, a root
+The repo currently has exploratory specs, fourteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
-lock file, seven active module definitions, a runnable `harness doctor`
-command, a profile-backed, git-initializing, and merge-safe `harness init` installer, a
-repo-local depth gate, a read-only `harness upgrade --plan` command, bare
-`harness upgrade` safe apply, and confirm-gated `harness destroy` teardown. The
+lock file, eight active module definitions, a runnable `harness doctor`
+command, a profile-backed, git-initializing, and merge-safe `harness init`
+installer, a repo-local depth gate, a read-only `harness upgrade --plan`
+command, bare `harness upgrade` safe apply, and confirm-gated
+`harness destroy` teardown. The
 first module/profile installation surface exists through `modules/registry.yaml`,
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
 `harness profiles list`, `harness profiles inspect <profile>`,
@@ -120,7 +125,11 @@ package scripts for local dogfood use, and doctor validation when
 `invariants-golden-principles` is installed. Plans And Status exists via
 `plans/current.yaml`, `harness plans list`, `harness plans check`,
 `harness plans report`, local package scripts, and doctor validation when
-`plans-and-status` is installed. Distribution Readiness exists via
+`plans-and-status` is installed. Durable Memory exists via
+`memory/operator-preferences.yaml`, `memory/repo-notes.md`,
+`memory/session-summaries.md`, `harness memory list`,
+`harness memory check`, `harness memory report`, local package scripts, and
+doctor validation when `durable-memory` is installed. Distribution Readiness exists via
 `harness distribution check`, `npm run distribution:check`,
 `harness distribution release --plan`, `npm run distribution:release-plan`,
 `harness distribution smoke`, `npm run distribution:smoke`,
@@ -148,8 +157,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   `.harness/lock.yaml`, semantic provenance fields, JSON plans, and the formal
   upgrade operation contract.
 - Phase 4 Additional Process Domains has Structured Metadata, Canonical State,
-  Invariants And Golden Principles, and Plans And Status installed as breadth
-  units.
+  Invariants And Golden Principles, Plans And Status, and Durable Memory
+  installed as breadth units.
 - Phase 5 Distribution Readiness is complete for v1; packed-package smoke
   validation, explicit npm package-boundary validation, release preflight
   planning, registry version discovery, external-target smoke, guarded publish
@@ -199,13 +208,13 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - Active module definitions are `agent-operating-contract`,
   `progressive-orientation`, `decisions-open-questions`,
   `structured-metadata`, `canonical-state`, and
-  `invariants-golden-principles`, and `plans-and-status`.
+  `invariants-golden-principles`, `plans-and-status`, and `durable-memory`.
 - `modules/registry.yaml` is the source registry for available modules.
   `agent-operating-contract` and `progressive-orientation` are bootstrap
   modules installed by `harness init --profile minimal`;
-  `decisions-open-questions`, `structured-metadata`, `canonical-state`, and
-  `invariants-golden-principles`, and `plans-and-status` are standalone
-  `modules add` installable modules.
+  `decisions-open-questions`, `structured-metadata`, `canonical-state`,
+  `invariants-golden-principles`, `plans-and-status`, and `durable-memory`
+  are standalone `modules add` installable modules.
 - Profiles now exist under `profiles/` for `minimal` and `full`.
 - `npm run profiles:list` lists available source profiles and their module
   bundles.
@@ -233,7 +242,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   destroy planning and confirmed teardown, unsupported profile failure, profile
   inspection, profile switch plan/apply, profile sync planning,
   decisions/questions, upgrade-plan scenarios, bare upgrade apply, global CLI
-  smoke, and module list/add scenarios.
+  smoke, durable memory, and module list/add scenarios.
 - `npm run decisions:new -- "<title>"` creates the next decision record under
   `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
@@ -371,6 +380,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `design/v1-invariants-golden-principles-design.md` — formal Invariants And
   Golden Principles design.
 - `design/v1-plans-status-design.md` — formal Plans And Status design.
+- `design/v1-durable-memory-design.md` — formal Durable Memory design.
 - `design/v1-distribution-readiness-design.md` — formal Distribution
   Readiness design.
 - `build/depth-gate.yaml` — repo-local depth gate for the current build
@@ -387,6 +397,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `invariants/golden-principles.yaml` — dogfood checked invariants and golden
   principles registry.
 - `plans/current.yaml` — dogfood structured plans and status registry.
+- `memory/` — dogfood durable memory artifacts for preferences, repo notes,
+  and session summaries.
 - `modules/*/module.yaml` — active module definitions.
 - `open-questions.yaml` — structured unresolved questions.
 - `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
@@ -481,14 +493,16 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
   `scripts/profiles.mjs` / `scripts/metadata.mjs` / `scripts/lock.mjs` /
   `scripts/state.mjs` / `scripts/invariants.mjs` / `scripts/plans.mjs` /
-  `scripts/distribution.mjs` / `scripts/doctor.mjs` —
+  `scripts/memory.mjs` / `scripts/distribution.mjs` /
+  `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
   metadata commands, canonical state validation, invariants validation, plans
-  validation and reporting, distribution contents/smoke/global-smoke/
+  validation/reporting, durable memory validation/reporting, distribution contents/smoke/global-smoke/
   external-target/publish validation, lock command/helpers, registry-aware
   upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, structured metadata, canonical state, invariants, plans/status,
+  durable memory,
   distribution package contents and smoke validation, semantic lock provenance,
   registry discovery, external-target smoke, guarded publish workflow, upgrade
   planning/apply behavior, depth-gate validation, and doctor fixtures.
@@ -500,9 +514,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 
 ## Next Work
 
-- Pause before starting the next process-domain breadth increment.
-- The next likely breadth unit is one of the remaining process-domain baselines
-  from `design/v1.1-installed-instance-roadmap.md`.
+- Start Capture And Triage as the next process-domain breadth candidate,
+  beginning with a narrow design, decision record, artifacts, validation, and
+  dogfood usage.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

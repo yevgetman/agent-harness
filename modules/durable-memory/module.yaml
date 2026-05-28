@@ -1,0 +1,62 @@
+module:
+  id: durable-memory
+  version: 0.1.0
+  status: active
+  process_domains:
+    - durable-memory
+  provides:
+    - operator-preferences
+    - repo-notes
+    - session-summaries
+    - memory-list-command
+    - memory-check-command
+    - memory-report-command
+    - memory-shape-validation
+  creates:
+    - memory/
+    - memory/README.md
+    - memory/operator-preferences.yaml
+    - memory/repo-notes.md
+    - memory/session-summaries.md
+  managed_files:
+    - path: memory/README.md
+      mode: merge
+    - path: memory/operator-preferences.yaml
+      mode: merge
+    - path: memory/repo-notes.md
+      mode: merge
+    - path: memory/session-summaries.md
+      mode: merge
+  commands:
+    memory-list: harness memory list
+    memory-check: harness memory check
+    memory-report: harness memory report
+  install:
+    artifacts:
+      - path: memory/
+        type: directory
+      - path: memory/README.md
+        type: template
+        source: modules/durable-memory/templates/README.md
+      - path: memory/operator-preferences.yaml
+        type: template
+        source: modules/durable-memory/templates/operator-preferences.yaml
+      - path: memory/repo-notes.md
+        type: template
+        source: modules/durable-memory/templates/repo-notes.md
+      - path: memory/session-summaries.md
+        type: template
+        source: modules/durable-memory/templates/session-summaries.md
+  validates:
+    - memory/operator-preferences.yaml parses as YAML
+    - memory registry version is supported
+    - preference IDs are unique
+    - preference statuses are allowed
+    - preference categories and statements are present
+    - repo notes and session summaries exist
+    - durable memory can be filtered and summarized
+  instructions:
+    - Keep durable memory reserved for context future sessions should preserve.
+    - Store operator preferences as structured entries.
+    - Store repo-specific durable notes separately from current status.
+    - Promote architectural decisions to decision records instead of leaving them only in memory.

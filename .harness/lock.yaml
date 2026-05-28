@@ -1,6 +1,6 @@
 lock:
   version: 1
-  generated_at: 2026-05-25
+  generated_at: 2026-05-28
   package: portable-harness
   harness_version: 0.1.0
   profile: full
@@ -24,6 +24,8 @@ lock:
       version: 0.1.0
     - id: plans-and-status
       version: 0.1.0
+    - id: durable-memory
+      version: 0.1.0
   files:
     - path: .gitignore
       owner: harness-lifecycle
@@ -44,7 +46,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: 940d906689ce2adc935b3f2c32872ddc138d84bd35230d834c16a54f9b9914b9
+      sha256: 648f3714e63bdee091f83f4912ca4a8912cc9ca529593a42ef72b4652fcc6169
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -64,7 +66,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: dc8bfe889b5b0e5f02f7a553cf1b8c876523f7739189be2cbdaca848ed98ea9e
+      sha256: debc110a2ac5e6fdf8d7f252e99f3ed0dc84e5a6a20eb417d47a112f9fb06f65
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -77,6 +79,54 @@ lock:
       source_path: modules/invariants-golden-principles/templates/golden-principles.yaml
       source_sha256: 13a96d14a8807c42857f36b35530b8f4a79298db9c48ee222ed7e47d8771dad5
       sha256: 931203e44db0299921396411983266be9108a3b4f7614251e3ced02ce54fb7a2
+    - path: memory/operator-preferences.yaml
+      owner: durable-memory
+      owner_type: module
+      module_id: durable-memory
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/durable-memory/templates/operator-preferences.yaml
+      source_sha256: 5dfd706dd236c557d8dd9bf9d37998b7ecdd3a6af9821d5ac95d6258f103f067
+      sha256: cc53310b0224547cdcf008bc9bed4cf8e52d4cee97834496941462febefa8653
+    - path: memory/README.md
+      owner: durable-memory
+      owner_type: module
+      module_id: durable-memory
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/durable-memory/templates/README.md
+      source_sha256: ea8923140cdc0ee0b4c8664114d14d1df54ef51e209797d7293b11f1e19d21fc
+      sha256: a879722d68232d64581e0f5ce8370219279b3e4d2d610d4e770fb1869800984d
+    - path: memory/repo-notes.md
+      owner: durable-memory
+      owner_type: module
+      module_id: durable-memory
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/durable-memory/templates/repo-notes.md
+      source_sha256: d92ad82cf6a850832d53aef37348b1c7c60d56cb41b53e5f82e5874760a3f56c
+      sha256: 1017971801597bb4ef084cd45fa372aa9c756d1c16ae6b485b83b6d697455094
+    - path: memory/session-summaries.md
+      owner: durable-memory
+      owner_type: module
+      module_id: durable-memory
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/durable-memory/templates/session-summaries.md
+      source_sha256: 81726c34f7a1dfa7f9316d6dbdcd85051b6e8cbab2d707f887bb72d7137fc019
+      sha256: ccd552ee527fa16f11f612a553a7475d57376af7634e823111b0312333ec1f55
     - path: metadata/artifacts.yaml
       owner: structured-metadata
       owner_type: module
@@ -88,7 +138,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: 875fcaa5d2ba6c1f8ddd59d2b20930aa4827ac584266e3b9d044f9b50fd03594
+      sha256: c64647e3c520fe1d5f3e13f2d56288c801166c175446d224a896e24b6396a65a
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -125,6 +175,18 @@ lock:
       source_path: modules/decisions-open-questions/module.yaml
       source_sha256: e484b4761add4c8a99a486821aa1f5c97e7009af583e8197602b110ff7f15eea
       sha256: e484b4761add4c8a99a486821aa1f5c97e7009af583e8197602b110ff7f15eea
+    - path: modules/durable-memory/module.yaml
+      owner: durable-memory
+      owner_type: module
+      module_id: durable-memory
+      mode: replace
+      merge_strategy: replace
+      artifact_role: module-definition
+      source: module-definition
+      source_kind: module-definition
+      source_path: modules/durable-memory/module.yaml
+      source_sha256: d62ca7fa7c6f2014a638b4420c440d2c3e3335ada863587a3a80135de8ff7455
+      sha256: d62ca7fa7c6f2014a638b4420c440d2c3e3335ada863587a3a80135de8ff7455
     - path: modules/invariants-golden-principles/module.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -196,7 +258,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: 14f9f1e2bbc9e541d7e8b67ff9fd28a9631cc941f25aaef25c3adaf9f440ab59
+      sha256: 1cf16f49ff98c64da93aa9ca9b47ecc78f6e726a1401a75e1890de1e95104781
     - path: state/canonical-state.yaml
       owner: canonical-state
       owner_type: module
@@ -208,7 +270,7 @@ lock:
       source_kind: module-template
       source_path: modules/canonical-state/templates/canonical-state.yaml
       source_sha256: cf3ca0adef922711b744cbed03adbd19e8824cf5c6908eebc3edbef68a20f1c5
-      sha256: e5bceeb3b8fbd82ae73657dcc09b7265e11fee92e926f3f43d614d2b682fe6dc
+      sha256: b0ed8c3c7eabc9f9098a483eead349c6d9ae229c6d2646e80022b24c0a0397da
     - path: state/CONTEXT.md
       owner: progressive-orientation
       owner_type: module
@@ -218,7 +280,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 9c4508b7dce2c0015035b187ad8dc585b10b92e3097163dc41df04dc78f388ba
+      sha256: 576ee175b7ede4060ba7d30195ff57df31052ab80dff4d9fbf66d5d60bc7a1ad
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -228,7 +290,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: b2704edbda5b57e9adae9dd6bf4755f0cc1f3abed2816a545fca02ab2694b8d2
+      sha256: 3701eef429ea583c60be9e5a49966209d2b50e0c7f91f552c9f4c82e2b148b38
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

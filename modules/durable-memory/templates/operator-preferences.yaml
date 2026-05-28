@@ -1,0 +1,23 @@
+# Harness managed file: durable-memory
+memory:
+  version: 1
+  updated: 2026-05-28
+  scope: target-repo
+  preferences:
+    - id: concise-status-updates
+      category: collaboration
+      status: active
+      statement: Prefer concise progress updates that state what changed, what was validated, and what remains.
+      source: operator
+      tags:
+        - communication
+        - status
+
+    - id: preserve-local-context
+      category: workflow
+      status: active
+      statement: Preserve repo-specific context and promote durable facts into the right structured artifact.
+      source: harness
+      tags:
+        - continuity
+        - state

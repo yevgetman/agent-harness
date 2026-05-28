@@ -191,6 +191,46 @@ canonical_state:
         - status
         - canonical-state-registry
 
+    - id: durable-memory-design
+      path: design/v1-durable-memory-design.md
+      metadata_id: durable-memory-design
+      state_role: source
+      status: active
+      owner_domain: durable-memory
+      refresh: manual
+      depends_on:
+        - process-domain-design
+
+    - id: durable-memory-preferences
+      path: memory/operator-preferences.yaml
+      metadata_id: durable-memory-preferences
+      state_role: registry
+      status: active
+      owner_domain: durable-memory
+      refresh: manual
+      depends_on:
+        - durable-memory-design
+
+    - id: durable-memory-repo-notes
+      path: memory/repo-notes.md
+      metadata_id: durable-memory-repo-notes
+      state_role: source
+      status: active
+      owner_domain: durable-memory
+      refresh: manual
+      depends_on:
+        - durable-memory-design
+
+    - id: durable-memory-session-summaries
+      path: memory/session-summaries.md
+      metadata_id: durable-memory-session-summaries
+      state_role: projection
+      status: active
+      owner_domain: durable-memory
+      refresh: manual
+      depends_on:
+        - durable-memory-preferences
+
     - id: installed-manifest
       path: .harness/manifest.yaml
       metadata_id: installed-manifest
@@ -264,6 +304,17 @@ canonical_state:
         - plans-status-design
         - module-registry
 
+    - id: durable-memory-module
+      path: modules/durable-memory/module.yaml
+      metadata_id: durable-memory-module
+      state_role: source
+      status: active
+      owner_domain: durable-memory
+      refresh: manual
+      depends_on:
+        - durable-memory-design
+        - module-registry
+
     - id: state-cli
       path: scripts/state.mjs
       metadata_id: state-cli
@@ -296,6 +347,17 @@ canonical_state:
       depends_on:
         - plans-status-module
         - plans-current
+
+    - id: memory-cli
+      path: scripts/memory.mjs
+      metadata_id: memory-cli
+      state_role: source
+      status: active
+      owner_domain: durable-memory
+      refresh: manual
+      depends_on:
+        - durable-memory-module
+        - durable-memory-preferences
 
     - id: distribution-cli
       path: scripts/distribution.mjs

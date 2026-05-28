@@ -44,7 +44,8 @@ Use `--dry-run` to inspect the install plan without writing files.
 
 Bare `harness init` now defaults to the `full` profile. Use
 `harness init --profile minimal` when the target should receive only the
-bootstrap harness files.
+bootstrap harness files. The `full` profile includes the additional process
+domain modules, including Durable Memory.
 
 When planned harness artifacts already exist, `harness init` preserves existing
 human-authored content and adds or updates harness-owned sections where it can

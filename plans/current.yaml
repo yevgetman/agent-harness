@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-05-24
+  updated: 2026-05-28
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -420,16 +420,39 @@ plans_status:
         - status.md
 
     - id: v1.1-process-domain-breadth
-      title: Add next process-domain baseline
-      status: planned
+      title: Add Durable Memory process-domain baseline
+      status: complete
       priority: high
-      owner_domain: harness-lifecycle
-      summary: The next breadth step is one of the remaining v1.1 process-domain baselines, but implementation is paused for operator confirmation.
-      next_action: Select the next process domain from `design/v1.1-installed-instance-roadmap.md` before implementing.
+      owner_domain: durable-memory
+      summary: Durable Memory is now installed in the full profile with memory artifacts, list/check/report commands, doctor validation, tests, and dogfood state.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - process-domain
+        - durable-memory
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-durable-memory-design.md
+        - design/v1-process-domain-design.md
+        - decisions/0036-adopt-durable-memory-baseline-module.md
+        - modules/durable-memory/module.yaml
+        - scripts/memory.mjs
+        - memory/operator-preferences.yaml
+        - status.md
+
+    - id: v1.1-capture-triage-breadth
+      title: Add Capture And Triage process-domain baseline
+      status: planned
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Capture And Triage is the next recommended process-domain breadth candidate after Durable Memory.
+      next_action: Define the narrow baseline artifacts and executable behavior before implementation.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - process-domain
+        - capture-triage
         - planned
       references:
         - design/v1.1-installed-instance-roadmap.md

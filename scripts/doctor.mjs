@@ -7,6 +7,7 @@ import { validateMetadata } from "./metadata.mjs";
 import { validateCanonicalState } from "./state.mjs";
 import { validateInvariants } from "./invariants.mjs";
 import { validatePlansStatus } from "./plans.mjs";
+import { validateMemory } from "./memory.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
 const VALID_DECISION_STATUSES = new Set(["proposed", "accepted", "superseded", "reversed"]);
@@ -804,6 +805,21 @@ function checkPlansStatus(root, installedModules, diagnostics) {
   }
 }
 
+function checkDurableMemory(root, installedModules, diagnostics) {
+  if (!installedModules.has("durable-memory")) return;
+
+  const result = validateMemory(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `memory/operator-preferences.yaml: ${result.preferences.length} preference(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -947,6 +963,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkCanonicalState(root, installedModules, diagnostics);
   checkInvariants(root, installedModules, diagnostics);
   checkPlansStatus(root, installedModules, diagnostics);
+  checkDurableMemory(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

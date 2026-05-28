@@ -29,7 +29,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
 | Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown, generated-only cleanup, and human-content preservation. |
 | Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
-| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, and Plans And Status are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, and `npm run doctor`. |
+| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, and Durable Memory are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
 | Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations. | `npm test` covers safe apply, bare upgrade apply, clean profile module install, merge-safe template cascade apply, blocked plans, and review-required refusal. |
@@ -62,6 +62,7 @@ npm run metadata:check
 npm run state:check
 npm run invariants:check
 npm run plans:check
+npm run memory:check
 npm run lock:check
 npm run doctor
 npm run upgrade:plan
@@ -187,6 +188,13 @@ target repo as `harness`. Bare `harness init` defaults to the `full` profile,
 preserves existing human-authored content, and appends or updates marked
 harness sections. Bare `harness upgrade` runs the supported safe apply path
 after planning internally and refuses blocked or review-required plans.
+
+The Durable Memory process-domain baseline is implemented. The `full` profile
+now includes `durable-memory`, which installs `memory/README.md`,
+`memory/operator-preferences.yaml`, `memory/repo-notes.md`, and
+`memory/session-summaries.md`. `harness memory list/check/report` provide the
+first executable behavior and doctor validates the memory module when
+installed.
 
 ## Next Work After V1
 

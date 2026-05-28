@@ -24,6 +24,7 @@ import { runInit } from "./init.mjs";
 import { runLock, sha256 } from "./lock.mjs";
 import { runMetadata } from "./metadata.mjs";
 import { runModules } from "./modules.mjs";
+import { runMemory } from "./memory.mjs";
 import { runPlans } from "./plans.mjs";
 import { runProfiles } from "./profiles.mjs";
 import { runQuestions } from "./questions.mjs";
@@ -269,7 +270,7 @@ withTempDir((root) => {
   assert.equal(defaultInit.default_profile, true, "init should report that no explicit profile was supplied");
   const defaultManifest = parseYaml(readFileSync(join(defaultTarget, ".harness", "manifest.yaml"), "utf8")).harness;
   assert.equal(defaultManifest.profile, "full", "default init should write profile full");
-  assert.equal(defaultManifest.modules.length, 7, "default full init should install every current module");
+  assert.equal(defaultManifest.modules.length, 8, "default full init should install every current module");
 
   const init = quiet(() => runInit({
     cwd: root,
@@ -570,7 +571,7 @@ withTempDir((root) => {
   assert.equal(targetInspect.target.inspected, true, "profiles inspect should load explicit target manifests");
   assert.equal(targetInspect.target.profile, "minimal", "profiles inspect should report the target's active profile");
   assert.equal(targetInspect.summary.installed, 2, "minimal target should have two full profile modules installed");
-  assert.equal(targetInspect.summary.clean_install, 5, "full inspect should identify five clean missing modules");
+  assert.equal(targetInspect.summary.clean_install, 6, "full inspect should identify six clean missing modules");
   assert.equal(
     targetInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
     "clean-install",
@@ -588,7 +589,7 @@ withTempDir((root) => {
     { cwd: root, encoding: "utf8" },
   ));
   assert.equal(jsonInspect.profile.id, "full", "profiles inspect --json should emit the inspected profile");
-  assert.equal(jsonInspect.summary.clean_install, 5, "profiles inspect --json should emit target summary counts");
+  assert.equal(jsonInspect.summary.clean_install, 6, "profiles inspect --json should emit target summary counts");
 
   const switchPlan = quiet(() => runProfiles({
     cwd: root,
@@ -599,7 +600,7 @@ withTempDir((root) => {
   assert.equal(switchPlan.apply_available, true, "profiles switch --plan should report that apply is available");
   assert.equal(switchPlan.target.current_profile, "minimal", "profiles switch should report current target profile");
   assert.equal(switchPlan.requested_profile.id, "full", "profiles switch should report requested profile");
-  assert.equal(switchPlan.summary.clean_install, 5, "minimal to full switch should plan five clean module installs");
+  assert.equal(switchPlan.summary.clean_install, 6, "minimal to full switch should plan six clean module installs");
   assert.equal(switchPlan.summary.ready, true, "clean switch plans should report readiness");
   assert.equal(
     hasOperation(switchPlan, "safe/profile-module-install", "decisions-open-questions"),
@@ -626,7 +627,7 @@ withTempDir((root) => {
   assert.equal(jsonSwitch.requested_profile.id, "full", "profiles switch --json should emit requested profile");
   assert.equal(
     jsonSwitch.operation_summary.by_code["safe/profile-module-install"],
-    5,
+    6,
     "profiles switch --json should summarize safe module installs",
   );
 
@@ -806,7 +807,7 @@ withTempDir((root) => {
   }));
   assert.equal(fullSync.ok, true, "profiles sync should plan from the active manifest profile");
   assert.equal(fullSync.target.active_profile, "full", "profiles sync should report changed active profile");
-  assert.equal(fullSync.summary.clean_install, 5, "full sync should find clean missing active-profile modules");
+  assert.equal(fullSync.summary.clean_install, 6, "full sync should find clean missing active-profile modules");
   assert.equal(fullSync.summary.ready, true, "clean missing modules should leave sync ready for future apply");
   assert.equal(fullSync.summary.in_sync, false, "missing active-profile modules should mean the target is not in sync");
   assert.equal(
@@ -858,7 +859,7 @@ withTempDir((root) => {
   }));
   assert.equal(sync.ok, true, "profiles sync should pass for a full target");
   assert.equal(sync.active_profile.id, "full", "profiles sync should load the full active profile");
-  assert.equal(sync.summary.installed, 7, "full sync should report all active modules installed");
+  assert.equal(sync.summary.installed, 8, "full sync should report all active modules installed");
   assert.equal(sync.summary.clean_install, 0, "full sync should have no missing active modules");
   assert.equal(sync.summary.in_sync, true, "full target should be in sync after full init");
   assert.equal(
@@ -913,6 +914,9 @@ withTempDir((root) => {
   assertExists(target, "state/canonical-state.yaml");
   assertExists(target, "invariants/golden-principles.yaml");
   assertExists(target, "plans/current.yaml");
+  assertExists(target, "memory/operator-preferences.yaml");
+  assertExists(target, "memory/repo-notes.md");
+  assertExists(target, "memory/session-summaries.md");
 
   const after = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(after.ok, true, "upgrade --plan should pass after profile module installs");
@@ -1492,6 +1496,84 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before durable-memory module add");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "durable-memory", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install durable-memory");
+  assertExists(target, "modules/durable-memory/module.yaml");
+  assertExists(target, "memory/README.md");
+  assertExists(target, "memory/operator-preferences.yaml");
+  assertExists(target, "memory/repo-notes.md");
+  assertExists(target, "memory/session-summaries.md");
+
+  const check = quiet(() => runMemory({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "memory check should pass after install");
+  assert.equal(check.preferences.length, 2, "memory check should return installed template preferences");
+
+  const tagged = quiet(() => runMemory({ cwd: target, args: ["list", "--tag", "communication"] }));
+  assert.equal(tagged.preferences.length, 1, "memory list should filter preferences by tag");
+
+  const category = quiet(() => runMemory({ cwd: target, args: ["list", "--category", "workflow"] }));
+  assert.equal(category.preferences.length, 1, "memory list should filter preferences by category");
+
+  const report = quiet(() => runMemory({ cwd: target, args: ["report"] }));
+  assert.equal(report.ok, true, "memory report should pass after install");
+  assert.equal(report.summary.total, 2, "memory report should summarize preference count");
+  assert.equal(report.summary.files.repo_notes, true, "memory report should include memory file presence");
+
+  const jsonReport = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "memory", "report", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonReport.summary.total, 2, "memory report --json should emit summary JSON");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate durable memory after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("memory/operator-preferences.yaml")),
+    true,
+    "doctor should report memory validation",
+  );
+
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after durable memory install");
+  assert.equal(upgrade.plan.managed_files.length, 8, "durable memory should add four managed files");
+  assert.equal(upgrade.plan.commands.length, 15, "durable memory should add three command records");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "durable-memory")?.status,
+    "unchanged",
+    "upgrade --plan should report durable-memory as installed",
+  );
+
+  writeFileSync(join(target, "memory", "operator-preferences.yaml"), `memory:
+  version: 1
+  preferences:
+    - id: bad-status
+      category: workflow
+      status: invalid
+      statement: Fixture.
+`);
+  const badStatus = quiet(() => runMemory({ cwd: target, args: ["check"] }));
+  assert.equal(badStatus.ok, false, "memory check should fail invalid statuses");
+  assert.equal(
+    badStatus.errors.some((item) => item.includes("invalid status")),
+    true,
+    "memory check should report invalid statuses",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -1521,11 +1603,16 @@ withTempDir((root) => {
     "modules/canonical-state/module.yaml",
     "modules/invariants-golden-principles/module.yaml",
     "modules/plans-and-status/module.yaml",
+    "modules/durable-memory/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
     "invariants/golden-principles.yaml",
     "plans/current.yaml",
+    "memory/README.md",
+    "memory/operator-preferences.yaml",
+    "memory/repo-notes.md",
+    "memory/session-summaries.md",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -1566,6 +1653,11 @@ withTempDir((root) => {
     true,
     "full profile init should install plans-and-status",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "durable-memory")?.installed,
+    true,
+    "full profile init should install durable-memory",
+  );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "full profile init should install valid metadata");
@@ -1581,6 +1673,10 @@ withTempDir((root) => {
   assert.equal(plans.ok, true, "full profile init should install valid plans");
   const plansReport = quiet(() => runPlans({ cwd: target, args: ["report"] }));
   assert.equal(plansReport.summary.total, 1, "full profile init should support plans report");
+  const memory = quiet(() => runMemory({ cwd: target, args: ["check"] }));
+  assert.equal(memory.ok, true, "full profile init should install valid durable memory");
+  const memoryReport = quiet(() => runMemory({ cwd: target, args: ["report"] }));
+  assert.equal(memoryReport.summary.total, 2, "full profile init should support memory report");
 
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after full profile init");
@@ -1592,7 +1688,7 @@ withTempDir((root) => {
     args: ["switch", "minimal", "--target", target, "--plan"],
   }));
   assert.equal(switchToMinimal.ok, true, "profiles switch --plan should pass from full to minimal");
-  assert.equal(switchToMinimal.summary.retained, 5, "switching to a smaller profile should retain extra modules by default");
+  assert.equal(switchToMinimal.summary.retained, 6, "switching to a smaller profile should retain extra modules by default");
   assert.equal(
     hasOperation(switchToMinimal, "deferred/profile-module-retained", "decisions-open-questions"),
     true,
@@ -1636,6 +1732,11 @@ withTempDir((root) => {
     "profiles switch apply should install every clean missing profile module",
   );
   assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-module-install: durable-memory")),
+    true,
+    "profiles switch apply should install durable memory",
+  );
+  assert.equal(
     apply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> full")),
     true,
     "profiles switch apply should report the profile update",
@@ -1648,11 +1749,15 @@ withTempDir((root) => {
     "modules/canonical-state/module.yaml",
     "modules/invariants-golden-principles/module.yaml",
     "modules/plans-and-status/module.yaml",
+    "modules/durable-memory/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
     "invariants/golden-principles.yaml",
     "plans/current.yaml",
+    "memory/operator-preferences.yaml",
+    "memory/repo-notes.md",
+    "memory/session-summaries.md",
   ]) {
     assertExists(target, file);
   }
@@ -1714,7 +1819,7 @@ withTempDir((root) => {
   assert.equal(jsonApply.apply.ok, true, "clean profiles switch --apply --json should apply successfully");
   assert.equal(
     jsonApply.operation_summary.by_code["safe/profile-module-install"],
-    5,
+    6,
     "clean profiles switch --apply --json should include safe module install operations",
   );
   assert.equal(
@@ -1806,6 +1911,7 @@ withTempDir((root) => {
     "modules/canonical-state/module.yaml",
     "modules/invariants-golden-principles/module.yaml",
     "modules/plans-and-status/module.yaml",
+    "modules/durable-memory/module.yaml",
   ]) {
     assertExists(target, file);
   }

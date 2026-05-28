@@ -9,3 +9,4 @@ profile:
     - canonical-state
     - invariants-golden-principles
     - plans-and-status
+    - durable-memory
