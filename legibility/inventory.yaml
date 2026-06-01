@@ -1,14 +1,14 @@
 # Harness managed file: application-corpus-legibility
 legibility:
   version: 1
-  updated: 2026-05-28
+  updated: 2026-06-01
   scope: harness-source-repo
   surfaces:
     - id: harness-cli-entrypoint
       title: Harness CLI entrypoint
       kind: entrypoint
       status: active
-      summary: The `harness` command dispatcher exposes install, lifecycle, profile, module, validation, memory, capture, legibility, and distribution surfaces.
+      summary: The `harness` command dispatcher exposes install, lifecycle, profile, module, validation, memory, capture, legibility, reports, and distribution surfaces.
       how_to_inspect: Run the CLI help and inspect the dispatcher before changing command routing.
       commands:
         - node scripts/harness.mjs --help
@@ -88,3 +88,21 @@ legibility:
       tags:
         - real-repo
         - smoke
+
+    - id: reports-overview-surface
+      title: Reports overview surface
+      kind: generated-report
+      status: active
+      summary: The reports catalog and generator provide a cross-domain installed-harness overview for broad status, roadmap, and handoff work.
+      how_to_inspect: Run the reports check and generator before broad current-state updates.
+      commands:
+        - npm run reports:check
+        - npm run reports:generate
+      references:
+        - reports/catalog.yaml
+        - scripts/reports.mjs
+        - design/v1-reports-retrieval-design.md
+      tags:
+        - reports
+        - overview
+        - dogfood

@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-05-28
+  updated: 2026-06-01
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -488,17 +488,42 @@ plans_status:
 
     - id: v1.1-reports-retrieval-breadth
       title: Add Reports And Retrieval process-domain baseline
-      status: planned
+      status: complete
       priority: high
       owner_domain: reports-and-retrieval
-      summary: Reports And Retrieval is the next recommended process-domain breadth candidate after Application / Corpus Legibility.
-      next_action: Define a narrow cross-domain report baseline that composes existing metadata, state, plans, memory, capture, and legibility surfaces.
+      summary: Reports And Retrieval is now installed in the full profile with reports catalog, snapshots, list/check/report/generate commands, doctor validation, tests, and dogfood state.
+      next_action: Use the generated overview before broad status or roadmap updates.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - process-domain
         - reports
         - retrieval
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-reports-retrieval-design.md
+        - design/v1-process-domain-design.md
+        - decisions/0039-adopt-reports-and-retrieval-baseline-module.md
+        - modules/reports-retrieval/module.yaml
+        - scripts/reports.mjs
+        - reports/catalog.yaml
+        - reports/snapshots.md
+        - status.md
+
+    - id: v1.1-reconciliation-drift-breadth
+      title: Add Reconciliation And Drift Detection process-domain baseline
+      status: planned
+      priority: high
+      owner_domain: reconciliation-and-drift-detection
+      summary: Reconciliation And Drift Detection is the next recommended process-domain breadth candidate after Reports And Retrieval.
+      next_action: Define a narrow plan-only drift report baseline before any mutation behavior.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - process-domain
+        - reconciliation
+        - drift-detection
         - planned
       references:
         - design/v1.1-installed-instance-roadmap.md

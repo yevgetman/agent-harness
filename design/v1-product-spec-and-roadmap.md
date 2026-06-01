@@ -326,7 +326,6 @@ Purpose:
 
 Remaining post-v1 process-domain candidates:
 
-- Reports And Retrieval
 - Reconciliation And Drift Detection
 - Gardening And Entropy Management
 
@@ -339,6 +338,7 @@ Initial implemented modules:
 - `durable-memory`
 - `capture-triage`
 - `application-corpus-legibility`
+- `reports-retrieval`
 
 Initial behavior:
 
@@ -388,9 +388,17 @@ Initial behavior:
   Legibility state.
 - `harness doctor` validates Application / Corpus Legibility when the module is
   installed.
+- `reports/catalog.yaml` and `reports/snapshots.md` record cross-domain report
+  definitions and durable report snapshots.
+- `harness reports list`, `harness reports check`, `harness reports report`,
+  and `harness reports generate` expose and validate Reports And Retrieval
+  state and produce a lightweight installed-harness overview.
+- `harness doctor` validates Reports And Retrieval when the module is
+  installed.
 - The full profile installs the Structured Metadata, Canonical State,
   Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
-  And Triage, and Application / Corpus Legibility modules.
+  And Triage, Application / Corpus Legibility, and Reports And Retrieval
+  modules.
 
 Exit signal:
 

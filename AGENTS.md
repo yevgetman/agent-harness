@@ -195,6 +195,15 @@ validation, fixture, smoke, source-map, report, or corpus inspection surfaces
 change. Keep `legibility/notes.md` concise and promote stable inspection
 surfaces into the structured inventory.
 
+## Reports And Retrieval Discipline
+
+Use `npm run reports:check` to validate the report catalog.
+
+Use `npm run reports:generate` for a cross-domain installed-harness overview
+before broad status, roadmap, or handoff updates. Keep `reports/catalog.yaml`
+current when recurring cross-domain reports become useful, and keep durable
+human-readable snapshots in `reports/snapshots.md`.
+
 ## Distribution Readiness Discipline
 
 Use `npm run distribution:check` after changing package contents or package

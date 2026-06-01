@@ -59,6 +59,11 @@ harness:
       status: active
       process_domains:
         - application-corpus-legibility
+    - id: reports-retrieval
+      version: 0.1.0
+      status: active
+      process_domains:
+        - reports-and-retrieval
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -120,6 +125,15 @@ harness:
     - path: legibility/notes.md
       owner: application-corpus-legibility
       mode: merge
+    - path: reports/README.md
+      owner: reports-retrieval
+      mode: merge
+    - path: reports/catalog.yaml
+      owner: reports-retrieval
+      mode: merge
+    - path: reports/snapshots.md
+      owner: reports-retrieval
+      mode: merge
   commands:
     init: npm run init
     destroy: npm run destroy
@@ -156,6 +170,10 @@ harness:
     legibility-list: npm run legibility:list
     legibility-check: npm run legibility:check
     legibility-report: npm run legibility:report
+    reports-list: npm run reports:list
+    reports-check: npm run reports:check
+    reports-report: npm run reports:report
+    reports-generate: npm run reports:generate
     memory-list: npm run memory:list
     memory-check: npm run memory:check
     memory-report: npm run memory:report

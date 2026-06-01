@@ -12,3 +12,4 @@ profile:
     - durable-memory
     - capture-triage
     - application-corpus-legibility
+    - reports-retrieval

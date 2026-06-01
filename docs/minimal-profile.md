@@ -45,7 +45,8 @@ Use `--dry-run` to inspect the install plan without writing files.
 Bare `harness init` now defaults to the `full` profile. Use
 `harness init --profile minimal` when the target should receive only the
 bootstrap harness files. The `full` profile includes the additional process
-domain modules, including Durable Memory and Capture And Triage.
+domain modules, including Durable Memory, Capture And Triage, Application /
+Corpus Legibility, and Reports And Retrieval.
 
 When planned harness artifacts already exist, `harness init` preserves existing
 human-authored content and adds or updates harness-owned sections where it can
@@ -146,6 +147,9 @@ and `harness metadata report`. `canonical-state` adds
 `application-corpus-legibility` adds `legibility/`,
 `harness legibility list`, `harness legibility check`, and
 `harness legibility report`.
+`reports-retrieval` adds `reports/`, `harness reports list`,
+`harness reports check`, `harness reports report`, and
+`harness reports generate`.
 
 Distribution readiness is checked from the source repo with
 `npm run distribution:check`, which validates explicit npm package contents,

@@ -21,6 +21,7 @@ import { runDistribution } from "./distribution.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runCapture } from "./capture.mjs";
 import { runLegibility } from "./legibility.mjs";
+import { runReports } from "./reports.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runInit } from "./init.mjs";
 import { runLock, sha256 } from "./lock.mjs";
@@ -272,7 +273,7 @@ withTempDir((root) => {
   assert.equal(defaultInit.default_profile, true, "init should report that no explicit profile was supplied");
   const defaultManifest = parseYaml(readFileSync(join(defaultTarget, ".harness", "manifest.yaml"), "utf8")).harness;
   assert.equal(defaultManifest.profile, "full", "default init should write profile full");
-  assert.equal(defaultManifest.modules.length, 10, "default full init should install every current module");
+  assert.equal(defaultManifest.modules.length, 11, "default full init should install every current module");
 
   const init = quiet(() => runInit({
     cwd: root,
@@ -573,7 +574,7 @@ withTempDir((root) => {
   assert.equal(targetInspect.target.inspected, true, "profiles inspect should load explicit target manifests");
   assert.equal(targetInspect.target.profile, "minimal", "profiles inspect should report the target's active profile");
   assert.equal(targetInspect.summary.installed, 2, "minimal target should have two full profile modules installed");
-  assert.equal(targetInspect.summary.clean_install, 8, "full inspect should identify eight clean missing modules");
+  assert.equal(targetInspect.summary.clean_install, 9, "full inspect should identify nine clean missing modules");
   assert.equal(
     targetInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
     "clean-install",
@@ -591,7 +592,7 @@ withTempDir((root) => {
     { cwd: root, encoding: "utf8" },
   ));
   assert.equal(jsonInspect.profile.id, "full", "profiles inspect --json should emit the inspected profile");
-  assert.equal(jsonInspect.summary.clean_install, 8, "profiles inspect --json should emit target summary counts");
+  assert.equal(jsonInspect.summary.clean_install, 9, "profiles inspect --json should emit target summary counts");
 
   const switchPlan = quiet(() => runProfiles({
     cwd: root,
@@ -602,7 +603,7 @@ withTempDir((root) => {
   assert.equal(switchPlan.apply_available, true, "profiles switch --plan should report that apply is available");
   assert.equal(switchPlan.target.current_profile, "minimal", "profiles switch should report current target profile");
   assert.equal(switchPlan.requested_profile.id, "full", "profiles switch should report requested profile");
-  assert.equal(switchPlan.summary.clean_install, 8, "minimal to full switch should plan eight clean module installs");
+  assert.equal(switchPlan.summary.clean_install, 9, "minimal to full switch should plan nine clean module installs");
   assert.equal(switchPlan.summary.ready, true, "clean switch plans should report readiness");
   assert.equal(
     hasOperation(switchPlan, "safe/profile-module-install", "decisions-open-questions"),
@@ -629,7 +630,7 @@ withTempDir((root) => {
   assert.equal(jsonSwitch.requested_profile.id, "full", "profiles switch --json should emit requested profile");
   assert.equal(
     jsonSwitch.operation_summary.by_code["safe/profile-module-install"],
-    8,
+    9,
     "profiles switch --json should summarize safe module installs",
   );
 
@@ -809,7 +810,7 @@ withTempDir((root) => {
   }));
   assert.equal(fullSync.ok, true, "profiles sync should plan from the active manifest profile");
   assert.equal(fullSync.target.active_profile, "full", "profiles sync should report changed active profile");
-  assert.equal(fullSync.summary.clean_install, 8, "full sync should find clean missing active-profile modules");
+  assert.equal(fullSync.summary.clean_install, 9, "full sync should find clean missing active-profile modules");
   assert.equal(fullSync.summary.ready, true, "clean missing modules should leave sync ready for future apply");
   assert.equal(fullSync.summary.in_sync, false, "missing active-profile modules should mean the target is not in sync");
   assert.equal(
@@ -861,7 +862,7 @@ withTempDir((root) => {
   }));
   assert.equal(sync.ok, true, "profiles sync should pass for a full target");
   assert.equal(sync.active_profile.id, "full", "profiles sync should load the full active profile");
-  assert.equal(sync.summary.installed, 10, "full sync should report all active modules installed");
+  assert.equal(sync.summary.installed, 11, "full sync should report all active modules installed");
   assert.equal(sync.summary.clean_install, 0, "full sync should have no missing active modules");
   assert.equal(sync.summary.in_sync, true, "full target should be in sync after full init");
   assert.equal(
@@ -921,6 +922,8 @@ withTempDir((root) => {
   assertExists(target, "memory/session-summaries.md");
   assertExists(target, "legibility/inventory.yaml");
   assertExists(target, "legibility/notes.md");
+  assertExists(target, "reports/catalog.yaml");
+  assertExists(target, "reports/snapshots.md");
 
   const after = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(after.ok, true, "upgrade --plan should pass after profile module installs");
@@ -1793,6 +1796,114 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before reports-retrieval module add");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "reports-retrieval", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install reports-retrieval");
+  assertExists(target, "modules/reports-retrieval/module.yaml");
+  assertExists(target, "reports/README.md");
+  assertExists(target, "reports/catalog.yaml");
+  assertExists(target, "reports/snapshots.md");
+
+  const initialCheck = quiet(() => runReports({ cwd: target, args: ["check"] }));
+  assert.equal(initialCheck.ok, true, "reports check should pass after install");
+  assert.equal(initialCheck.definitions.length, 0, "reports template should start with an empty catalog");
+
+  writeFileSync(join(target, "reports", "catalog.yaml"), `reports:
+  version: 1
+  updated: 2026-06-01
+  scope: test-target
+  definitions:
+    - id: installed-harness-overview
+      title: Installed harness overview
+      kind: cross-domain
+      status: active
+      summary: Summarize installed harness state for this target.
+      sources:
+        - .harness/manifest.yaml
+      tags:
+        - validation
+        - dogfood
+`);
+
+  const check = quiet(() => runReports({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "reports check should pass with one report definition");
+  assert.equal(check.definitions.length, 1, "reports check should return report definitions");
+
+  const list = quiet(() => runReports({ cwd: target, args: ["list", "--kind", "cross-domain"] }));
+  assert.equal(list.definitions.length, 1, "reports list should filter by kind");
+
+  const tagged = quiet(() => runReports({ cwd: target, args: ["list", "--tag", "validation"] }));
+  assert.equal(tagged.definitions.length, 1, "reports list should filter by tag");
+
+  const report = quiet(() => runReports({ cwd: target, args: ["report"] }));
+  assert.equal(report.ok, true, "reports report should pass");
+  assert.equal(report.summary.total, 1, "reports report should summarize definition count");
+  assert.equal(report.summary.source_count, 1, "reports report should summarize source count");
+
+  const generated = quiet(() => runReports({
+    cwd: target,
+    args: ["generate", "--report", "installed-harness-overview"],
+  }));
+  assert.equal(generated.ok, true, "reports generate should pass for a known report");
+  assert.equal(generated.summary.harness.modules, 3, "reports generate should summarize installed modules");
+  assert.equal(generated.summary.harness.managed_files, 7, "reports generate should summarize managed files");
+  assert.equal(generated.summary.harness.commands, 16, "reports generate should summarize commands");
+
+  const jsonGenerated = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "reports", "generate", "--report", "installed-harness-overview", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonGenerated.summary.registries.report_definitions, 1, "reports generate --json should emit registry counts");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate reports-retrieval after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("reports/catalog.yaml")),
+    true,
+    "doctor should report reports validation",
+  );
+
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after reports-retrieval install");
+  assert.equal(upgrade.plan.managed_files.length, 7, "reports-retrieval should add three managed files");
+  assert.equal(upgrade.plan.commands.length, 16, "reports-retrieval should add four command records");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "reports-retrieval")?.status,
+    "unchanged",
+    "upgrade --plan should report reports-retrieval as installed",
+  );
+
+  writeFileSync(join(target, "reports", "catalog.yaml"), `reports:
+  version: 1
+  definitions:
+    - id: bad-kind
+      title: Bad kind
+      kind: invalid
+      status: active
+      summary: Fixture.
+`);
+  const badKind = quiet(() => runReports({ cwd: target, args: ["check"] }));
+  assert.equal(badKind.ok, false, "reports check should fail invalid kinds");
+  assert.equal(
+    badKind.errors.some((item) => item.includes("invalid kind")),
+    true,
+    "reports check should report invalid kinds",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -1825,6 +1936,7 @@ withTempDir((root) => {
     "modules/durable-memory/module.yaml",
     "modules/capture-triage/module.yaml",
     "modules/application-corpus-legibility/module.yaml",
+    "modules/reports-retrieval/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
@@ -1840,6 +1952,9 @@ withTempDir((root) => {
     "legibility/README.md",
     "legibility/inventory.yaml",
     "legibility/notes.md",
+    "reports/README.md",
+    "reports/catalog.yaml",
+    "reports/snapshots.md",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -1895,6 +2010,11 @@ withTempDir((root) => {
     true,
     "full profile init should install application-corpus-legibility",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "reports-retrieval")?.installed,
+    true,
+    "full profile init should install reports-retrieval",
+  );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "full profile init should install valid metadata");
@@ -1922,6 +2042,10 @@ withTempDir((root) => {
   assert.equal(legibility.ok, true, "full profile init should install valid legibility inventory");
   const legibilityReport = quiet(() => runLegibility({ cwd: target, args: ["report"] }));
   assert.equal(legibilityReport.summary.total, 0, "full profile init should support legibility report");
+  const reports = quiet(() => runReports({ cwd: target, args: ["check"] }));
+  assert.equal(reports.ok, true, "full profile init should install valid report catalog");
+  const reportsReport = quiet(() => runReports({ cwd: target, args: ["report"] }));
+  assert.equal(reportsReport.summary.total, 0, "full profile init should support reports report");
 
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after full profile init");
@@ -1933,7 +2057,7 @@ withTempDir((root) => {
     args: ["switch", "minimal", "--target", target, "--plan"],
   }));
   assert.equal(switchToMinimal.ok, true, "profiles switch --plan should pass from full to minimal");
-  assert.equal(switchToMinimal.summary.retained, 8, "switching to a smaller profile should retain extra modules by default");
+  assert.equal(switchToMinimal.summary.retained, 9, "switching to a smaller profile should retain extra modules by default");
   assert.equal(
     hasOperation(switchToMinimal, "deferred/profile-module-retained", "decisions-open-questions"),
     true,
@@ -1992,6 +2116,11 @@ withTempDir((root) => {
     "profiles switch apply should install application-corpus-legibility",
   );
   assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-module-install: reports-retrieval")),
+    true,
+    "profiles switch apply should install reports-retrieval",
+  );
+  assert.equal(
     apply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> full")),
     true,
     "profiles switch apply should report the profile update",
@@ -2007,6 +2136,7 @@ withTempDir((root) => {
     "modules/durable-memory/module.yaml",
     "modules/capture-triage/module.yaml",
     "modules/application-corpus-legibility/module.yaml",
+    "modules/reports-retrieval/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
@@ -2019,6 +2149,8 @@ withTempDir((root) => {
     "capture/triage.yaml",
     "legibility/inventory.yaml",
     "legibility/notes.md",
+    "reports/catalog.yaml",
+    "reports/snapshots.md",
   ]) {
     assertExists(target, file);
   }
@@ -2080,7 +2212,7 @@ withTempDir((root) => {
   assert.equal(jsonApply.apply.ok, true, "clean profiles switch --apply --json should apply successfully");
   assert.equal(
     jsonApply.operation_summary.by_code["safe/profile-module-install"],
-    8,
+    9,
     "clean profiles switch --apply --json should include safe module install operations",
   );
   assert.equal(
@@ -2175,6 +2307,7 @@ withTempDir((root) => {
     "modules/durable-memory/module.yaml",
     "modules/capture-triage/module.yaml",
     "modules/application-corpus-legibility/module.yaml",
+    "modules/reports-retrieval/module.yaml",
   ]) {
     assertExists(target, file);
   }

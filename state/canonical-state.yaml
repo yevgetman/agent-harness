@@ -1,7 +1,7 @@
 # Harness managed file: canonical-state
 canonical_state:
   version: 1
-  updated: 2026-05-28
+  updated: 2026-06-01
   scope: harness-source-repo
   entries:
     - id: agents
@@ -293,6 +293,37 @@ canonical_state:
       depends_on:
         - application-legibility-design
 
+    - id: reports-retrieval-design
+      path: design/v1-reports-retrieval-design.md
+      metadata_id: reports-retrieval-design
+      state_role: source
+      status: active
+      owner_domain: reports-and-retrieval
+      refresh: manual
+      depends_on:
+        - process-domain-design
+        - application-legibility-design
+
+    - id: reports-catalog
+      path: reports/catalog.yaml
+      metadata_id: reports-catalog
+      state_role: registry
+      status: active
+      owner_domain: reports-and-retrieval
+      refresh: command
+      depends_on:
+        - reports-retrieval-design
+
+    - id: reports-snapshots
+      path: reports/snapshots.md
+      metadata_id: reports-snapshots
+      state_role: projection
+      status: active
+      owner_domain: reports-and-retrieval
+      refresh: manual
+      depends_on:
+        - reports-retrieval-design
+
     - id: installed-manifest
       path: .harness/manifest.yaml
       metadata_id: installed-manifest
@@ -399,6 +430,17 @@ canonical_state:
         - application-legibility-design
         - module-registry
 
+    - id: reports-retrieval-module
+      path: modules/reports-retrieval/module.yaml
+      metadata_id: reports-retrieval-module
+      state_role: source
+      status: active
+      owner_domain: reports-and-retrieval
+      refresh: manual
+      depends_on:
+        - reports-retrieval-design
+        - module-registry
+
     - id: state-cli
       path: scripts/state.mjs
       metadata_id: state-cli
@@ -464,6 +506,17 @@ canonical_state:
       depends_on:
         - application-legibility-module
         - legibility-inventory
+
+    - id: reports-cli
+      path: scripts/reports.mjs
+      metadata_id: reports-cli
+      state_role: source
+      status: active
+      owner_domain: reports-and-retrieval
+      refresh: manual
+      depends_on:
+        - reports-retrieval-module
+        - reports-catalog
 
     - id: distribution-cli
       path: scripts/distribution.mjs

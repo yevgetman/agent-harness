@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-05-28
+generated_on: 2026-06-01
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -18,6 +18,7 @@ generated_from:
   - design/v1-durable-memory-design.md
   - design/v1-capture-triage-design.md
   - design/v1-application-corpus-legibility-design.md
+  - design/v1-reports-retrieval-design.md
   - design/v1-distribution-readiness-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
@@ -123,6 +124,12 @@ Current dogfood state:
   `npm run legibility:list`, `npm run legibility:check`,
   `npm run legibility:report`, inspection-surface filtering, JSON output,
   report summaries, and doctor validation.
+- Reports And Retrieval exists in first dogfood form via
+  `reports/catalog.yaml`, `reports/snapshots.md`,
+  `npm run reports:list`, `npm run reports:check`,
+  `npm run reports:report`, `npm run reports:generate`, report definition
+  filtering, JSON output, report summaries, lightweight installed-harness
+  overview generation, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -240,9 +247,9 @@ Then open the relevant formal design or exploratory spec for the task.
 The first v1.1 installed-instance upgrade-contract increment, profile switch
 planning, safe profile switch apply, template source lock-check correction,
 clean template cascade apply baseline, profile sync planning, and Durable
-Memory, Capture And Triage, and Application / Corpus Legibility baselines are
-implemented. The next useful breadth candidate after this depth pass is
-Reports And Retrieval.
+Memory, Capture And Triage, Application / Corpus Legibility, and Reports And
+Retrieval baselines are implemented. The next useful breadth candidate after
+this depth pass is Reconciliation And Drift Detection.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -257,8 +264,8 @@ machinery, but public release is not the current product priority.
   closeout baseline.
 - Phase 4 has Structured Metadata, Canonical State, Invariants And Golden
   Principles, Plans And Status, Durable Memory, Capture And Triage, and
-  Application / Corpus Legibility installed as additional process-domain
-  modules.
+  Application / Corpus Legibility, and Reports And Retrieval installed as
+  additional process-domain modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
 - Canonical State now has list/report queries, role/status/owner-domain
@@ -275,13 +282,16 @@ machinery, but public release is not the current product priority.
 - Application / Corpus Legibility now has list/report queries,
   status/kind/tag filtering, JSON output, inspection inventory validation,
   local-reference warnings, and report summaries.
+- Reports And Retrieval now has list/report queries, status/kind/tag
+  filtering, JSON output, report catalog validation, local-source warnings,
+  report summaries, and lightweight installed-harness overview generation.
 - Distribution Readiness now has explicit package contents validation, release
   preflight planning, registry discovery, local tarball install docs,
   packed-package smoke validation for package install/init/doctor/upgrade plan,
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: start Reports And Retrieval as the next process-domain breadth
-  baseline, beginning with a narrow cross-domain report design, decision
-  record, artifacts, validation, and dogfood usage.
+- Next work: start Reconciliation And Drift Detection as the next
+  process-domain breadth baseline, beginning with a narrow plan-only drift
+  report design, decision record, artifacts, validation, and dogfood usage.
 - Keep `status.md` current after significant choices.

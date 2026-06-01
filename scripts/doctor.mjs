@@ -9,6 +9,7 @@ import { validateInvariants } from "./invariants.mjs";
 import { validatePlansStatus } from "./plans.mjs";
 import { validateCapture } from "./capture.mjs";
 import { validateLegibility } from "./legibility.mjs";
+import { validateReports } from "./reports.mjs";
 import { validateMemory } from "./memory.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
@@ -852,6 +853,21 @@ function checkApplicationCorpusLegibility(root, installedModules, diagnostics) {
   }
 }
 
+function checkReportsRetrieval(root, installedModules, diagnostics) {
+  if (!installedModules.has("reports-retrieval")) return;
+
+  const result = validateReports(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `reports/catalog.yaml: ${result.definitions.length} report definition(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -998,6 +1014,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkDurableMemory(root, installedModules, diagnostics);
   checkCaptureTriage(root, installedModules, diagnostics);
   checkApplicationCorpusLegibility(root, installedModules, diagnostics);
+  checkReportsRetrieval(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

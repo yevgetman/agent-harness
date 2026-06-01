@@ -991,46 +991,89 @@ build_strategy:
             - The dogfood manifest exposes capture-list, capture-add, capture-triage, capture-check, and capture-report.
             - Capture inbox items record the current process-domain increment and next candidate.
 
+    - id: v1.1-application-corpus-legibility-baseline
+      breadth_unit: >
+        Add the Application / Corpus Legibility process-domain baseline.
+      status: complete
+      completed_on: 2026-05-28
+      ready_for_next_breadth: true
+      depth_criteria:
+        - id: executable-behavior
+          status: satisfied
+          evidence:
+            - application-corpus-legibility is an installable module.
+            - The full profile includes application-corpus-legibility.
+            - harness legibility list/check/report provide executable behavior.
+            - The dogfood repo has a legibility inventory and legibility notes.
+        - id: validation
+          status: satisfied
+          evidence:
+            - legibility check validates inspection surface shape, statuses, kinds, local references, and required legibility files.
+            - doctor validates Application / Corpus Legibility when the module is installed.
+            - distribution package contents include the legibility CLI and application-corpus-legibility templates.
+        - id: tests
+          status: satisfied
+          evidence:
+            - npm test covers application-corpus-legibility module add.
+            - npm test covers legibility list/check/report and JSON output.
+            - npm test covers full profile init with Application / Corpus Legibility.
+            - npm test covers profile switch and upgrade apply installing Application / Corpus Legibility.
+        - id: docs
+          status: satisfied
+          evidence:
+            - decisions/0038-adopt-application-corpus-legibility-baseline-module.md records the Application / Corpus Legibility decision.
+            - design/v1-application-corpus-legibility-design.md defines the baseline.
+            - design/v1.1-installed-instance-roadmap.md records Application / Corpus Legibility as implemented.
+            - docs/v1-validation.md includes Application / Corpus Legibility in the validation matrix.
+            - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
+        - id: dogfood-usage
+          status: satisfied
+          evidence:
+            - npm run legibility:check passes against the dogfood repo.
+            - npm run legibility:report summarizes dogfood inspection surfaces.
+            - The dogfood manifest exposes legibility-list, legibility-check, and legibility-report.
+            - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
+
   current_depth_pass:
-    id: v1.1-application-corpus-legibility-baseline
+    id: v1.1-reports-retrieval-baseline
     breadth_unit: >
-      Add the Application / Corpus Legibility process-domain baseline.
+      Add the Reports And Retrieval process-domain baseline.
     status: complete
-    completed_on: 2026-05-28
+    completed_on: 2026-06-01
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - application-corpus-legibility is an installable module.
-          - The full profile includes application-corpus-legibility.
-          - harness legibility list/check/report provide executable behavior.
-          - The dogfood repo has a legibility inventory and legibility notes.
+          - reports-retrieval is an installable module.
+          - The full profile includes reports-retrieval.
+          - harness reports list/check/report/generate provide executable behavior.
+          - The dogfood repo has a reports catalog and snapshots file.
       - id: validation
         status: satisfied
         evidence:
-          - legibility check validates inspection surface shape, statuses, kinds, local references, and required legibility files.
-          - doctor validates Application / Corpus Legibility when the module is installed.
-          - distribution package contents include the legibility CLI and application-corpus-legibility templates.
+          - reports check validates report definition shape, statuses, kinds, local sources, and required report files.
+          - doctor validates Reports And Retrieval when the module is installed.
+          - distribution package contents include the reports CLI and reports-retrieval templates.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers application-corpus-legibility module add.
-          - npm test covers legibility list/check/report and JSON output.
-          - npm test covers full profile init with Application / Corpus Legibility.
-          - npm test covers profile switch and upgrade apply installing Application / Corpus Legibility.
+          - npm test covers reports-retrieval module add.
+          - npm test covers reports list/check/report/generate and JSON output.
+          - npm test covers full profile init with Reports And Retrieval.
+          - npm test covers profile switch and upgrade apply installing Reports And Retrieval.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0038-adopt-application-corpus-legibility-baseline-module.md records the Application / Corpus Legibility decision.
-          - design/v1-application-corpus-legibility-design.md defines the baseline.
-          - design/v1.1-installed-instance-roadmap.md records Application / Corpus Legibility as implemented.
-          - docs/v1-validation.md includes Application / Corpus Legibility in the validation matrix.
+          - decisions/0039-adopt-reports-and-retrieval-baseline-module.md records the Reports And Retrieval decision.
+          - design/v1-reports-retrieval-design.md defines the baseline.
+          - design/v1.1-installed-instance-roadmap.md records Reports And Retrieval as implemented.
+          - docs/v1-validation.md includes Reports And Retrieval in the validation matrix.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run legibility:check passes against the dogfood repo.
-          - npm run legibility:report summarizes dogfood inspection surfaces.
-          - The dogfood manifest exposes legibility-list, legibility-check, and legibility-report.
-          - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
+          - npm run reports:check passes against the dogfood repo.
+          - npm run reports:report summarizes dogfood report definitions.
+          - npm run reports:generate produces a cross-domain installed-harness overview.
+          - The dogfood manifest exposes reports-list, reports-check, reports-report, and reports-generate.

@@ -1,7 +1,7 @@
 # Harness managed file: capture-triage
 capture_triage:
   version: 1
-  updated: 2026-05-28
+  updated: 2026-06-01
   scope: harness-source-repo
   records:
     - id: triage-capture-triage-baseline
@@ -17,3 +17,10 @@ capture_triage:
       promote_to: plans
       note: Promoted into the Application / Corpus Legibility breadth increment.
       updated: 2026-05-28
+
+    - id: triage-reports-retrieval-next
+      item_id: reports-retrieval-next
+      status: promoted
+      promote_to: plans
+      note: Promoted into the Reports And Retrieval breadth increment.
+      updated: 2026-06-01

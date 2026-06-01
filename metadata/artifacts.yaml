@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-05-28
+  updated: 2026-06-01
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -599,6 +599,67 @@ metadata:
       depends_on:
         - application-legibility-design
 
+    - id: reports-retrieval-design
+      path: design/v1-reports-retrieval-design.md
+      kind: formal-design
+      status: active
+      owner_domain: reports-and-retrieval
+      tags:
+        - reports
+        - retrieval
+        - phase-4
+        - process-domain
+      depends_on:
+        - process-domain-design
+        - application-legibility-design
+
+    - id: reports-retrieval-module
+      path: modules/reports-retrieval/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: reports-and-retrieval
+      tags:
+        - module
+        - reports
+        - retrieval
+      depends_on:
+        - reports-retrieval-design
+        - module-registry
+
+    - id: reports-readme
+      path: reports/README.md
+      kind: reports-doc
+      status: active
+      owner_domain: reports-and-retrieval
+      tags:
+        - reports
+        - retrieval
+      depends_on:
+        - reports-retrieval-design
+
+    - id: reports-catalog
+      path: reports/catalog.yaml
+      kind: reports-registry
+      status: active
+      owner_domain: reports-and-retrieval
+      tags:
+        - reports
+        - catalog
+        - retrieval
+      depends_on:
+        - reports-retrieval-design
+
+    - id: reports-snapshots
+      path: reports/snapshots.md
+      kind: reports-snapshots
+      status: active
+      owner_domain: reports-and-retrieval
+      tags:
+        - reports
+        - snapshots
+      depends_on:
+        - reports-retrieval-design
+
     - id: profiles-cli
       path: scripts/profiles.mjs
       kind: cli
@@ -710,6 +771,20 @@ metadata:
       depends_on:
         - application-legibility-module
         - legibility-inventory
+
+    - id: reports-cli
+      path: scripts/reports.mjs
+      kind: cli
+      status: active
+      owner_domain: reports-and-retrieval
+      tags:
+        - reports
+        - retrieval
+        - cli
+        - validation
+      depends_on:
+        - reports-retrieval-module
+        - reports-catalog
 
     - id: distribution-cli
       path: scripts/distribution.mjs
@@ -1109,6 +1184,21 @@ metadata:
         - application-legibility-design
         - application-legibility-module
         - capture-triage-decision
+
+    - id: reports-retrieval-decision
+      path: decisions/0039-adopt-reports-and-retrieval-baseline-module.md
+      kind: decision
+      status: active
+      owner_domain: reports-and-retrieval
+      tags:
+        - reports
+        - retrieval
+        - process-domain
+        - decision
+      depends_on:
+        - reports-retrieval-design
+        - reports-retrieval-module
+        - application-legibility-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

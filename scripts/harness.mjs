@@ -15,6 +15,7 @@ import { runInvariants } from "./invariants.mjs";
 import { runPlans } from "./plans.mjs";
 import { runCapture } from "./capture.mjs";
 import { runLegibility } from "./legibility.mjs";
+import { runReports } from "./reports.mjs";
 import { runMemory } from "./memory.mjs";
 import { runDistribution } from "./distribution.mjs";
 
@@ -53,6 +54,10 @@ Usage:
   harness legibility list
   harness legibility check
   harness legibility report
+  harness reports list
+  harness reports check
+  harness reports report
+  harness reports generate
   harness memory list
   harness memory check
   harness memory report
@@ -116,6 +121,9 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "legibility") {
   const result = runLegibility({ cwd: process.cwd(), args });
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "reports") {
+  const result = runReports({ cwd: process.cwd(), args });
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "memory") {
   const result = runMemory({ cwd: process.cwd(), args });

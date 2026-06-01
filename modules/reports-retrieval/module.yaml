@@ -1,0 +1,60 @@
+module:
+  id: reports-retrieval
+  version: 0.1.0
+  status: active
+  process_domains:
+    - reports-and-retrieval
+  provides:
+    - report-catalog
+    - report-snapshots
+    - cross-domain-installed-overview
+    - reports-list-command
+    - reports-check-command
+    - reports-report-command
+    - reports-generate-command
+    - reports-shape-validation
+  creates:
+    - reports/
+    - reports/README.md
+    - reports/catalog.yaml
+    - reports/snapshots.md
+  managed_files:
+    - path: reports/README.md
+      mode: merge
+    - path: reports/catalog.yaml
+      mode: merge
+    - path: reports/snapshots.md
+      mode: merge
+  commands:
+    reports-list: harness reports list
+    reports-check: harness reports check
+    reports-report: harness reports report
+    reports-generate: harness reports generate
+  install:
+    artifacts:
+      - path: reports/
+        type: directory
+      - path: reports/README.md
+        type: template
+        source: modules/reports-retrieval/templates/README.md
+      - path: reports/catalog.yaml
+        type: template
+        source: modules/reports-retrieval/templates/catalog.yaml
+      - path: reports/snapshots.md
+        type: template
+        source: modules/reports-retrieval/templates/snapshots.md
+  validates:
+    - reports/catalog.yaml parses as YAML
+    - reports registry version is supported
+    - report definition IDs are unique
+    - report definition statuses and kinds are allowed
+    - required title, summary, kind, and status fields are present
+    - sources and tags are lists when present
+    - local sources are reported when missing
+    - report catalog can be filtered and summarized
+    - installed harness overview can be generated from local state
+  instructions:
+    - Use Reports And Retrieval to define cross-domain report definitions and durable report snapshots.
+    - Prefer summaries composed from installed local state over central source-owned target tracking.
+    - Keep heavy retrieval, embeddings, and generated stale-report cleanup deferred until the baseline report catalog is dogfooded.
+    - Promote recurring report needs into reports/catalog.yaml instead of scattering ad hoc summaries across status files.

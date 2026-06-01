@@ -13,7 +13,9 @@
   breadth increment.
 - Application / Corpus Legibility is implemented and validated as the next
   process-domain breadth increment.
-- The next recommended breadth candidate is Reports And Retrieval.
+- Reports And Retrieval is implemented and validated as the next
+  process-domain breadth increment.
+- The next recommended breadth candidate is Reconciliation And Drift Detection.
 
 ## Archive
 

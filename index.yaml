@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-05-28
+updated: 2026-06-01
 harness:
   package: portable-harness
   version: 0.1.0
@@ -38,6 +38,7 @@ reading_order:
   - v1-durable-memory-design
   - v1-capture-triage-design
   - v1-application-corpus-legibility-design
+  - v1-reports-retrieval-design
   - v1-distribution-readiness-design
   - v1-validation
   - installed-manifest
@@ -49,6 +50,7 @@ reading_order:
   - durable-memory
   - capture-triage
   - legibility
+  - reports
   - module-registry
   - profile-minimal
   - profile-full
@@ -62,6 +64,7 @@ reading_order:
   - module-durable-memory
   - module-capture-triage
   - module-application-corpus-legibility
+  - module-reports-retrieval
   - depth-gate
   - open-questions
   - decision-0001
@@ -102,6 +105,7 @@ reading_order:
   - decision-0036
   - decision-0037
   - decision-0038
+  - decision-0039
   - decision-template
   - package
   - harness-cli
@@ -117,6 +121,7 @@ reading_order:
   - plans-cli
   - capture-cli
   - legibility-cli
+  - reports-cli
   - memory-cli
   - distribution-cli
   - lock-cli
@@ -154,7 +159,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, Durable Memory, Capture And Triage, Application / Corpus Legibility, and next process-domain breadth. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, and next process-domain breadth. Not a changelog.
     depends_on:
       - agents
 
@@ -330,6 +335,16 @@ documents:
       - v1-process-domain-design
       - v1-capture-triage-design
 
+  - doc_id: v1-reports-retrieval-design
+    file: design/v1-reports-retrieval-design.md
+    title: "Formal Design: V1 Reports And Retrieval"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the eighth Phase 4 process-domain module: report catalog, snapshots, reports list/check/report/generate commands, installed-harness overview generation, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-application-corpus-legibility-design
+
   - doc_id: v1-distribution-readiness-design
     file: design/v1-distribution-readiness-design.md
     title: "Formal Design: V1 Distribution Readiness"
@@ -439,6 +454,16 @@ documents:
     depends_on:
       - v1-application-corpus-legibility-design
       - capture-triage
+
+  - doc_id: reports
+    file: reports/catalog.yaml
+    title: Reports And Retrieval
+    kind: reports-registry
+    status: active
+    summary: Machine-readable report catalog plus snapshots file for cross-domain installed-harness summaries.
+    depends_on:
+      - v1-reports-retrieval-design
+      - legibility
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -565,6 +590,16 @@ documents:
     summary: Module definition for legibility inventory, inspection notes, and legibility list/check/report commands.
     depends_on:
       - v1-application-corpus-legibility-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-reports-retrieval
+    file: modules/reports-retrieval/module.yaml
+    title: Reports And Retrieval Module
+    kind: module-definition
+    status: active
+    summary: Module definition for report catalog, report snapshots, reports commands, and lightweight installed-harness overview generation.
+    depends_on:
+      - v1-reports-retrieval-design
       - v1-installed-manifest-design
 
   - doc_id: open-questions
@@ -981,6 +1016,17 @@ documents:
       - module-application-corpus-legibility
       - decision-0037
 
+  - doc_id: decision-0039
+    file: decisions/0039-adopt-reports-and-retrieval-baseline-module.md
+    title: Adopt Reports And Retrieval Baseline Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Reports And Retrieval as the next process-domain breadth module after Application / Corpus Legibility.
+    depends_on:
+      - v1-reports-retrieval-design
+      - module-reports-retrieval
+      - decision-0038
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -995,7 +1041,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -1005,7 +1051,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -1137,6 +1183,16 @@ documents:
       - v1-application-corpus-legibility-design
       - legibility
 
+  - doc_id: reports-cli
+    file: scripts/reports.mjs
+    title: Harness Reports CLI
+    kind: cli
+    status: active
+    summary: Reports And Retrieval command implementation for report catalog validation, filters, JSON output, summaries, and lightweight installed-harness overview generation.
+    depends_on:
+      - v1-reports-retrieval-design
+      - reports
+
   - doc_id: memory-cli
     file: scripts/memory.mjs
     title: Harness Memory CLI
@@ -1217,7 +1273,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

@@ -48,3 +48,8 @@ modules:
     path: modules/application-corpus-legibility/module.yaml
     status: active
     installable: true
+
+  - id: reports-retrieval
+    path: modules/reports-retrieval/module.yaml
+    status: active
+    installable: true

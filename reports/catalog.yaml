@@ -1,0 +1,25 @@
+# Harness managed file: reports-retrieval
+reports:
+  version: 1
+  updated: 2026-06-01
+  scope: harness-source-repo
+  definitions:
+    - id: installed-harness-overview
+      title: Installed harness overview
+      kind: cross-domain
+      status: active
+      summary: Summarizes installed modules, managed files, commands, plans, state, metadata, capture, memory, legibility, and report catalog counts.
+      sources:
+        - .harness/manifest.yaml
+        - metadata/artifacts.yaml
+        - state/canonical-state.yaml
+        - plans/current.yaml
+        - capture/inbox.yaml
+        - capture/triage.yaml
+        - memory/operator-preferences.yaml
+        - legibility/inventory.yaml
+        - reports/catalog.yaml
+      tags:
+        - dogfood
+        - installed-instance
+        - cross-domain
