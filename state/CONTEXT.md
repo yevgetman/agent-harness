@@ -20,6 +20,7 @@ generated_from:
   - design/v1-application-corpus-legibility-design.md
   - design/v1-reports-retrieval-design.md
   - design/v1-reconciliation-drift-detection-design.md
+  - design/v1-gardening-entropy-management-design.md
   - design/v1-distribution-readiness-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
@@ -137,6 +138,12 @@ Current dogfood state:
   `npm run reconcile:report`, `npm run reconcile:plan`, drift-rule
   filtering, JSON output, report summaries, read-only local drift planning,
   and doctor validation.
+- Gardening And Entropy Management exists in first dogfood form via
+  `gardening/rules.yaml`, `gardening/snapshots.md`,
+  `npm run garden:list`, `npm run garden:check`,
+  `npm run garden:report`, `npm run garden:plan`, cleanup-rule filtering,
+  JSON output, report summaries, read-only cleanup-pressure planning, and
+  doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -254,10 +261,10 @@ Then open the relevant formal design or exploratory spec for the task.
 The first v1.1 installed-instance upgrade-contract increment, profile switch
 planning, safe profile switch apply, template source lock-check correction,
 clean template cascade apply baseline, profile sync planning, and Durable
-Memory, Capture And Triage, Application / Corpus Legibility, and Reports And
-Retrieval, and Reconciliation And Drift Detection baselines are implemented.
-The next useful breadth candidate after this depth pass is Gardening And
-Entropy Management.
+Memory, Capture And Triage, Application / Corpus Legibility, Reports And
+Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy
+Management baselines are implemented. The next useful step is Gardening depth
+and private production hardening.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -265,15 +272,16 @@ machinery, but public release is not the current product priority.
 - Keep `harness doctor` focused on installed harness health plus active module
   validation unless a formal design expands its scope.
 - Expand module definitions only when a command needs the additional metadata.
-- Use `build/depth-gate.yaml` to confirm the lock/provenance pass before
-  selecting the next breadth unit.
+- Use `build/depth-gate.yaml` to confirm the current pass before selecting the
+  next depth or hardening unit.
 - Use `design/v1.1-installed-instance-roadmap.md` as the current product-level
   sequencing reference. Use `design/v1-product-spec-and-roadmap.md` for the v1
   closeout baseline.
 - Phase 4 has Structured Metadata, Canonical State, Invariants And Golden
   Principles, Plans And Status, Durable Memory, Capture And Triage,
-  Application / Corpus Legibility, Reports And Retrieval, and Reconciliation
-  And Drift Detection installed as additional process-domain modules.
+  Application / Corpus Legibility, Reports And Retrieval, Reconciliation And
+  Drift Detection, and Gardening And Entropy Management installed as additional
+  process-domain modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
 - Canonical State now has list/report queries, role/status/owner-domain
@@ -298,13 +306,19 @@ machinery, but public release is not the current product priority.
   local-source warnings, report summaries, and read-only reconciliation plans
   that inspect manifest, lock, active profile, module registry, command,
   metadata, state, and plan alignment.
+- Gardening And Entropy Management now has list/report queries,
+  status/kind/severity/tag filtering, JSON output, cleanup-rule validation,
+  local-source warnings, report summaries, and read-only cleanup-pressure
+  plans that inspect lock health, capture pressure, plan volume, status size,
+  memory summary size, and snapshot size.
 - Distribution Readiness now has explicit package contents validation, release
   preflight planning, registry discovery, local tarball install docs,
   packed-package smoke validation for package install/init/doctor/upgrade plan,
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: start Gardening And Entropy Management as the next process-domain
-  breadth baseline, beginning with narrow cleanup/entropy rules, a read-only
-  garden plan, artifacts, validation, tests, and dogfood usage.
+- Next work: deepen Gardening and private production hardening by dogfooding
+  `npm run garden:plan`, tuning thresholds, and deciding which cleanup
+  findings should remain read-only versus become reviewed archive or trim
+  operations.
 - Keep `status.md` current after significant choices.

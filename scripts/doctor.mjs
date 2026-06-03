@@ -11,6 +11,7 @@ import { validateCapture } from "./capture.mjs";
 import { validateLegibility } from "./legibility.mjs";
 import { validateReports } from "./reports.mjs";
 import { validateReconciliation } from "./reconcile.mjs";
+import { validateGardening } from "./garden.mjs";
 import { validateMemory } from "./memory.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
@@ -884,6 +885,21 @@ function checkReconciliationDriftDetection(root, installedModules, diagnostics) 
   }
 }
 
+function checkGardeningEntropyManagement(root, installedModules, diagnostics) {
+  if (!installedModules.has("gardening-entropy-management")) return;
+
+  const result = validateGardening(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `gardening/rules.yaml: ${result.rules.length} gardening rule(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -1032,6 +1048,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkApplicationCorpusLegibility(root, installedModules, diagnostics);
   checkReportsRetrieval(root, installedModules, diagnostics);
   checkReconciliationDriftDetection(root, installedModules, diagnostics);
+  checkGardeningEntropyManagement(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

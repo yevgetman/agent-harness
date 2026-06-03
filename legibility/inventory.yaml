@@ -124,3 +124,21 @@ legibility:
         - reconciliation
         - drift-detection
         - dogfood
+
+    - id: garden-plan-surface
+      title: Garden plan surface
+      kind: generated-report
+      status: active
+      summary: Gardening rules and the plan command provide a read-only cleanup-pressure view before archive, trim, deletion, or broad handoff work.
+      how_to_inspect: Run gardening checks and plan output after changing capture, plans, status, memory, snapshots, reports, or lock surfaces.
+      commands:
+        - npm run garden:check
+        - npm run garden:plan
+      references:
+        - gardening/rules.yaml
+        - scripts/garden.mjs
+        - design/v1-gardening-entropy-management-design.md
+      tags:
+        - gardening
+        - entropy-management
+        - dogfood

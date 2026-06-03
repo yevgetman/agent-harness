@@ -154,6 +154,9 @@ and `harness metadata report`. `canonical-state` adds
 `reconciliation-drift-detection` adds `reconciliation/`,
 `harness reconcile list`, `harness reconcile check`,
 `harness reconcile report`, and `harness reconcile plan`.
+`gardening-entropy-management` adds `gardening/`,
+`harness garden list`, `harness garden check`, `harness garden report`, and
+`harness garden plan`.
 
 Distribution readiness is checked from the source repo with
 `npm run distribution:check`, which validates explicit npm package contents,

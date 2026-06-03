@@ -58,3 +58,8 @@ modules:
     path: modules/reconciliation-drift-detection/module.yaml
     status: active
     installable: true
+
+  - id: gardening-entropy-management
+    path: modules/gardening-entropy-management/module.yaml
+    status: active
+    installable: true

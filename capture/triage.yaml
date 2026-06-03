@@ -31,3 +31,10 @@ capture_triage:
       promote_to: plans
       note: Promoted into the Reconciliation And Drift Detection breadth increment.
       updated: 2026-06-03
+
+    - id: triage-gardening-entropy-next
+      item_id: gardening-entropy-next
+      status: promoted
+      promote_to: plans
+      note: Promoted into the Gardening And Entropy Management breadth increment.
+      updated: 2026-06-03

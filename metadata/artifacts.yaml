@@ -720,6 +720,67 @@ metadata:
       depends_on:
         - reconciliation-design
 
+    - id: gardening-design
+      path: design/v1-gardening-entropy-management-design.md
+      kind: formal-design
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - gardening
+        - entropy-management
+        - phase-4
+        - process-domain
+        - process-domain-design
+      depends_on:
+        - process-domain-design
+        - reconciliation-design
+
+    - id: gardening-module
+      path: modules/gardening-entropy-management/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - module
+        - gardening
+        - entropy-management
+      depends_on:
+        - gardening-design
+        - module-registry
+
+    - id: gardening-readme
+      path: gardening/README.md
+      kind: gardening-doc
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - gardening
+        - entropy-management
+      depends_on:
+        - gardening-design
+
+    - id: gardening-rules
+      path: gardening/rules.yaml
+      kind: gardening-registry
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - gardening
+        - cleanup-rules
+      depends_on:
+        - gardening-design
+
+    - id: gardening-snapshots
+      path: gardening/snapshots.md
+      kind: gardening-snapshots
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - gardening
+        - snapshots
+      depends_on:
+        - gardening-design
+
     - id: profiles-cli
       path: scripts/profiles.mjs
       kind: cli
@@ -859,6 +920,20 @@ metadata:
       depends_on:
         - reconciliation-module
         - reconciliation-rules
+
+    - id: garden-cli
+      path: scripts/garden.mjs
+      kind: cli
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - gardening
+        - entropy-management
+        - cli
+        - validation
+      depends_on:
+        - gardening-module
+        - gardening-rules
 
     - id: distribution-cli
       path: scripts/distribution.mjs
@@ -1288,6 +1363,21 @@ metadata:
         - reconciliation-design
         - reconciliation-module
         - reports-retrieval-decision
+
+    - id: gardening-decision
+      path: decisions/0041-adopt-gardening-and-entropy-management-baseline-module.md
+      kind: decision
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - gardening
+        - entropy-management
+        - process-domain
+        - decision
+      depends_on:
+        - gardening-design
+        - gardening-module
+        - reconciliation-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

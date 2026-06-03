@@ -214,6 +214,15 @@ lock, profile, registry, command, metadata, state, and plan surfaces. Keep
 record durable human-readable reconciliation notes in
 `reconciliation/snapshots.md`.
 
+## Gardening And Entropy Management Discipline
+
+Use `npm run garden:check` to validate gardening rules.
+
+Use `npm run garden:plan` to inspect cleanup pressure before archive, trim, or
+deletion work. Keep `gardening/rules.yaml` current when durable cleanup rules
+become useful, and record durable human-readable gardening notes in
+`gardening/snapshots.md`.
+
 ## Distribution Readiness Discipline
 
 Use `npm run distribution:check` after changing package contents or package

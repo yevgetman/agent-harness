@@ -5,13 +5,13 @@ more legible and safer for AI coding agents to work in over time. It organizes
 agent-facing repository operations into **process domains**: durable areas of
 concern such as orientation, current state, decision memory, structured
 metadata, invariants, plans, capture, legibility, reports, reconciliation,
-validation, and lifecycle management.
+gardening, validation, and lifecycle management.
 
 It installs a small operating layer into a target repository: agent
 instructions, current-state documents, structured metadata, decision records,
 open questions, invariants, plans, capture and legibility inventories, report
-catalogs, reconciliation rules, validation commands, and lifecycle state for
-safe upgrades. The goal
+catalogs, reconciliation and gardening rules, validation commands, and
+lifecycle state for safe upgrades. The goal
 is not to replace project-specific docs or tooling. The goal is to give agents
 a consistent way to orient, record durable decisions, inspect the repo's
 subject matter, validate repo state, generate useful summaries, and avoid
@@ -76,6 +76,7 @@ The default `full` profile installs the current complete baseline:
   installed-repo summaries.
 - `reconciliation/`: drift rules and snapshots for plan-only reconciliation of
   installed harness state.
+- `gardening/`: cleanup rules and snapshots for read-only entropy planning.
 - `memory/`: durable operator preferences, repo notes, and session summaries.
 - `modules/*/module.yaml`: local records for installed harness process-domain
   modules.
@@ -103,6 +104,9 @@ work:
 - **Reconciliation discipline:** local drift planning checks manifest, lock,
   profile, registry, command, metadata, state, and plan alignment before
   mutation.
+- **Gardening discipline:** cleanup-pressure planning surfaces open capture,
+  plan volume, status size, snapshot size, and lock-health signals before trim
+  or archive work.
 - **Decision memory:** important choices and unresolved questions become
   durable files that can be listed and validated.
 - **Structured retrieval:** metadata and canonical-state registries make
@@ -237,6 +241,7 @@ harness legibility check
 harness reports list
 harness reports generate
 harness reconcile plan
+harness garden plan
 harness memory list
 harness memory check
 ```
@@ -262,6 +267,7 @@ Tracked by default:
 - `legibility/`
 - `reports/`
 - `reconciliation/`
+- `gardening/`
 - `memory/`
 - `decisions/`
 - `modules/`
@@ -285,6 +291,7 @@ npm run doctor
 npm run metadata:check
 npm run lock:check
 npm run reconcile:plan
+npm run garden:plan
 npm run distribution:check
 npm run distribution:smoke
 ```
@@ -306,8 +313,8 @@ npm install -g /tmp/harness-pack/portable-harness-0.1.0.tgz
 
 Portable Harness is early and actively evolving. The current v1 baseline is
 complete for local tarball distribution, and the active direction is v1.1:
-installed-instance behavior, safe profile/module upgrades, more process-domain
-breadth, and stronger real-repo dogfooding.
+installed-instance behavior, safe profile/module upgrades, process-domain
+depth, and stronger real-repo dogfooding.
 
 Public npm publication is intentionally deferred until release blockers are
 cleared, including package visibility and license decisions. Until then, use
@@ -331,9 +338,10 @@ Current design and validation references:
 - `.harness/`: dogfood installed harness manifest and lock.
 - `metadata/`, `state/`, `invariants/`, `plans/`, `decisions/`: dogfood
   harness process-domain artifacts.
-- `capture/`, `legibility/`, `reports/`, `reconciliation/`, `memory/`:
+- `capture/`, `legibility/`, `reports/`, `reconciliation/`, `gardening/`,
+  `memory/`:
   dogfood process-domain artifacts for intake, inspection, summaries, drift
-  planning, and durable memory.
+  planning, cleanup planning, and durable memory.
 
 ## License
 

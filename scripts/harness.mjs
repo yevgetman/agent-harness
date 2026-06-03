@@ -17,6 +17,7 @@ import { runCapture } from "./capture.mjs";
 import { runLegibility } from "./legibility.mjs";
 import { runReports } from "./reports.mjs";
 import { runReconcile } from "./reconcile.mjs";
+import { runGarden } from "./garden.mjs";
 import { runMemory } from "./memory.mjs";
 import { runDistribution } from "./distribution.mjs";
 
@@ -63,6 +64,10 @@ Usage:
   harness reconcile check
   harness reconcile report
   harness reconcile plan
+  harness garden list
+  harness garden check
+  harness garden report
+  harness garden plan
   harness memory list
   harness memory check
   harness memory report
@@ -132,6 +137,9 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "reconcile") {
   const result = runReconcile({ cwd: process.cwd(), args });
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "garden") {
+  const result = runGarden({ cwd: process.cwd(), args });
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "memory") {
   const result = runMemory({ cwd: process.cwd(), args });

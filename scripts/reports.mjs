@@ -220,6 +220,7 @@ function collectInstalledOverview(root, definitions) {
   const memory = readYamlIfPresent(root, "memory/operator-preferences.yaml")?.memory ?? {};
   const legibility = readYamlIfPresent(root, "legibility/inventory.yaml")?.legibility ?? {};
   const reconciliation = readYamlIfPresent(root, "reconciliation/rules.yaml")?.reconciliation ?? {};
+  const gardening = readYamlIfPresent(root, "gardening/rules.yaml")?.gardening ?? {};
 
   return {
     target: root,
@@ -243,6 +244,7 @@ function collectInstalledOverview(root, definitions) {
       legibility_surfaces: countList(legibility.surfaces),
       report_definitions: definitions.length,
       reconciliation_rules: countList(reconciliation.rules),
+      gardening_rules: countList(gardening.rules),
       decisions: countDecisions(root),
       open_questions: countOpenQuestions(root),
     },
@@ -257,6 +259,7 @@ function collectInstalledOverview(root, definitions) {
       legibility: existsSync(join(root, "legibility/inventory.yaml")),
       reports: existsSync(join(root, CATALOG_PATH)),
       reconciliation: existsSync(join(root, "reconciliation/rules.yaml")),
+      gardening: existsSync(join(root, "gardening/rules.yaml")),
     },
   };
 }

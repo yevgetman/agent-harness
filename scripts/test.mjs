@@ -22,6 +22,7 @@ import { runDoctor } from "./doctor.mjs";
 import { runCapture } from "./capture.mjs";
 import { runLegibility } from "./legibility.mjs";
 import { runReconcile } from "./reconcile.mjs";
+import { runGarden } from "./garden.mjs";
 import { runReports } from "./reports.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runInit } from "./init.mjs";
@@ -274,7 +275,7 @@ withTempDir((root) => {
   assert.equal(defaultInit.default_profile, true, "init should report that no explicit profile was supplied");
   const defaultManifest = parseYaml(readFileSync(join(defaultTarget, ".harness", "manifest.yaml"), "utf8")).harness;
   assert.equal(defaultManifest.profile, "full", "default init should write profile full");
-  assert.equal(defaultManifest.modules.length, 12, "default full init should install every current module");
+  assert.equal(defaultManifest.modules.length, 13, "default full init should install every current module");
 
   const init = quiet(() => runInit({
     cwd: root,
@@ -575,7 +576,7 @@ withTempDir((root) => {
   assert.equal(targetInspect.target.inspected, true, "profiles inspect should load explicit target manifests");
   assert.equal(targetInspect.target.profile, "minimal", "profiles inspect should report the target's active profile");
   assert.equal(targetInspect.summary.installed, 2, "minimal target should have two full profile modules installed");
-  assert.equal(targetInspect.summary.clean_install, 10, "full inspect should identify ten clean missing modules");
+  assert.equal(targetInspect.summary.clean_install, 11, "full inspect should identify eleven clean missing modules");
   assert.equal(
     targetInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
     "clean-install",
@@ -593,7 +594,7 @@ withTempDir((root) => {
     { cwd: root, encoding: "utf8" },
   ));
   assert.equal(jsonInspect.profile.id, "full", "profiles inspect --json should emit the inspected profile");
-  assert.equal(jsonInspect.summary.clean_install, 10, "profiles inspect --json should emit target summary counts");
+  assert.equal(jsonInspect.summary.clean_install, 11, "profiles inspect --json should emit target summary counts");
 
   const switchPlan = quiet(() => runProfiles({
     cwd: root,
@@ -604,7 +605,7 @@ withTempDir((root) => {
   assert.equal(switchPlan.apply_available, true, "profiles switch --plan should report that apply is available");
   assert.equal(switchPlan.target.current_profile, "minimal", "profiles switch should report current target profile");
   assert.equal(switchPlan.requested_profile.id, "full", "profiles switch should report requested profile");
-  assert.equal(switchPlan.summary.clean_install, 10, "minimal to full switch should plan ten clean module installs");
+  assert.equal(switchPlan.summary.clean_install, 11, "minimal to full switch should plan eleven clean module installs");
   assert.equal(switchPlan.summary.ready, true, "clean switch plans should report readiness");
   assert.equal(
     hasOperation(switchPlan, "safe/profile-module-install", "decisions-open-questions"),
@@ -631,7 +632,7 @@ withTempDir((root) => {
   assert.equal(jsonSwitch.requested_profile.id, "full", "profiles switch --json should emit requested profile");
   assert.equal(
     jsonSwitch.operation_summary.by_code["safe/profile-module-install"],
-    10,
+    11,
     "profiles switch --json should summarize safe module installs",
   );
 
@@ -729,6 +730,7 @@ withTempDir((root) => {
   assertNotExists(target, "invariants");
   assertNotExists(target, "plans");
   assertNotExists(target, "reconciliation");
+  assertNotExists(target, "gardening");
   assertNotExists(target, "decisions");
   assertNotExists(target, "open-questions.yaml");
   assertNotExists(target, "templates/decision.md");
@@ -812,7 +814,7 @@ withTempDir((root) => {
   }));
   assert.equal(fullSync.ok, true, "profiles sync should plan from the active manifest profile");
   assert.equal(fullSync.target.active_profile, "full", "profiles sync should report changed active profile");
-  assert.equal(fullSync.summary.clean_install, 10, "full sync should find clean missing active-profile modules");
+  assert.equal(fullSync.summary.clean_install, 11, "full sync should find clean missing active-profile modules");
   assert.equal(fullSync.summary.ready, true, "clean missing modules should leave sync ready for future apply");
   assert.equal(fullSync.summary.in_sync, false, "missing active-profile modules should mean the target is not in sync");
   assert.equal(
@@ -864,7 +866,7 @@ withTempDir((root) => {
   }));
   assert.equal(sync.ok, true, "profiles sync should pass for a full target");
   assert.equal(sync.active_profile.id, "full", "profiles sync should load the full active profile");
-  assert.equal(sync.summary.installed, 12, "full sync should report all active modules installed");
+  assert.equal(sync.summary.installed, 13, "full sync should report all active modules installed");
   assert.equal(sync.summary.clean_install, 0, "full sync should have no missing active modules");
   assert.equal(sync.summary.in_sync, true, "full target should be in sync after full init");
   assert.equal(
@@ -929,6 +931,9 @@ withTempDir((root) => {
   assertExists(target, "reconciliation/README.md");
   assertExists(target, "reconciliation/rules.yaml");
   assertExists(target, "reconciliation/snapshots.md");
+  assertExists(target, "gardening/README.md");
+  assertExists(target, "gardening/rules.yaml");
+  assertExists(target, "gardening/snapshots.md");
 
   const after = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(after.ok, true, "upgrade --plan should pass after profile module installs");
@@ -2020,6 +2025,116 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before gardening-entropy-management module add");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "gardening-entropy-management", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install gardening-entropy-management");
+  assertExists(target, "modules/gardening-entropy-management/module.yaml");
+  assertExists(target, "gardening/README.md");
+  assertExists(target, "gardening/rules.yaml");
+  assertExists(target, "gardening/snapshots.md");
+
+  const initialCheck = quiet(() => runGarden({ cwd: target, args: ["check"] }));
+  assert.equal(initialCheck.ok, true, "garden check should pass after install");
+  assert.equal(initialCheck.rules.length, 0, "gardening template should start with empty rules");
+
+  writeFileSync(join(target, "gardening", "rules.yaml"), `gardening:
+  version: 1
+  updated: 2026-06-03
+  scope: test-target
+  rules:
+    - id: status-size
+      title: Status size
+      kind: status-hygiene
+      status: active
+      severity: medium
+      summary: Keep status projection concise.
+      sources:
+        - status.md
+      tags:
+        - validation
+        - dogfood
+`);
+
+  const check = quiet(() => runGarden({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "garden check should pass with one rule");
+  assert.equal(check.rules.length, 1, "garden check should return rules");
+
+  const list = quiet(() => runGarden({ cwd: target, args: ["list", "--kind", "status-hygiene"] }));
+  assert.equal(list.rules.length, 1, "garden list should filter by kind");
+
+  const tagged = quiet(() => runGarden({ cwd: target, args: ["list", "--tag", "validation"] }));
+  assert.equal(tagged.rules.length, 1, "garden list should filter by tag");
+
+  const report = quiet(() => runGarden({ cwd: target, args: ["report"] }));
+  assert.equal(report.ok, true, "garden report should pass");
+  assert.equal(report.summary.total, 1, "garden report should summarize rule count");
+  assert.equal(report.plan_summary.attention, 1, "garden report should expose modified lock cleanup attention");
+
+  const plan = quiet(() => runGarden({ cwd: target, args: ["plan"] }));
+  assert.equal(plan.ok, true, "garden plan should pass");
+  assert.equal(plan.healthy, true, "garden plan recommendations should not make the target unhealthy");
+  assert.equal(
+    plan.findings.some((item) => item.id === "lock-health" && item.status === "recommendation"),
+    true,
+    "garden plan should report local lock cleanup pressure",
+  );
+
+  const jsonPlan = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "garden", "plan", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonPlan.summary.recommendations, 1, "garden plan --json should emit recommendation counts");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate gardening after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("gardening/rules.yaml")),
+    true,
+    "doctor should report gardening validation",
+  );
+
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after gardening-entropy-management install");
+  assert.equal(upgrade.plan.managed_files.length, 7, "gardening-entropy-management should add three managed files");
+  assert.equal(upgrade.plan.commands.length, 16, "gardening-entropy-management should add four command records");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "gardening-entropy-management")?.status,
+    "unchanged",
+    "upgrade --plan should report gardening-entropy-management as installed",
+  );
+
+  writeFileSync(join(target, "gardening", "rules.yaml"), `gardening:
+  version: 1
+  rules:
+    - id: bad-kind
+      title: Bad kind
+      kind: invalid
+      status: active
+      severity: high
+      summary: Fixture.
+`);
+  const badKind = quiet(() => runGarden({ cwd: target, args: ["check"] }));
+  assert.equal(badKind.ok, false, "garden check should fail invalid kinds");
+  assert.equal(
+    badKind.errors.some((item) => item.includes("invalid kind")),
+    true,
+    "garden check should report invalid kinds",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -2054,6 +2169,7 @@ withTempDir((root) => {
     "modules/application-corpus-legibility/module.yaml",
     "modules/reports-retrieval/module.yaml",
     "modules/reconciliation-drift-detection/module.yaml",
+    "modules/gardening-entropy-management/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
@@ -2075,6 +2191,9 @@ withTempDir((root) => {
     "reconciliation/README.md",
     "reconciliation/rules.yaml",
     "reconciliation/snapshots.md",
+    "gardening/README.md",
+    "gardening/rules.yaml",
+    "gardening/snapshots.md",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -2140,6 +2259,11 @@ withTempDir((root) => {
     true,
     "full profile init should install reconciliation-drift-detection",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "gardening-entropy-management")?.installed,
+    true,
+    "full profile init should install gardening-entropy-management",
+  );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "full profile init should install valid metadata");
@@ -2177,6 +2301,12 @@ withTempDir((root) => {
   assert.equal(reconciliationReport.summary.total, 0, "full profile init should support reconciliation report");
   const reconciliationPlan = quiet(() => runReconcile({ cwd: target, args: ["plan"] }));
   assert.equal(reconciliationPlan.ok, true, "full profile init should support reconciliation plan");
+  const gardening = quiet(() => runGarden({ cwd: target, args: ["check"] }));
+  assert.equal(gardening.ok, true, "full profile init should install valid gardening rules");
+  const gardeningReport = quiet(() => runGarden({ cwd: target, args: ["report"] }));
+  assert.equal(gardeningReport.summary.total, 0, "full profile init should support gardening report");
+  const gardeningPlan = quiet(() => runGarden({ cwd: target, args: ["plan"] }));
+  assert.equal(gardeningPlan.ok, true, "full profile init should support gardening plan");
 
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after full profile init");
@@ -2188,7 +2318,7 @@ withTempDir((root) => {
     args: ["switch", "minimal", "--target", target, "--plan"],
   }));
   assert.equal(switchToMinimal.ok, true, "profiles switch --plan should pass from full to minimal");
-  assert.equal(switchToMinimal.summary.retained, 10, "switching to a smaller profile should retain extra modules by default");
+  assert.equal(switchToMinimal.summary.retained, 11, "switching to a smaller profile should retain extra modules by default");
   assert.equal(
     hasOperation(switchToMinimal, "deferred/profile-module-retained", "decisions-open-questions"),
     true,
@@ -2257,6 +2387,11 @@ withTempDir((root) => {
     "profiles switch apply should install reconciliation-drift-detection",
   );
   assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-module-install: gardening-entropy-management")),
+    true,
+    "profiles switch apply should install gardening-entropy-management",
+  );
+  assert.equal(
     apply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> full")),
     true,
     "profiles switch apply should report the profile update",
@@ -2274,6 +2409,7 @@ withTempDir((root) => {
     "modules/application-corpus-legibility/module.yaml",
     "modules/reports-retrieval/module.yaml",
     "modules/reconciliation-drift-detection/module.yaml",
+    "modules/gardening-entropy-management/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
@@ -2290,6 +2426,8 @@ withTempDir((root) => {
     "reports/snapshots.md",
     "reconciliation/rules.yaml",
     "reconciliation/snapshots.md",
+    "gardening/rules.yaml",
+    "gardening/snapshots.md",
   ]) {
     assertExists(target, file);
   }
@@ -2351,7 +2489,7 @@ withTempDir((root) => {
   assert.equal(jsonApply.apply.ok, true, "clean profiles switch --apply --json should apply successfully");
   assert.equal(
     jsonApply.operation_summary.by_code["safe/profile-module-install"],
-    10,
+    11,
     "clean profiles switch --apply --json should include safe module install operations",
   );
   assert.equal(
@@ -2448,6 +2586,7 @@ withTempDir((root) => {
     "modules/application-corpus-legibility/module.yaml",
     "modules/reports-retrieval/module.yaml",
     "modules/reconciliation-drift-detection/module.yaml",
+    "modules/gardening-entropy-management/module.yaml",
   ]) {
     assertExists(target, file);
   }

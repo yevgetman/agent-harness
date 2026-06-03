@@ -1,0 +1,45 @@
+# Harness managed file: gardening-entropy-management
+gardening:
+  version: 1
+  updated: 2026-06-03
+  scope: harness-source-repo
+  rules:
+    - id: capture-inbox-pressure
+      title: Capture inbox pressure
+      kind: capture-hygiene
+      status: active
+      severity: medium
+      summary: Review open capture items before they become stale implicit plans.
+      sources:
+        - capture/inbox.yaml
+        - capture/triage.yaml
+      tags:
+        - dogfood
+        - cleanup
+        - capture
+
+    - id: status-projection-size
+      title: Status projection size
+      kind: status-hygiene
+      status: active
+      severity: medium
+      summary: Keep status.md concise enough to remain useful as current-state orientation rather than history.
+      sources:
+        - status.md
+      tags:
+        - dogfood
+        - cleanup
+        - status
+
+    - id: completed-plan-volume
+      title: Completed plan volume
+      kind: plan-hygiene
+      status: active
+      severity: low
+      summary: Review completed plan volume and compress or archive plan detail when it stops helping boot orientation.
+      sources:
+        - plans/current.yaml
+      tags:
+        - dogfood
+        - cleanup
+        - plans

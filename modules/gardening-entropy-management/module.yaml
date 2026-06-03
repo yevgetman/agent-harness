@@ -1,0 +1,59 @@
+module:
+  id: gardening-entropy-management
+  version: 0.1.0
+  status: active
+  process_domains:
+    - gardening-and-entropy-management
+  provides:
+    - gardening-rules
+    - gardening-snapshots
+    - cleanup-pressure-plan
+    - garden-list-command
+    - garden-check-command
+    - garden-report-command
+    - garden-plan-command
+    - gardening-shape-validation
+  creates:
+    - gardening/
+    - gardening/README.md
+    - gardening/rules.yaml
+    - gardening/snapshots.md
+  managed_files:
+    - path: gardening/README.md
+      mode: merge
+    - path: gardening/rules.yaml
+      mode: merge
+    - path: gardening/snapshots.md
+      mode: merge
+  commands:
+    garden-list: harness garden list
+    garden-check: harness garden check
+    garden-report: harness garden report
+    garden-plan: harness garden plan
+  install:
+    artifacts:
+      - path: gardening/
+        type: directory
+      - path: gardening/README.md
+        type: template
+        source: modules/gardening-entropy-management/templates/README.md
+      - path: gardening/rules.yaml
+        type: template
+        source: modules/gardening-entropy-management/templates/rules.yaml
+      - path: gardening/snapshots.md
+        type: template
+        source: modules/gardening-entropy-management/templates/snapshots.md
+  validates:
+    - gardening/rules.yaml parses as YAML
+    - gardening registry version is supported
+    - rule IDs are unique
+    - rule statuses, kinds, and severities are allowed
+    - required title, summary, kind, status, and severity fields are present
+    - sources and tags are lists when present
+    - local sources are reported when missing
+    - local gardening plan can be generated without mutating files
+  instructions:
+    - Use Gardening And Entropy Management to inspect cleanup pressure before archive, trim, or deletion work.
+    - Keep this baseline read-only; do not mutate target files from gardening commands.
+    - Preserve review boundaries for stale artifact cleanup and status compression.
+    - Promote recurring cleanup checks into gardening/rules.yaml.

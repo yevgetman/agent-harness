@@ -29,7 +29,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
 | Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown, generated-only cleanup, and human-content preservation. |
 | Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
-| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, and Reconciliation And Drift Detection are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, `npm run reports:check`, `npm run reconcile:check`, `npm run reconcile:plan`, and `npm run doctor`. |
+| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy Management are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, `npm run reports:check`, `npm run reconcile:check`, `npm run reconcile:plan`, `npm run garden:check`, `npm run garden:plan`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
 | Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations. | `npm test` covers safe apply, bare upgrade apply, clean profile module install, merge-safe template cascade apply, blocked plans, and review-required refusal. |
@@ -54,6 +54,7 @@ node --check scripts/capture.mjs
 node --check scripts/legibility.mjs
 node --check scripts/reports.mjs
 node --check scripts/reconcile.mjs
+node --check scripts/garden.mjs
 node --check scripts/distribution.mjs
 node --check scripts/upgrade.mjs
 node --check scripts/test.mjs
@@ -72,6 +73,8 @@ npm run reports:check
 npm run reports:generate
 npm run reconcile:check
 npm run reconcile:plan
+npm run garden:check
+npm run garden:plan
 npm run memory:check
 npm run lock:check
 npm run doctor
@@ -104,7 +107,9 @@ V1 includes:
   `full` profile installation.
 - Registry-backed module listing and module add.
 - Dogfooded Decisions And Open Questions, Structured Metadata, Canonical State,
-  Invariants And Golden Principles, and Plans And Status.
+  Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
+  And Triage, Application / Corpus Legibility, Reports And Retrieval,
+  Reconciliation And Drift Detection, and Gardening And Entropy Management.
 - Lock-aware doctor and upgrade planning.
 - Limited safe upgrade apply scaffold.
 - Package boundary validation, release preflight, guarded publish planning, and
@@ -233,6 +238,13 @@ installs `reconciliation/README.md`, `reconciliation/rules.yaml`, and
 provide drift-rule validation and read-only installed-state drift planning, and
 doctor validates the reconciliation module when installed.
 
+The Gardening And Entropy Management process-domain baseline is implemented.
+The `full` profile now includes `gardening-entropy-management`, which installs
+`gardening/README.md`, `gardening/rules.yaml`, and `gardening/snapshots.md`.
+`harness garden list/check/report/plan` provide cleanup-rule validation and
+read-only cleanup-pressure planning, and doctor validates the gardening module
+when installed.
+
 ## Next Work After V1
 
 Current post-v1 direction lives in
@@ -246,7 +258,7 @@ source fingerprints are checked against the executing harness source/package.
 
 The strongest remaining v1.1 candidates are:
 
-1. Add remaining process-domain baselines.
+1. Deepen the Gardening baseline with dogfood evidence and cleanup thresholds.
 2. Broaden generated-file, module-definition, merge-aware, and
    review-mediated file/template upgrades while preserving review boundaries.
 3. Add profile sync apply after the read-only plan has more dogfood evidence.

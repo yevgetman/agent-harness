@@ -34,6 +34,8 @@ lock:
       version: 0.1.0
     - id: reconciliation-drift-detection
       version: 0.1.0
+    - id: gardening-entropy-management
+      version: 0.1.0
   files:
     - path: .gitignore
       owner: harness-lifecycle
@@ -54,7 +56,7 @@ lock:
       artifact_role: installed-manifest
       source: generated-manifest
       source_kind: generated-manifest
-      sha256: ea420fcc479caceabfc5d51a8d353d20c8c4c3bbdd5db8c2ded3a38a22758acb
+      sha256: df5cdf942866ae5de22f46d4d28ad6200a76560cb0af1378f855a00d9cdf824e
     - path: AGENTS.md
       owner: agent-operating-contract
       owner_type: module
@@ -64,7 +66,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 1cd062a373c21cdf9a5a8c0ce50193929ea0743091585f58a45067c8c86c7842
+      sha256: 88f92733a5f94fc6e2b4b62df7caa2ed6bd7a20568ffd9459eeeed84a24c24ad
     - path: capture/inbox.yaml
       owner: capture-triage
       owner_type: module
@@ -76,7 +78,7 @@ lock:
       source_kind: module-template
       source_path: modules/capture-triage/templates/inbox.yaml
       source_sha256: 02332b176f1a72f4ad7cb0c9817d9cf0f00b87d0b5d8ad7e30bb5398f416338d
-      sha256: af3932998d70bafef5f13aaf10337390d403673d4134b26151d4c5730e4e80be
+      sha256: 1ddf9c99a520bf6808bd7413cb229a96406b2ddd45cbfc1f65cb83698e6a5e90
     - path: capture/README.md
       owner: capture-triage
       owner_type: module
@@ -100,7 +102,43 @@ lock:
       source_kind: module-template
       source_path: modules/capture-triage/templates/triage.yaml
       source_sha256: 84d91bec960ea982abc64822641dd7e6dc2ba77815ec97c7574d6c2cf2098a85
-      sha256: 9fe5676ff5f3a1d8b09f29bdeb2e3844ce7cd3b963b4971b29bb4dc6757d0ed5
+      sha256: df36e4608fb8918038ad3f630ef3b0ccb5728abdd854d7933d14d5b9e2ca42b7
+    - path: gardening/README.md
+      owner: gardening-entropy-management
+      owner_type: module
+      module_id: gardening-entropy-management
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/gardening-entropy-management/templates/README.md
+      source_sha256: 789154181025125565663a25c91cf2ee1fa2717b2c86f4ce91c490b75a8fa9bf
+      sha256: 963cf984c94eeccb8360d8a2848c5bad61a28c64073ff836ceb13b32eb0288f1
+    - path: gardening/rules.yaml
+      owner: gardening-entropy-management
+      owner_type: module
+      module_id: gardening-entropy-management
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/gardening-entropy-management/templates/rules.yaml
+      source_sha256: 0f1a4292d893fde4de07de7cbbe86df28d3d4688a77fc78b889da6a53b99c7d2
+      sha256: 973ee1d082ff64a6f7f5200236d2a80a7d39363fd1e58131f8a1fd600716c81b
+    - path: gardening/snapshots.md
+      owner: gardening-entropy-management
+      owner_type: module
+      module_id: gardening-entropy-management
+      mode: merge
+      merge_strategy: merge
+      artifact_role: managed-file
+      source: module-template
+      source_kind: module-template
+      source_path: modules/gardening-entropy-management/templates/snapshots.md
+      source_sha256: d60f22f9378108358aae3483d30b6371a5e2ee52fdc74ec4ad727ae1fe2ef9f4
+      sha256: 3e9158e9fcae2e4efeb396fc53bcfdd829f7a9e3142f80fa04fff2fdb9ef2702
     - path: index.yaml
       owner: progressive-orientation
       owner_type: module
@@ -110,7 +148,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: d2c14a4dc73efb6297c3af1f9789a09211aef12c0497e8ccb3d526a4bce376d4
+      sha256: 9f551d1ed478a80b2d70741f87816ccaea924d6522bb0b38e6ff8bcc5400ece0
     - path: invariants/golden-principles.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -134,7 +172,7 @@ lock:
       source_kind: module-template
       source_path: modules/application-corpus-legibility/templates/inventory.yaml
       source_sha256: 2768ff0a5fedf312e1ccb57e1fd5c7d5937126519689f16b8790b41e842c475e
-      sha256: 8f7ba18fedad1267cf5d3808ad25b7ebe679253866778b4dae8364738c335b58
+      sha256: acbec5b4a182be78cae0f96eb8a179ca00e1b5a5f9572be237fdafc24abeb6f3
     - path: legibility/notes.md
       owner: application-corpus-legibility
       owner_type: module
@@ -206,7 +244,7 @@ lock:
       source_kind: module-template
       source_path: modules/durable-memory/templates/session-summaries.md
       source_sha256: 81726c34f7a1dfa7f9316d6dbdcd85051b6e8cbab2d707f887bb72d7137fc019
-      sha256: 13d3384ac6474732cfc4692b30a20b42f53f7334650506179ac70892a8a243f4
+      sha256: 8e3d46b1f8be13cb2282536c9744f66b96e72b57cfab7107aafa05383ca38d87
     - path: metadata/artifacts.yaml
       owner: structured-metadata
       owner_type: module
@@ -218,7 +256,7 @@ lock:
       source_kind: module-template
       source_path: modules/structured-metadata/templates/artifacts.yaml
       source_sha256: 140bcd48f9bde69fba3f2058fb67f320c314f334eaa347c428694a8b5e278ac9
-      sha256: a2b11995ed59a5dafa462d35b0c4223c2d618531e50011bcf63eb84c1ca646e6
+      sha256: 86cc9089e59ff44a26c1676f9fdd00ceb21c2a27a0f6ff7724dd8803aa373172
     - path: modules/agent-operating-contract/module.yaml
       owner: agent-operating-contract
       owner_type: module
@@ -291,6 +329,18 @@ lock:
       source_path: modules/durable-memory/module.yaml
       source_sha256: d62ca7fa7c6f2014a638b4420c440d2c3e3335ada863587a3a80135de8ff7455
       sha256: d62ca7fa7c6f2014a638b4420c440d2c3e3335ada863587a3a80135de8ff7455
+    - path: modules/gardening-entropy-management/module.yaml
+      owner: gardening-entropy-management
+      owner_type: module
+      module_id: gardening-entropy-management
+      mode: replace
+      merge_strategy: replace
+      artifact_role: module-definition
+      source: module-definition
+      source_kind: module-definition
+      source_path: modules/gardening-entropy-management/module.yaml
+      source_sha256: 371174e9bb030266953f287a188c7f49246e153d3352fb12bc71409a346a8361
+      sha256: 371174e9bb030266953f287a188c7f49246e153d3352fb12bc71409a346a8361
     - path: modules/invariants-golden-principles/module.yaml
       owner: invariants-golden-principles
       owner_type: module
@@ -386,7 +436,7 @@ lock:
       source_kind: module-template
       source_path: modules/plans-and-status/templates/current.yaml
       source_sha256: db48e7e487d8353ad8fa9ec4863183efff28bdf9f1c884b09c541a6cc89b7c9c
-      sha256: 579eabf0a299df3942c7d202d51ea47db230a2f42ec891275a6b37ed2070fb79
+      sha256: 5d231d703496723d1761dc50562d2b578f6896943aa91b876cb78cdce153cb56
     - path: reconciliation/README.md
       owner: reconciliation-drift-detection
       owner_type: module
@@ -434,7 +484,7 @@ lock:
       source_kind: module-template
       source_path: modules/reports-retrieval/templates/catalog.yaml
       source_sha256: 289c83040a1032fd9b8770ecefaf2f2ef1e0f14c990f1ebb57ca0760e22232c8
-      sha256: c6276d785da2e10cc59f10bf4f4da90224d486266c07a7252b6392abdfdc6ae0
+      sha256: 7ae6985a1e516b1f627bfd69455bdc583861809b300ce3dcb39776994a522ee9
     - path: reports/README.md
       owner: reports-retrieval
       owner_type: module
@@ -470,7 +520,7 @@ lock:
       source_kind: module-template
       source_path: modules/canonical-state/templates/canonical-state.yaml
       source_sha256: cf3ca0adef922711b744cbed03adbd19e8824cf5c6908eebc3edbef68a20f1c5
-      sha256: 86dfbfa0c1e4fd64bea2d29c38e1bc55b06cdcf00a0b1d8822484c71615d318a
+      sha256: d7f90f5d2740eec41f6224af2912561302e088666f19a1c546739b4603fc9685
     - path: state/CONTEXT.md
       owner: progressive-orientation
       owner_type: module
@@ -480,7 +530,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: cd59c9c3b498de2850f9faf4d69d3e59a84e4ecad9696560853ed6bb3a183b98
+      sha256: 40704e81a21bd9d9f6954f76e26391c702a50389e2e1e1cb21050092e131c8a8
     - path: status.md
       owner: agent-operating-contract
       owner_type: module
@@ -490,7 +540,7 @@ lock:
       artifact_role: managed-file
       source: generated
       source_kind: generated
-      sha256: 82822971c1712740574285da24e34be40caa30e480a67cdf0f02914c27b2aa6c
+      sha256: ae5775bba1c93be3c4bd1a93b2fc1a89da8f234b44cc36bad60759e547e7d88e
     - path: templates/decision.md
       owner: decisions-open-questions
       owner_type: module

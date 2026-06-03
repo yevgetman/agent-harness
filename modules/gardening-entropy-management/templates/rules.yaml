@@ -1,0 +1,6 @@
+# Harness managed file: gardening-entropy-management
+gardening:
+  version: 1
+  updated: null
+  scope: target-repo
+  rules: []

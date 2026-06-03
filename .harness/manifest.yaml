@@ -69,6 +69,11 @@ harness:
       status: active
       process_domains:
         - reconciliation-and-drift-detection
+    - id: gardening-entropy-management
+      version: 0.1.0
+      status: active
+      process_domains:
+        - gardening-and-entropy-management
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -148,6 +153,15 @@ harness:
     - path: reconciliation/snapshots.md
       owner: reconciliation-drift-detection
       mode: merge
+    - path: gardening/README.md
+      owner: gardening-entropy-management
+      mode: merge
+    - path: gardening/rules.yaml
+      owner: gardening-entropy-management
+      mode: merge
+    - path: gardening/snapshots.md
+      owner: gardening-entropy-management
+      mode: merge
   commands:
     init: npm run init
     destroy: npm run destroy
@@ -192,6 +206,10 @@ harness:
     reconcile-check: npm run reconcile:check
     reconcile-report: npm run reconcile:report
     reconcile-plan: npm run reconcile:plan
+    garden-list: npm run garden:list
+    garden-check: npm run garden:check
+    garden-report: npm run garden:report
+    garden-plan: npm run garden:plan
     memory-list: npm run memory:list
     memory-check: npm run memory:check
     memory-report: npm run memory:report

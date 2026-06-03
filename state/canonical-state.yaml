@@ -355,6 +355,37 @@ canonical_state:
       depends_on:
         - reconciliation-design
 
+    - id: gardening-design
+      path: design/v1-gardening-entropy-management-design.md
+      metadata_id: gardening-design
+      state_role: source
+      status: active
+      owner_domain: gardening-and-entropy-management
+      refresh: manual
+      depends_on:
+        - process-domain-design
+        - reconciliation-design
+
+    - id: gardening-rules
+      path: gardening/rules.yaml
+      metadata_id: gardening-rules
+      state_role: registry
+      status: active
+      owner_domain: gardening-and-entropy-management
+      refresh: command
+      depends_on:
+        - gardening-design
+
+    - id: gardening-snapshots
+      path: gardening/snapshots.md
+      metadata_id: gardening-snapshots
+      state_role: projection
+      status: active
+      owner_domain: gardening-and-entropy-management
+      refresh: manual
+      depends_on:
+        - gardening-design
+
     - id: installed-manifest
       path: .harness/manifest.yaml
       metadata_id: installed-manifest
@@ -483,6 +514,17 @@ canonical_state:
         - reconciliation-design
         - module-registry
 
+    - id: gardening-module
+      path: modules/gardening-entropy-management/module.yaml
+      metadata_id: gardening-module
+      state_role: source
+      status: active
+      owner_domain: gardening-and-entropy-management
+      refresh: manual
+      depends_on:
+        - gardening-design
+        - module-registry
+
     - id: state-cli
       path: scripts/state.mjs
       metadata_id: state-cli
@@ -570,6 +612,17 @@ canonical_state:
       depends_on:
         - reconciliation-module
         - reconciliation-rules
+
+    - id: garden-cli
+      path: scripts/garden.mjs
+      metadata_id: garden-cli
+      state_role: source
+      status: active
+      owner_domain: gardening-and-entropy-management
+      refresh: manual
+      depends_on:
+        - gardening-module
+        - gardening-rules
 
     - id: distribution-cli
       path: scripts/distribution.mjs

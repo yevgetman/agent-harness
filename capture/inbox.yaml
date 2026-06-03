@@ -63,7 +63,7 @@ capture_inbox:
 
     - id: gardening-entropy-next
       title: Consider Gardening And Entropy Management as the next breadth candidate
-      status: open
+      status: promoted
       kind: idea
       summary: After Reconciliation And Drift Detection is validated, the next likely process-domain baseline is cleanup and entropy planning for durable harness state.
       source: roadmap
@@ -74,3 +74,19 @@ capture_inbox:
         - process-domain
       references:
         - design/v1.1-installed-instance-roadmap.md
+
+    - id: private-production-hardening-next
+      title: Consider private production hardening after domain baselines
+      status: open
+      kind: idea
+      summary: After all formal process-domain baselines are installed, the next likely work is to deepen Gardening, tune cleanup thresholds, and harden private installed-repo lifecycle behavior.
+      source: roadmap
+      created: 2026-06-03
+      promote_to: plans
+      tags:
+        - v1.1
+        - hardening
+        - gardening
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-gardening-entropy-management-design.md

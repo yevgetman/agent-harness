@@ -3,8 +3,8 @@
 ## Current Summary
 
 - V1 local-tarball distribution is complete.
-- V1.1 currently prioritizes installed-instance lifecycle, safe upgrades, and
-  remaining process-domain baselines.
+- V1.1 currently prioritizes installed-instance lifecycle, safe upgrades,
+  process-domain depth, and private production hardening.
 - Global CLI install, merge-safe init, bare `harness upgrade`, profile switch
   apply, profile sync planning, and clean template cascade apply are built.
 - Durable Memory is implemented and validated as the first remaining
@@ -17,7 +17,10 @@
   process-domain breadth increment.
 - Reconciliation And Drift Detection is implemented and validated as the next
   process-domain breadth increment.
-- The next recommended breadth candidate is Gardening And Entropy Management.
+- Gardening And Entropy Management is implemented and validated as the next
+  process-domain breadth increment.
+- The next recommended work is Gardening depth and private production
+  hardening.
 
 ## Archive
 

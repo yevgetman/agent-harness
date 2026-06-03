@@ -40,6 +40,7 @@ reading_order:
   - v1-application-corpus-legibility-design
   - v1-reports-retrieval-design
   - v1-reconciliation-drift-detection-design
+  - v1-gardening-entropy-management-design
   - v1-distribution-readiness-design
   - v1-validation
   - installed-manifest
@@ -53,6 +54,7 @@ reading_order:
   - legibility
   - reports
   - reconciliation
+  - gardening
   - module-registry
   - profile-minimal
   - profile-full
@@ -68,6 +70,7 @@ reading_order:
   - module-application-corpus-legibility
   - module-reports-retrieval
   - module-reconciliation-drift-detection
+  - module-gardening-entropy-management
   - depth-gate
   - open-questions
   - decision-0001
@@ -110,6 +113,7 @@ reading_order:
   - decision-0038
   - decision-0039
   - decision-0040
+  - decision-0041
   - decision-template
   - package
   - harness-cli
@@ -127,6 +131,7 @@ reading_order:
   - legibility-cli
   - reports-cli
   - reconcile-cli
+  - garden-cli
   - memory-cli
   - distribution-cli
   - lock-cli
@@ -164,7 +169,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, and next process-domain breadth. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, installed process-domain baselines through Gardening And Entropy Management, and next depth/hardening work. Not a changelog.
     depends_on:
       - agents
 
@@ -184,7 +189,7 @@ documents:
     title: "Formal Product Spec: V1.1 Installed Instance Harness"
     kind: formal-product-spec
     status: active
-    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, installed-instance upgrade guidance, profile switching, remaining process-domain baselines, and real-repo dogfood."
+    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, installed-instance upgrade guidance, profile switching, process-domain depth, private production hardening, and real-repo dogfood."
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
@@ -360,6 +365,16 @@ documents:
       - v1-process-domain-design
       - v1-reports-retrieval-design
 
+  - doc_id: v1-gardening-entropy-management-design
+    file: design/v1-gardening-entropy-management-design.md
+    title: "Formal Design: V1 Gardening And Entropy Management"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the tenth Phase 4 process-domain module: gardening rules, snapshots, garden list/check/report/plan commands, read-only cleanup-pressure planning, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-reconciliation-drift-detection-design
+
   - doc_id: v1-distribution-readiness-design
     file: design/v1-distribution-readiness-design.md
     title: "Formal Design: V1 Distribution Readiness"
@@ -375,7 +390,7 @@ documents:
     title: V1 Validation And Deferred Scope
     kind: validation-baseline
     status: active
-    summary: V1 closeout matrix, rerunnable command set, behavior boundary, deferred-scope summary, first post-v1 upgrade-apply extension, v1.1 installed-instance upgrade-contract increment, and remaining post-v1 candidates.
+    summary: V1 closeout matrix, rerunnable command set, behavior boundary, deferred-scope summary, post-v1 upgrade/profile extensions, process-domain baselines through Gardening And Entropy Management, and next hardening candidates.
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-distribution-readiness-design
@@ -489,6 +504,16 @@ documents:
     depends_on:
       - v1-reconciliation-drift-detection-design
       - reports
+
+  - doc_id: gardening
+    file: gardening/rules.yaml
+    title: Gardening And Entropy Management
+    kind: gardening-registry
+    status: active
+    summary: Machine-readable cleanup rule registry plus snapshots file for read-only installed-harness gardening plans.
+    depends_on:
+      - v1-gardening-entropy-management-design
+      - reconciliation
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -635,6 +660,16 @@ documents:
     summary: Module definition for reconciliation rules, snapshots, reconcile commands, and read-only drift planning.
     depends_on:
       - v1-reconciliation-drift-detection-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-gardening-entropy-management
+    file: modules/gardening-entropy-management/module.yaml
+    title: Gardening And Entropy Management Module
+    kind: module-definition
+    status: active
+    summary: Module definition for gardening rules, snapshots, garden commands, and read-only cleanup-pressure planning.
+    depends_on:
+      - v1-gardening-entropy-management-design
       - v1-installed-manifest-design
 
   - doc_id: open-questions
@@ -1073,6 +1108,17 @@ documents:
       - module-reconciliation-drift-detection
       - decision-0039
 
+  - doc_id: decision-0041
+    file: decisions/0041-adopt-gardening-and-entropy-management-baseline-module.md
+    title: Adopt Gardening And Entropy Management Baseline Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Gardening And Entropy Management as the next process-domain breadth module after Reconciliation And Drift Detection.
+    depends_on:
+      - v1-gardening-entropy-management-design
+      - module-gardening-entropy-management
+      - decision-0040
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -1087,7 +1133,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -1097,7 +1143,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -1249,6 +1295,16 @@ documents:
       - v1-reconciliation-drift-detection-design
       - reconciliation
 
+  - doc_id: garden-cli
+    file: scripts/garden.mjs
+    title: Harness Garden CLI
+    kind: cli
+    status: active
+    summary: Gardening And Entropy Management command implementation for cleanup-rule validation, filters, JSON output, summaries, and read-only cleanup-pressure plans.
+    depends_on:
+      - v1-gardening-entropy-management-design
+      - gardening
+
   - doc_id: memory-cli
     file: scripts/memory.mjs
     title: Harness Memory CLI
@@ -1329,7 +1385,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

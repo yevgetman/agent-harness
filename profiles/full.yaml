@@ -14,3 +14,4 @@ profile:
     - application-corpus-legibility
     - reports-retrieval
     - reconciliation-drift-detection
+    - gardening-entropy-management

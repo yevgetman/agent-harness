@@ -45,22 +45,21 @@ confirm-gated teardown: bare destroy prints a read-only plan, while
 `.git/`, and surgically removes marked harness sections from files such as
 `AGENTS.md`, `status.md`, `state/CONTEXT.md`, and `.gitignore`. Durable
 Memory, Capture And Triage, Application / Corpus Legibility, Reports And
-Retrieval, and Reconciliation And Drift Detection are now installed
-process-domain breadth baselines: the `full`
+Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy
+Management are now installed process-domain breadth baselines: the `full`
 profile includes `durable-memory`, `capture-triage`,
-`application-corpus-legibility`, `reports-retrieval`, and
-`reconciliation-drift-detection`; the dogfood repo has memory, capture,
-legibility, reports, and reconciliation artifacts; and `harness memory
-list/check/report`, `harness capture list/add/triage/check/report`, `harness
-legibility list/check/report`, and `harness reports list/check/report/generate`
-provide executable behavior, while `harness reconcile list/check/report/plan`
-provides read-only drift planning. After this depth pass, the next breadth
-candidate is Gardening And Entropy Management.
+`application-corpus-legibility`, `reports-retrieval`,
+`reconciliation-drift-detection`, and `gardening-entropy-management`; the
+dogfood repo has memory, capture, legibility, reports, reconciliation, and
+gardening artifacts; and their CLI surfaces provide executable behavior,
+validation, reports, read-only drift planning, and read-only cleanup-pressure
+planning. The next recommended work is Gardening depth and private production
+hardening.
 
-The repo currently has exploratory specs, eighteen formal v1 documents, a root
+The repo currently has exploratory specs, nineteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
 orientation path with `index.yaml`, a dogfood installed manifest, an installed
-lock file, twelve active module definitions, a runnable `harness doctor`
+lock file, thirteen active module definitions, a runnable `harness doctor`
 command, a profile-backed, git-initializing, and merge-safe `harness init`
 installer, a repo-local depth gate, a read-only `harness upgrade --plan`
 command, bare `harness upgrade` safe apply, and confirm-gated
@@ -153,6 +152,10 @@ via `reconciliation/rules.yaml`, `reconciliation/snapshots.md`,
 `harness reconcile list`, `harness reconcile check`,
 `harness reconcile report`, `harness reconcile plan`, local package scripts,
 and doctor validation when `reconciliation-drift-detection` is installed.
+Gardening And Entropy Management exists via `gardening/rules.yaml`,
+`gardening/snapshots.md`, `harness garden list`, `harness garden check`,
+`harness garden report`, `harness garden plan`, local package scripts, and
+doctor validation when `gardening-entropy-management` is installed.
 Distribution Readiness exists via
 `harness distribution check`, `npm run distribution:check`,
 `harness distribution release --plan`, `npm run distribution:release-plan`,
@@ -182,8 +185,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   upgrade operation contract.
 - Phase 4 Additional Process Domains has Structured Metadata, Canonical State,
   Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
-  And Triage, Application / Corpus Legibility, Reports And Retrieval, and
-  Reconciliation And Drift Detection installed as breadth units.
+  And Triage, Application / Corpus Legibility, Reports And Retrieval,
+  Reconciliation And Drift Detection, and Gardening And Entropy Management
+  installed as breadth units.
 - Phase 5 Distribution Readiness is complete for v1; packed-package smoke
   validation, explicit npm package-boundary validation, release preflight
   planning, registry version discovery, external-target smoke, guarded publish
@@ -193,8 +197,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   baseline; the first post-v1 upgrade-apply increment and first v1.1
   installed-instance upgrade-contract increment are now implemented.
 - `design/v1.1-installed-instance-roadmap.md` is the current product direction:
-  standalone installed-repo upgrade behavior, profile switching, remaining
-  process-domain baselines, dogfood robustness, and real-repo evidence. Public
+  standalone installed-repo upgrade behavior, profile switching,
+  process-domain depth, dogfood robustness, and real-repo evidence. Public
   publication is not the active priority.
 - The complete install profile is named `full`; dogfood remains the practice
   of using the harness source repo as its first installed target.
@@ -272,8 +276,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   inspection, profile switch plan/apply, profile sync planning,
   decisions/questions, upgrade-plan scenarios, bare upgrade apply, global CLI
   smoke, durable memory, capture/triage, application/corpus legibility,
-  reports/retrieval, reconciliation/drift detection, and module list/add
-  scenarios.
+  reports/retrieval, reconciliation/drift detection, gardening/entropy
+  management, and module list/add scenarios.
 - `npm run decisions:new -- "<title>"` creates the next decision record under
   `decisions/`.
 - GitHub remote is `yevgetman/agent-harness` and is private at creation.
@@ -540,6 +544,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `decisions/0040-adopt-reconciliation-and-drift-detection-baseline-module.md`
   — decision record for adopting Reconciliation And Drift Detection as a
   process-domain breadth module.
+- `decisions/0041-adopt-gardening-and-entropy-management-baseline-module.md`
+  — decision record for adopting Gardening And Entropy Management as a
+  process-domain breadth module.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/full.yaml` — current profile bundle
@@ -549,18 +556,19 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   `scripts/profiles.mjs` / `scripts/metadata.mjs` / `scripts/lock.mjs` /
   `scripts/state.mjs` / `scripts/invariants.mjs` / `scripts/plans.mjs` /
   `scripts/capture.mjs` / `scripts/legibility.mjs` /
-  `scripts/reports.mjs` / `scripts/reconcile.mjs` / `scripts/memory.mjs` /
-  `scripts/distribution.mjs` / `scripts/doctor.mjs` —
+  `scripts/reports.mjs` / `scripts/reconcile.mjs` / `scripts/garden.mjs` /
+  `scripts/memory.mjs` / `scripts/distribution.mjs` / `scripts/doctor.mjs` —
   harness CLI, installer, decision/question commands, module/profile commands,
   metadata commands, canonical state validation, invariants validation, plans
   validation/reporting, capture, legibility, reports, and durable memory
-  validation/reporting, reconciliation drift planning,
+  validation/reporting, reconciliation drift planning, gardening cleanup
+  planning,
   distribution contents/smoke/global-smoke/external-target/publish validation,
   lock command/helpers, registry-aware upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, structured metadata, canonical state, invariants, plans/status,
   capture/triage, application/corpus legibility, reports/retrieval,
-  reconciliation/drift detection, durable memory,
+  reconciliation/drift detection, gardening/entropy management, durable memory,
   distribution package contents and smoke validation, semantic lock provenance,
   registry discovery, external-target smoke, guarded publish workflow, upgrade
   planning/apply behavior, depth-gate validation, and doctor fixtures.
@@ -572,9 +580,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 
 ## Next Work
 
-- Start Gardening And Entropy Management as the next process-domain breadth
-  candidate, beginning with narrow cleanup/entropy rules, a read-only garden
-  plan, artifacts, validation, tests, and dogfood usage.
+- Deepen Gardening And Entropy Management and private production hardening:
+  dogfood `npm run garden:plan`, tune cleanup thresholds, and decide which
+  cleanup findings should remain read-only versus become reviewed archive or
+  trim operations.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

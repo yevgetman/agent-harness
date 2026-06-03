@@ -103,8 +103,8 @@ work.
 
 Current post-v1 product direction lives in
 `design/v1.1-installed-instance-roadmap.md`. V1.1 prioritizes standalone
-installed-repo upgrade behavior, profile switching, remaining process-domain
-baselines, and real-repo dogfood over public distribution. The source repo
+installed-repo upgrade behavior, profile switching, process-domain depth, and
+real-repo dogfood over public distribution. The source repo
 defines the tool; it does not track where the tool is installed.
 
 Current v1 distribution is local tarball based. Public npm publication remains
@@ -193,6 +193,10 @@ Current commands:
 - `harness reconcile check`
 - `harness reconcile report`
 - `harness reconcile plan`
+- `harness garden list`
+- `harness garden check`
+- `harness garden report`
+- `harness garden plan`
 - `harness distribution check`
 - `harness distribution release --plan`
 - `harness distribution publish --plan`
@@ -219,6 +223,7 @@ Current dogfood modules:
 - `application-corpus-legibility`
 - `reports-retrieval`
 - `reconciliation-drift-detection`
+- `gardening-entropy-management`
 
 Current repo-local build support:
 
@@ -339,19 +344,16 @@ Exit signal:
 
 ### Phase 4: Additional Process Domains
 
-Status: active; Structured Metadata, Canonical State, Invariants And Golden
-Principles, Plans And Status, Durable Memory, Capture And Triage,
-Application / Corpus Legibility, Reports And Retrieval, and Reconciliation
-And Drift Detection breadth increments are implemented and dogfooded.
+Status: complete at baseline depth; Structured Metadata, Canonical State,
+Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
+And Triage, Application / Corpus Legibility, Reports And Retrieval,
+Reconciliation And Drift Detection, and Gardening And Entropy Management
+breadth increments are implemented and dogfooded.
 
 Purpose:
 
 - Add v1 process-domain breadth only when the module/profile lifecycle can
   install and validate it.
-
-Remaining post-v1 process-domain candidate:
-
-- Gardening And Entropy Management
 
 Initial implemented modules:
 
@@ -364,6 +366,7 @@ Initial implemented modules:
 - `application-corpus-legibility`
 - `reports-retrieval`
 - `reconciliation-drift-detection`
+- `gardening-entropy-management`
 
 Initial behavior:
 
@@ -428,10 +431,18 @@ Initial behavior:
   plans.
 - `harness doctor` validates Reconciliation And Drift Detection when the module
   is installed.
+- `gardening/rules.yaml` and `gardening/snapshots.md` record cleanup rules and
+  durable gardening notes.
+- `harness garden list`, `harness garden check`, `harness garden report`, and
+  `harness garden plan` expose and validate Gardening And Entropy Management
+  state and produce read-only cleanup-pressure plans.
+- `harness doctor` validates Gardening And Entropy Management when the module
+  is installed.
 - The full profile installs the Structured Metadata, Canonical State,
   Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
   And Triage, Application / Corpus Legibility, Reports And Retrieval, and
-  Reconciliation And Drift Detection modules.
+  Reconciliation And Drift Detection, and Gardening And Entropy Management
+  modules.
 
 Exit signal:
 

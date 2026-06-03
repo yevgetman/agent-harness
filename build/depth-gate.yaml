@@ -1035,9 +1035,9 @@ build_strategy:
             - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
 
   current_depth_pass:
-    id: v1.1-reconciliation-drift-detection-baseline
+    id: v1.1-gardening-entropy-management-baseline
     breadth_unit: >
-      Add the Reconciliation And Drift Detection process-domain baseline.
+      Add the Gardening And Entropy Management process-domain baseline.
     status: complete
     completed_on: 2026-06-03
     ready_for_next_breadth: true
@@ -1045,36 +1045,36 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - reconciliation-drift-detection is an installable module.
-          - The full profile includes reconciliation-drift-detection.
-          - harness reconcile list/check/report/plan provide executable behavior.
-          - The dogfood repo has reconciliation rules and snapshots files.
+          - gardening-entropy-management is an installable module.
+          - The full profile includes gardening-entropy-management.
+          - harness garden list/check/report/plan provide executable behavior.
+          - The dogfood repo has gardening rules and snapshots files.
       - id: validation
         status: satisfied
         evidence:
-          - reconcile check validates rule shape, statuses, kinds, severities, local sources, and required files.
-          - reconcile plan inspects manifest, lock, profile, registry, command, metadata, state, and plan alignment.
-          - doctor validates Reconciliation And Drift Detection when the module is installed.
-          - distribution package contents include the reconcile CLI and reconciliation-drift-detection templates.
+          - garden check validates rule shape, statuses, kinds, severities, local sources, and required files.
+          - garden plan inspects lock health, capture pressure, plan volume, status size, memory summary size, and snapshot size.
+          - doctor validates Gardening And Entropy Management when the module is installed.
+          - distribution package contents include the garden CLI and gardening-entropy-management templates.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers reconciliation-drift-detection module add.
-          - npm test covers reconcile list/check/report/plan and JSON output.
-          - npm test covers full profile init with Reconciliation And Drift Detection.
-          - npm test covers profile switch and upgrade apply installing Reconciliation And Drift Detection.
+          - npm test covers gardening-entropy-management module add.
+          - npm test covers garden list/check/report/plan and JSON output.
+          - npm test covers full profile init with Gardening And Entropy Management.
+          - npm test covers profile switch and upgrade apply installing Gardening And Entropy Management.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0040-adopt-reconciliation-and-drift-detection-baseline-module.md records the Reconciliation And Drift Detection decision.
-          - design/v1-reconciliation-drift-detection-design.md defines the baseline.
-          - design/v1.1-installed-instance-roadmap.md records Reconciliation And Drift Detection as implemented.
-          - docs/v1-validation.md includes Reconciliation And Drift Detection in the validation matrix.
+          - decisions/0041-adopt-gardening-and-entropy-management-baseline-module.md records the Gardening And Entropy Management decision.
+          - design/v1-gardening-entropy-management-design.md defines the baseline.
+          - design/v1.1-installed-instance-roadmap.md records Gardening And Entropy Management as implemented.
+          - docs/v1-validation.md includes Gardening And Entropy Management in the validation matrix.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run reconcile:check passes against the dogfood repo.
-          - npm run reconcile:report summarizes dogfood reconciliation rules and drift-plan counts.
-          - npm run reconcile:plan produces a read-only installed-harness drift plan.
-          - The dogfood manifest exposes reconcile-list, reconcile-check, reconcile-report, and reconcile-plan.
+          - npm run garden:check passes against the dogfood repo.
+          - npm run garden:report summarizes dogfood gardening rules and cleanup-plan counts.
+          - npm run garden:plan produces a read-only installed-harness cleanup-pressure plan.
+          - The dogfood manifest exposes garden-list, garden-check, garden-report, and garden-plan.
