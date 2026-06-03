@@ -1,0 +1,36 @@
+# Harness managed file: reconciliation-drift-detection
+reconciliation:
+  version: 1
+  updated: 2026-06-03
+  scope: harness-source-repo
+  rules:
+    - id: installed-harness-state-alignment
+      title: Installed harness state alignment
+      kind: manifest-lock
+      status: active
+      severity: high
+      summary: Inspect manifest, lock, managed-file, command, registry, and active-profile drift before repair or upgrade work.
+      sources:
+        - .harness/manifest.yaml
+        - .harness/lock.yaml
+        - modules/registry.yaml
+        - profiles/full.yaml
+      tags:
+        - dogfood
+        - installed-instance
+        - drift
+
+    - id: structured-state-alignment
+      title: Structured state alignment
+      kind: metadata-state
+      status: active
+      severity: medium
+      summary: Inspect metadata, canonical state, and plans/status validation drift as part of broad state updates.
+      sources:
+        - metadata/artifacts.yaml
+        - state/canonical-state.yaml
+        - plans/current.yaml
+      tags:
+        - dogfood
+        - state
+        - drift

@@ -204,6 +204,16 @@ before broad status, roadmap, or handoff updates. Keep `reports/catalog.yaml`
 current when recurring cross-domain reports become useful, and keep durable
 human-readable snapshots in `reports/snapshots.md`.
 
+## Reconciliation And Drift Detection Discipline
+
+Use `npm run reconcile:check` to validate reconciliation drift rules.
+
+Use `npm run reconcile:plan` to inspect local harness drift across manifest,
+lock, profile, registry, command, metadata, state, and plan surfaces. Keep
+`reconciliation/rules.yaml` current when durable drift rules become useful, and
+record durable human-readable reconciliation notes in
+`reconciliation/snapshots.md`.
+
 ## Distribution Readiness Discipline
 
 Use `npm run distribution:check` after changing package contents or package

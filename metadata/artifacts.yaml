@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-06-01
+  updated: 2026-06-03
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -660,6 +660,66 @@ metadata:
       depends_on:
         - reports-retrieval-design
 
+    - id: reconciliation-design
+      path: design/v1-reconciliation-drift-detection-design.md
+      kind: formal-design
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      tags:
+        - reconciliation
+        - drift-detection
+        - phase-4
+        - process-domain
+      depends_on:
+        - process-domain-design
+        - reports-retrieval-design
+
+    - id: reconciliation-module
+      path: modules/reconciliation-drift-detection/module.yaml
+      kind: module-definition
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      tags:
+        - module
+        - reconciliation
+        - drift-detection
+      depends_on:
+        - reconciliation-design
+        - module-registry
+
+    - id: reconciliation-readme
+      path: reconciliation/README.md
+      kind: reconciliation-doc
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      tags:
+        - reconciliation
+        - drift-detection
+      depends_on:
+        - reconciliation-design
+
+    - id: reconciliation-rules
+      path: reconciliation/rules.yaml
+      kind: reconciliation-registry
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      tags:
+        - reconciliation
+        - drift-rules
+      depends_on:
+        - reconciliation-design
+
+    - id: reconciliation-snapshots
+      path: reconciliation/snapshots.md
+      kind: reconciliation-snapshots
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      tags:
+        - reconciliation
+        - snapshots
+      depends_on:
+        - reconciliation-design
+
     - id: profiles-cli
       path: scripts/profiles.mjs
       kind: cli
@@ -785,6 +845,20 @@ metadata:
       depends_on:
         - reports-retrieval-module
         - reports-catalog
+
+    - id: reconcile-cli
+      path: scripts/reconcile.mjs
+      kind: cli
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      tags:
+        - reconciliation
+        - drift-detection
+        - cli
+        - validation
+      depends_on:
+        - reconciliation-module
+        - reconciliation-rules
 
     - id: distribution-cli
       path: scripts/distribution.mjs
@@ -1199,6 +1273,21 @@ metadata:
         - reports-retrieval-design
         - reports-retrieval-module
         - application-legibility-decision
+
+    - id: reconciliation-decision
+      path: decisions/0040-adopt-reconciliation-and-drift-detection-baseline-module.md
+      kind: decision
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      tags:
+        - reconciliation
+        - drift-detection
+        - process-domain
+        - decision
+      depends_on:
+        - reconciliation-design
+        - reconciliation-module
+        - reports-retrieval-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

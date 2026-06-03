@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-06-01
+updated: 2026-06-03
 harness:
   package: portable-harness
   version: 0.1.0
@@ -39,6 +39,7 @@ reading_order:
   - v1-capture-triage-design
   - v1-application-corpus-legibility-design
   - v1-reports-retrieval-design
+  - v1-reconciliation-drift-detection-design
   - v1-distribution-readiness-design
   - v1-validation
   - installed-manifest
@@ -51,6 +52,7 @@ reading_order:
   - capture-triage
   - legibility
   - reports
+  - reconciliation
   - module-registry
   - profile-minimal
   - profile-full
@@ -65,6 +67,7 @@ reading_order:
   - module-capture-triage
   - module-application-corpus-legibility
   - module-reports-retrieval
+  - module-reconciliation-drift-detection
   - depth-gate
   - open-questions
   - decision-0001
@@ -106,6 +109,7 @@ reading_order:
   - decision-0037
   - decision-0038
   - decision-0039
+  - decision-0040
   - decision-template
   - package
   - harness-cli
@@ -122,6 +126,7 @@ reading_order:
   - capture-cli
   - legibility-cli
   - reports-cli
+  - reconcile-cli
   - memory-cli
   - distribution-cli
   - lock-cli
@@ -345,6 +350,16 @@ documents:
       - v1-process-domain-design
       - v1-application-corpus-legibility-design
 
+  - doc_id: v1-reconciliation-drift-detection-design
+    file: design/v1-reconciliation-drift-detection-design.md
+    title: "Formal Design: V1 Reconciliation And Drift Detection"
+    kind: formal-design
+    status: active
+    summary: "Accepted baseline for the ninth Phase 4 process-domain module: reconciliation rules, snapshots, reconcile list/check/report/plan commands, read-only drift planning, and doctor validation."
+    depends_on:
+      - v1-process-domain-design
+      - v1-reports-retrieval-design
+
   - doc_id: v1-distribution-readiness-design
     file: design/v1-distribution-readiness-design.md
     title: "Formal Design: V1 Distribution Readiness"
@@ -464,6 +479,16 @@ documents:
     depends_on:
       - v1-reports-retrieval-design
       - legibility
+
+  - doc_id: reconciliation
+    file: reconciliation/rules.yaml
+    title: Reconciliation And Drift Detection
+    kind: reconciliation-registry
+    status: active
+    summary: Machine-readable drift rule registry plus snapshots file for plan-only installed-harness reconciliation.
+    depends_on:
+      - v1-reconciliation-drift-detection-design
+      - reports
 
   - doc_id: module-registry
     file: modules/registry.yaml
@@ -600,6 +625,16 @@ documents:
     summary: Module definition for report catalog, report snapshots, reports commands, and lightweight installed-harness overview generation.
     depends_on:
       - v1-reports-retrieval-design
+      - v1-installed-manifest-design
+
+  - doc_id: module-reconciliation-drift-detection
+    file: modules/reconciliation-drift-detection/module.yaml
+    title: Reconciliation And Drift Detection Module
+    kind: module-definition
+    status: active
+    summary: Module definition for reconciliation rules, snapshots, reconcile commands, and read-only drift planning.
+    depends_on:
+      - v1-reconciliation-drift-detection-design
       - v1-installed-manifest-design
 
   - doc_id: open-questions
@@ -1027,6 +1062,17 @@ documents:
       - module-reports-retrieval
       - decision-0038
 
+  - doc_id: decision-0040
+    file: decisions/0040-adopt-reconciliation-and-drift-detection-baseline-module.md
+    title: Adopt Reconciliation And Drift Detection Baseline Module
+    kind: decision
+    status: active
+    summary: Decision record adopting Reconciliation And Drift Detection as the next process-domain breadth module after Reports And Retrieval.
+    depends_on:
+      - v1-reconciliation-drift-detection-design
+      - module-reconciliation-drift-detection
+      - decision-0039
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -1192,6 +1238,16 @@ documents:
     depends_on:
       - v1-reports-retrieval-design
       - reports
+
+  - doc_id: reconcile-cli
+    file: scripts/reconcile.mjs
+    title: Harness Reconcile CLI
+    kind: cli
+    status: active
+    summary: Reconciliation And Drift Detection command implementation for drift-rule validation, filters, JSON output, summaries, and read-only installed-state drift plans.
+    depends_on:
+      - v1-reconciliation-drift-detection-design
+      - reconciliation
 
   - doc_id: memory-cli
     file: scripts/memory.mjs

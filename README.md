@@ -4,13 +4,14 @@ Portable Harness is a CLI and repository scaffold for making software projects
 more legible and safer for AI coding agents to work in over time. It organizes
 agent-facing repository operations into **process domains**: durable areas of
 concern such as orientation, current state, decision memory, structured
-metadata, invariants, plans, capture, legibility, reports, validation, and
-lifecycle management.
+metadata, invariants, plans, capture, legibility, reports, reconciliation,
+validation, and lifecycle management.
 
 It installs a small operating layer into a target repository: agent
 instructions, current-state documents, structured metadata, decision records,
 open questions, invariants, plans, capture and legibility inventories, report
-catalogs, validation commands, and lifecycle state for safe upgrades. The goal
+catalogs, reconciliation rules, validation commands, and lifecycle state for
+safe upgrades. The goal
 is not to replace project-specific docs or tooling. The goal is to give agents
 a consistent way to orient, record durable decisions, inspect the repo's
 subject matter, validate repo state, generate useful summaries, and avoid
@@ -73,6 +74,8 @@ The default `full` profile installs the current complete baseline:
   validation, smoke, source-map, report, or corpus surfaces.
 - `reports/`: report catalog and durable report snapshots for cross-domain
   installed-repo summaries.
+- `reconciliation/`: drift rules and snapshots for plan-only reconciliation of
+  installed harness state.
 - `memory/`: durable operator preferences, repo notes, and session summaries.
 - `modules/*/module.yaml`: local records for installed harness process-domain
   modules.
@@ -97,6 +100,9 @@ work:
   repo-local inventory.
 - **Report discipline:** recurring cross-domain summaries have a local catalog
   and a generator for installed harness overviews.
+- **Reconciliation discipline:** local drift planning checks manifest, lock,
+  profile, registry, command, metadata, state, and plan alignment before
+  mutation.
 - **Decision memory:** important choices and unresolved questions become
   durable files that can be listed and validated.
 - **Structured retrieval:** metadata and canonical-state registries make
@@ -230,6 +236,7 @@ harness legibility list
 harness legibility check
 harness reports list
 harness reports generate
+harness reconcile plan
 harness memory list
 harness memory check
 ```
@@ -254,6 +261,7 @@ Tracked by default:
 - `capture/`
 - `legibility/`
 - `reports/`
+- `reconciliation/`
 - `memory/`
 - `decisions/`
 - `modules/`
@@ -276,6 +284,7 @@ npm test
 npm run doctor
 npm run metadata:check
 npm run lock:check
+npm run reconcile:plan
 npm run distribution:check
 npm run distribution:smoke
 ```
@@ -322,8 +331,9 @@ Current design and validation references:
 - `.harness/`: dogfood installed harness manifest and lock.
 - `metadata/`, `state/`, `invariants/`, `plans/`, `decisions/`: dogfood
   harness process-domain artifacts.
-- `capture/`, `legibility/`, `reports/`, `memory/`: dogfood process-domain
-  artifacts for intake, inspection, summaries, and durable memory.
+- `capture/`, `legibility/`, `reports/`, `reconciliation/`, `memory/`:
+  dogfood process-domain artifacts for intake, inspection, summaries, drift
+  planning, and durable memory.
 
 ## License
 

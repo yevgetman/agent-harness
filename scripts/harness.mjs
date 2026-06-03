@@ -16,6 +16,7 @@ import { runPlans } from "./plans.mjs";
 import { runCapture } from "./capture.mjs";
 import { runLegibility } from "./legibility.mjs";
 import { runReports } from "./reports.mjs";
+import { runReconcile } from "./reconcile.mjs";
 import { runMemory } from "./memory.mjs";
 import { runDistribution } from "./distribution.mjs";
 
@@ -58,6 +59,10 @@ Usage:
   harness reports check
   harness reports report
   harness reports generate
+  harness reconcile list
+  harness reconcile check
+  harness reconcile report
+  harness reconcile plan
   harness memory list
   harness memory check
   harness memory report
@@ -124,6 +129,9 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "reports") {
   const result = runReports({ cwd: process.cwd(), args });
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "reconcile") {
+  const result = runReconcile({ cwd: process.cwd(), args });
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "memory") {
   const result = runMemory({ cwd: process.cwd(), args });

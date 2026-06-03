@@ -10,6 +10,7 @@ import { validatePlansStatus } from "./plans.mjs";
 import { validateCapture } from "./capture.mjs";
 import { validateLegibility } from "./legibility.mjs";
 import { validateReports } from "./reports.mjs";
+import { validateReconciliation } from "./reconcile.mjs";
 import { validateMemory } from "./memory.mjs";
 
 const VALID_MANAGED_FILE_MODES = new Set(["create", "merge", "replace", "observe"]);
@@ -868,6 +869,21 @@ function checkReportsRetrieval(root, installedModules, diagnostics) {
   }
 }
 
+function checkReconciliationDriftDetection(root, installedModules, diagnostics) {
+  if (!installedModules.has("reconciliation-drift-detection")) return;
+
+  const result = validateReconciliation(root);
+  for (const item of result.errors) {
+    error(diagnostics, item);
+  }
+  for (const item of result.warnings) {
+    warn(diagnostics, item);
+  }
+  if (result.ok) {
+    ok(diagnostics, `reconciliation/rules.yaml: ${result.rules.length} reconciliation rule(s) validated`);
+  }
+}
+
 function checkDepthCriterion(path, criterion, diagnostics) {
   if (!criterion?.id) {
     error(diagnostics, `${path}: depth criterion missing id`);
@@ -1015,6 +1031,7 @@ export function runDoctor({ cwd = process.cwd() } = {}) {
   checkCaptureTriage(root, installedModules, diagnostics);
   checkApplicationCorpusLegibility(root, installedModules, diagnostics);
   checkReportsRetrieval(root, installedModules, diagnostics);
+  checkReconciliationDriftDetection(root, installedModules, diagnostics);
   checkDepthGate(root, diagnostics);
 
   printDiagnostics(diagnostics);

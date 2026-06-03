@@ -46,7 +46,8 @@ Bare `harness init` now defaults to the `full` profile. Use
 `harness init --profile minimal` when the target should receive only the
 bootstrap harness files. The `full` profile includes the additional process
 domain modules, including Durable Memory, Capture And Triage, Application /
-Corpus Legibility, and Reports And Retrieval.
+Corpus Legibility, Reports And Retrieval, and Reconciliation And Drift
+Detection.
 
 When planned harness artifacts already exist, `harness init` preserves existing
 human-authored content and adds or updates harness-owned sections where it can
@@ -150,6 +151,9 @@ and `harness metadata report`. `canonical-state` adds
 `reports-retrieval` adds `reports/`, `harness reports list`,
 `harness reports check`, `harness reports report`, and
 `harness reports generate`.
+`reconciliation-drift-detection` adds `reconciliation/`,
+`harness reconcile list`, `harness reconcile check`,
+`harness reconcile report`, and `harness reconcile plan`.
 
 Distribution readiness is checked from the source repo with
 `npm run distribution:check`, which validates explicit npm package contents,

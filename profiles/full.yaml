@@ -13,3 +13,4 @@ profile:
     - capture-triage
     - application-corpus-legibility
     - reports-retrieval
+    - reconciliation-drift-detection

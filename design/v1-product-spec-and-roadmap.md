@@ -174,6 +174,25 @@ Current commands:
 - `harness plans list`
 - `harness plans check`
 - `harness plans report`
+- `harness memory list`
+- `harness memory check`
+- `harness memory report`
+- `harness capture list`
+- `harness capture add`
+- `harness capture triage`
+- `harness capture check`
+- `harness capture report`
+- `harness legibility list`
+- `harness legibility check`
+- `harness legibility report`
+- `harness reports list`
+- `harness reports check`
+- `harness reports report`
+- `harness reports generate`
+- `harness reconcile list`
+- `harness reconcile check`
+- `harness reconcile report`
+- `harness reconcile plan`
 - `harness distribution check`
 - `harness distribution release --plan`
 - `harness distribution publish --plan`
@@ -195,6 +214,11 @@ Current dogfood modules:
 - `canonical-state`
 - `invariants-golden-principles`
 - `plans-and-status`
+- `durable-memory`
+- `capture-triage`
+- `application-corpus-legibility`
+- `reports-retrieval`
+- `reconciliation-drift-detection`
 
 Current repo-local build support:
 
@@ -316,17 +340,17 @@ Exit signal:
 ### Phase 4: Additional Process Domains
 
 Status: active; Structured Metadata, Canonical State, Invariants And Golden
-Principles, Plans And Status, Durable Memory, and Capture And Triage breadth
-increments are implemented and dogfooded.
+Principles, Plans And Status, Durable Memory, Capture And Triage,
+Application / Corpus Legibility, Reports And Retrieval, and Reconciliation
+And Drift Detection breadth increments are implemented and dogfooded.
 
 Purpose:
 
 - Add v1 process-domain breadth only when the module/profile lifecycle can
   install and validate it.
 
-Remaining post-v1 process-domain candidates:
+Remaining post-v1 process-domain candidate:
 
-- Reconciliation And Drift Detection
 - Gardening And Entropy Management
 
 Initial implemented modules:
@@ -339,6 +363,7 @@ Initial implemented modules:
 - `capture-triage`
 - `application-corpus-legibility`
 - `reports-retrieval`
+- `reconciliation-drift-detection`
 
 Initial behavior:
 
@@ -395,10 +420,18 @@ Initial behavior:
   state and produce a lightweight installed-harness overview.
 - `harness doctor` validates Reports And Retrieval when the module is
   installed.
+- `reconciliation/rules.yaml` and `reconciliation/snapshots.md` record local
+  drift rules and durable reconciliation notes.
+- `harness reconcile list`, `harness reconcile check`,
+  `harness reconcile report`, and `harness reconcile plan` expose and validate
+  Reconciliation And Drift Detection state and produce read-only local drift
+  plans.
+- `harness doctor` validates Reconciliation And Drift Detection when the module
+  is installed.
 - The full profile installs the Structured Metadata, Canonical State,
   Invariants And Golden Principles, Plans And Status, Durable Memory, Capture
-  And Triage, Application / Corpus Legibility, and Reports And Retrieval
-  modules.
+  And Triage, Application / Corpus Legibility, Reports And Retrieval, and
+  Reconciliation And Drift Detection modules.
 
 Exit signal:
 

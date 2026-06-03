@@ -219,6 +219,7 @@ function collectInstalledOverview(root, definitions) {
   const captureTriage = readYamlIfPresent(root, "capture/triage.yaml")?.capture_triage ?? {};
   const memory = readYamlIfPresent(root, "memory/operator-preferences.yaml")?.memory ?? {};
   const legibility = readYamlIfPresent(root, "legibility/inventory.yaml")?.legibility ?? {};
+  const reconciliation = readYamlIfPresent(root, "reconciliation/rules.yaml")?.reconciliation ?? {};
 
   return {
     target: root,
@@ -241,6 +242,7 @@ function collectInstalledOverview(root, definitions) {
       memory_preferences: countList(memory.preferences),
       legibility_surfaces: countList(legibility.surfaces),
       report_definitions: definitions.length,
+      reconciliation_rules: countList(reconciliation.rules),
       decisions: countDecisions(root),
       open_questions: countOpenQuestions(root),
     },
@@ -254,6 +256,7 @@ function collectInstalledOverview(root, definitions) {
       memory: existsSync(join(root, "memory/operator-preferences.yaml")),
       legibility: existsSync(join(root, "legibility/inventory.yaml")),
       reports: existsSync(join(root, CATALOG_PATH)),
+      reconciliation: existsSync(join(root, "reconciliation/rules.yaml")),
     },
   };
 }

@@ -53,3 +53,8 @@ modules:
     path: modules/reports-retrieval/module.yaml
     status: active
     installable: true
+
+  - id: reconciliation-drift-detection
+    path: modules/reconciliation-drift-detection/module.yaml
+    status: active
+    installable: true

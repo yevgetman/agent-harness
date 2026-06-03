@@ -1,0 +1,6 @@
+# Harness managed file: reconciliation-drift-detection
+reconciliation:
+  version: 1
+  updated: null
+  scope: target-repo
+  rules: []

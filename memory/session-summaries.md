@@ -15,7 +15,9 @@
   process-domain breadth increment.
 - Reports And Retrieval is implemented and validated as the next
   process-domain breadth increment.
-- The next recommended breadth candidate is Reconciliation And Drift Detection.
+- Reconciliation And Drift Detection is implemented and validated as the next
+  process-domain breadth increment.
+- The next recommended breadth candidate is Gardening And Entropy Management.
 
 ## Archive
 

@@ -21,6 +21,7 @@ import { runDistribution } from "./distribution.mjs";
 import { runDoctor } from "./doctor.mjs";
 import { runCapture } from "./capture.mjs";
 import { runLegibility } from "./legibility.mjs";
+import { runReconcile } from "./reconcile.mjs";
 import { runReports } from "./reports.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runInit } from "./init.mjs";
@@ -273,7 +274,7 @@ withTempDir((root) => {
   assert.equal(defaultInit.default_profile, true, "init should report that no explicit profile was supplied");
   const defaultManifest = parseYaml(readFileSync(join(defaultTarget, ".harness", "manifest.yaml"), "utf8")).harness;
   assert.equal(defaultManifest.profile, "full", "default init should write profile full");
-  assert.equal(defaultManifest.modules.length, 11, "default full init should install every current module");
+  assert.equal(defaultManifest.modules.length, 12, "default full init should install every current module");
 
   const init = quiet(() => runInit({
     cwd: root,
@@ -574,7 +575,7 @@ withTempDir((root) => {
   assert.equal(targetInspect.target.inspected, true, "profiles inspect should load explicit target manifests");
   assert.equal(targetInspect.target.profile, "minimal", "profiles inspect should report the target's active profile");
   assert.equal(targetInspect.summary.installed, 2, "minimal target should have two full profile modules installed");
-  assert.equal(targetInspect.summary.clean_install, 9, "full inspect should identify nine clean missing modules");
+  assert.equal(targetInspect.summary.clean_install, 10, "full inspect should identify ten clean missing modules");
   assert.equal(
     targetInspect.modules.find((module) => module.id === "decisions-open-questions")?.target_status,
     "clean-install",
@@ -592,7 +593,7 @@ withTempDir((root) => {
     { cwd: root, encoding: "utf8" },
   ));
   assert.equal(jsonInspect.profile.id, "full", "profiles inspect --json should emit the inspected profile");
-  assert.equal(jsonInspect.summary.clean_install, 9, "profiles inspect --json should emit target summary counts");
+  assert.equal(jsonInspect.summary.clean_install, 10, "profiles inspect --json should emit target summary counts");
 
   const switchPlan = quiet(() => runProfiles({
     cwd: root,
@@ -603,7 +604,7 @@ withTempDir((root) => {
   assert.equal(switchPlan.apply_available, true, "profiles switch --plan should report that apply is available");
   assert.equal(switchPlan.target.current_profile, "minimal", "profiles switch should report current target profile");
   assert.equal(switchPlan.requested_profile.id, "full", "profiles switch should report requested profile");
-  assert.equal(switchPlan.summary.clean_install, 9, "minimal to full switch should plan nine clean module installs");
+  assert.equal(switchPlan.summary.clean_install, 10, "minimal to full switch should plan ten clean module installs");
   assert.equal(switchPlan.summary.ready, true, "clean switch plans should report readiness");
   assert.equal(
     hasOperation(switchPlan, "safe/profile-module-install", "decisions-open-questions"),
@@ -630,7 +631,7 @@ withTempDir((root) => {
   assert.equal(jsonSwitch.requested_profile.id, "full", "profiles switch --json should emit requested profile");
   assert.equal(
     jsonSwitch.operation_summary.by_code["safe/profile-module-install"],
-    9,
+    10,
     "profiles switch --json should summarize safe module installs",
   );
 
@@ -727,6 +728,7 @@ withTempDir((root) => {
   assertNotExists(target, "metadata");
   assertNotExists(target, "invariants");
   assertNotExists(target, "plans");
+  assertNotExists(target, "reconciliation");
   assertNotExists(target, "decisions");
   assertNotExists(target, "open-questions.yaml");
   assertNotExists(target, "templates/decision.md");
@@ -810,7 +812,7 @@ withTempDir((root) => {
   }));
   assert.equal(fullSync.ok, true, "profiles sync should plan from the active manifest profile");
   assert.equal(fullSync.target.active_profile, "full", "profiles sync should report changed active profile");
-  assert.equal(fullSync.summary.clean_install, 9, "full sync should find clean missing active-profile modules");
+  assert.equal(fullSync.summary.clean_install, 10, "full sync should find clean missing active-profile modules");
   assert.equal(fullSync.summary.ready, true, "clean missing modules should leave sync ready for future apply");
   assert.equal(fullSync.summary.in_sync, false, "missing active-profile modules should mean the target is not in sync");
   assert.equal(
@@ -862,7 +864,7 @@ withTempDir((root) => {
   }));
   assert.equal(sync.ok, true, "profiles sync should pass for a full target");
   assert.equal(sync.active_profile.id, "full", "profiles sync should load the full active profile");
-  assert.equal(sync.summary.installed, 11, "full sync should report all active modules installed");
+  assert.equal(sync.summary.installed, 12, "full sync should report all active modules installed");
   assert.equal(sync.summary.clean_install, 0, "full sync should have no missing active modules");
   assert.equal(sync.summary.in_sync, true, "full target should be in sync after full init");
   assert.equal(
@@ -924,6 +926,9 @@ withTempDir((root) => {
   assertExists(target, "legibility/notes.md");
   assertExists(target, "reports/catalog.yaml");
   assertExists(target, "reports/snapshots.md");
+  assertExists(target, "reconciliation/README.md");
+  assertExists(target, "reconciliation/rules.yaml");
+  assertExists(target, "reconciliation/snapshots.md");
 
   const after = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(after.ok, true, "upgrade --plan should pass after profile module installs");
@@ -1904,6 +1909,117 @@ withTempDir((root) => {
 });
 
 withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before reconciliation-drift-detection module add");
+
+  const install = quiet(() => runModules({
+    cwd: root,
+    args: ["add", "reconciliation-drift-detection", "--target", target],
+  }));
+  assert.equal(install.ok, true, "modules add should install reconciliation-drift-detection");
+  assertExists(target, "modules/reconciliation-drift-detection/module.yaml");
+  assertExists(target, "reconciliation/README.md");
+  assertExists(target, "reconciliation/rules.yaml");
+  assertExists(target, "reconciliation/snapshots.md");
+
+  const initialCheck = quiet(() => runReconcile({ cwd: target, args: ["check"] }));
+  assert.equal(initialCheck.ok, true, "reconcile check should pass after install");
+  assert.equal(initialCheck.rules.length, 0, "reconciliation template should start with empty rules");
+
+  writeFileSync(join(target, "reconciliation", "rules.yaml"), `reconciliation:
+  version: 1
+  updated: 2026-06-03
+  scope: test-target
+  rules:
+    - id: lock-alignment
+      title: Lock alignment
+      kind: manifest-lock
+      status: active
+      severity: high
+      summary: Keep the manifest and lock aligned.
+      sources:
+        - .harness/manifest.yaml
+        - .harness/lock.yaml
+      tags:
+        - validation
+        - dogfood
+`);
+
+  const check = quiet(() => runReconcile({ cwd: target, args: ["check"] }));
+  assert.equal(check.ok, true, "reconcile check should pass with one rule");
+  assert.equal(check.rules.length, 1, "reconcile check should return rules");
+
+  const list = quiet(() => runReconcile({ cwd: target, args: ["list", "--kind", "manifest-lock"] }));
+  assert.equal(list.rules.length, 1, "reconcile list should filter by kind");
+
+  const tagged = quiet(() => runReconcile({ cwd: target, args: ["list", "--tag", "validation"] }));
+  assert.equal(tagged.rules.length, 1, "reconcile list should filter by tag");
+
+  const report = quiet(() => runReconcile({ cwd: target, args: ["report"] }));
+  assert.equal(report.ok, true, "reconcile report should pass");
+  assert.equal(report.summary.total, 1, "reconcile report should summarize rule count");
+  assert.equal(report.plan_summary.drift, 1, "reconcile report should expose modified lock drift");
+
+  const plan = quiet(() => runReconcile({ cwd: target, args: ["plan"] }));
+  assert.equal(plan.ok, true, "reconcile plan should pass");
+  assert.equal(plan.healthy, false, "reconcile plan should report modified managed file drift");
+  assert.equal(
+    plan.findings.some((item) => item.id === "lock-fingerprint-reconciliation-rules-yaml" && item.status === "drift"),
+    true,
+    "reconcile plan should report local managed-file drift",
+  );
+
+  const jsonPlan = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "reconcile", "plan", "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(jsonPlan.summary.drift, 1, "reconcile plan --json should emit drift summary");
+
+  const doctor = quiet(() => runDoctor({ cwd: target }));
+  assert.equal(doctor.ok, true, "doctor should validate reconciliation after install");
+  assert.equal(
+    doctor.diagnostics.ok.some((item) => item.includes("reconciliation/rules.yaml")),
+    true,
+    "doctor should report reconciliation validation",
+  );
+
+  const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
+  assert.equal(upgrade.ok, true, "upgrade --plan should pass after reconciliation-drift-detection install");
+  assert.equal(upgrade.plan.managed_files.length, 7, "reconciliation-drift-detection should add three managed files");
+  assert.equal(upgrade.plan.commands.length, 16, "reconciliation-drift-detection should add four command records");
+  assert.equal(
+    upgrade.plan.modules.find((module) => module.id === "reconciliation-drift-detection")?.status,
+    "unchanged",
+    "upgrade --plan should report reconciliation-drift-detection as installed",
+  );
+
+  writeFileSync(join(target, "reconciliation", "rules.yaml"), `reconciliation:
+  version: 1
+  rules:
+    - id: bad-kind
+      title: Bad kind
+      kind: invalid
+      status: active
+      severity: high
+      summary: Fixture.
+`);
+  const badKind = quiet(() => runReconcile({ cwd: target, args: ["check"] }));
+  assert.equal(badKind.ok, false, "reconcile check should fail invalid kinds");
+  assert.equal(
+    badKind.errors.some((item) => item.includes("invalid kind")),
+    true,
+    "reconcile check should report invalid kinds",
+  );
+});
+
+withTempDir((root) => {
   const bad = quiet(() => runInit({ cwd: root, args: ["--profile", "unknown", "--allow-non-git"] }));
   assert.equal(bad.ok, false, "unsupported profile should fail");
 });
@@ -1937,6 +2053,7 @@ withTempDir((root) => {
     "modules/capture-triage/module.yaml",
     "modules/application-corpus-legibility/module.yaml",
     "modules/reports-retrieval/module.yaml",
+    "modules/reconciliation-drift-detection/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
@@ -1955,6 +2072,9 @@ withTempDir((root) => {
     "reports/README.md",
     "reports/catalog.yaml",
     "reports/snapshots.md",
+    "reconciliation/README.md",
+    "reconciliation/rules.yaml",
+    "reconciliation/snapshots.md",
     "templates/decision.md",
   ]) {
     assertExists(target, file);
@@ -2015,6 +2135,11 @@ withTempDir((root) => {
     true,
     "full profile init should install reports-retrieval",
   );
+  assert.equal(
+    moduleList.modules.find((module) => module.id === "reconciliation-drift-detection")?.installed,
+    true,
+    "full profile init should install reconciliation-drift-detection",
+  );
 
   const metadata = quiet(() => runMetadata({ cwd: target, args: ["check"] }));
   assert.equal(metadata.ok, true, "full profile init should install valid metadata");
@@ -2046,6 +2171,12 @@ withTempDir((root) => {
   assert.equal(reports.ok, true, "full profile init should install valid report catalog");
   const reportsReport = quiet(() => runReports({ cwd: target, args: ["report"] }));
   assert.equal(reportsReport.summary.total, 0, "full profile init should support reports report");
+  const reconciliation = quiet(() => runReconcile({ cwd: target, args: ["check"] }));
+  assert.equal(reconciliation.ok, true, "full profile init should install valid reconciliation rules");
+  const reconciliationReport = quiet(() => runReconcile({ cwd: target, args: ["report"] }));
+  assert.equal(reconciliationReport.summary.total, 0, "full profile init should support reconciliation report");
+  const reconciliationPlan = quiet(() => runReconcile({ cwd: target, args: ["plan"] }));
+  assert.equal(reconciliationPlan.ok, true, "full profile init should support reconciliation plan");
 
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after full profile init");
@@ -2057,7 +2188,7 @@ withTempDir((root) => {
     args: ["switch", "minimal", "--target", target, "--plan"],
   }));
   assert.equal(switchToMinimal.ok, true, "profiles switch --plan should pass from full to minimal");
-  assert.equal(switchToMinimal.summary.retained, 9, "switching to a smaller profile should retain extra modules by default");
+  assert.equal(switchToMinimal.summary.retained, 10, "switching to a smaller profile should retain extra modules by default");
   assert.equal(
     hasOperation(switchToMinimal, "deferred/profile-module-retained", "decisions-open-questions"),
     true,
@@ -2121,6 +2252,11 @@ withTempDir((root) => {
     "profiles switch apply should install reports-retrieval",
   );
   assert.equal(
+    apply.apply.applied.some((item) => item.includes("safe/profile-module-install: reconciliation-drift-detection")),
+    true,
+    "profiles switch apply should install reconciliation-drift-detection",
+  );
+  assert.equal(
     apply.apply.applied.some((item) => item.includes("safe/profile-update: minimal -> full")),
     true,
     "profiles switch apply should report the profile update",
@@ -2137,6 +2273,7 @@ withTempDir((root) => {
     "modules/capture-triage/module.yaml",
     "modules/application-corpus-legibility/module.yaml",
     "modules/reports-retrieval/module.yaml",
+    "modules/reconciliation-drift-detection/module.yaml",
     "open-questions.yaml",
     "metadata/artifacts.yaml",
     "state/canonical-state.yaml",
@@ -2151,6 +2288,8 @@ withTempDir((root) => {
     "legibility/notes.md",
     "reports/catalog.yaml",
     "reports/snapshots.md",
+    "reconciliation/rules.yaml",
+    "reconciliation/snapshots.md",
   ]) {
     assertExists(target, file);
   }
@@ -2212,7 +2351,7 @@ withTempDir((root) => {
   assert.equal(jsonApply.apply.ok, true, "clean profiles switch --apply --json should apply successfully");
   assert.equal(
     jsonApply.operation_summary.by_code["safe/profile-module-install"],
-    9,
+    10,
     "clean profiles switch --apply --json should include safe module install operations",
   );
   assert.equal(
@@ -2308,6 +2447,7 @@ withTempDir((root) => {
     "modules/capture-triage/module.yaml",
     "modules/application-corpus-legibility/module.yaml",
     "modules/reports-retrieval/module.yaml",
+    "modules/reconciliation-drift-detection/module.yaml",
   ]) {
     assertExists(target, file);
   }

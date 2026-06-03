@@ -1,7 +1,7 @@
 # Harness managed file: canonical-state
 canonical_state:
   version: 1
-  updated: 2026-06-01
+  updated: 2026-06-03
   scope: harness-source-repo
   entries:
     - id: agents
@@ -324,6 +324,37 @@ canonical_state:
       depends_on:
         - reports-retrieval-design
 
+    - id: reconciliation-design
+      path: design/v1-reconciliation-drift-detection-design.md
+      metadata_id: reconciliation-design
+      state_role: source
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      refresh: manual
+      depends_on:
+        - process-domain-design
+        - reports-retrieval-design
+
+    - id: reconciliation-rules
+      path: reconciliation/rules.yaml
+      metadata_id: reconciliation-rules
+      state_role: registry
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      refresh: command
+      depends_on:
+        - reconciliation-design
+
+    - id: reconciliation-snapshots
+      path: reconciliation/snapshots.md
+      metadata_id: reconciliation-snapshots
+      state_role: projection
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      refresh: manual
+      depends_on:
+        - reconciliation-design
+
     - id: installed-manifest
       path: .harness/manifest.yaml
       metadata_id: installed-manifest
@@ -441,6 +472,17 @@ canonical_state:
         - reports-retrieval-design
         - module-registry
 
+    - id: reconciliation-module
+      path: modules/reconciliation-drift-detection/module.yaml
+      metadata_id: reconciliation-module
+      state_role: source
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      refresh: manual
+      depends_on:
+        - reconciliation-design
+        - module-registry
+
     - id: state-cli
       path: scripts/state.mjs
       metadata_id: state-cli
@@ -517,6 +559,17 @@ canonical_state:
       depends_on:
         - reports-retrieval-module
         - reports-catalog
+
+    - id: reconcile-cli
+      path: scripts/reconcile.mjs
+      metadata_id: reconcile-cli
+      state_role: source
+      status: active
+      owner_domain: reconciliation-and-drift-detection
+      refresh: manual
+      depends_on:
+        - reconciliation-module
+        - reconciliation-rules
 
     - id: distribution-cli
       path: scripts/distribution.mjs

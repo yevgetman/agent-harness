@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-06-01
+  updated: 2026-06-03
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -513,17 +513,42 @@ plans_status:
 
     - id: v1.1-reconciliation-drift-breadth
       title: Add Reconciliation And Drift Detection process-domain baseline
-      status: planned
+      status: complete
       priority: high
       owner_domain: reconciliation-and-drift-detection
-      summary: Reconciliation And Drift Detection is the next recommended process-domain breadth candidate after Reports And Retrieval.
-      next_action: Define a narrow plan-only drift report baseline before any mutation behavior.
+      summary: Reconciliation And Drift Detection is now installed in the full profile with reconciliation rules, snapshots, list/check/report/plan commands, doctor validation, tests, and dogfood state.
+      next_action: Use `npm run reconcile:plan` before broad lifecycle/status handoffs and before future mutation behavior.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - process-domain
         - reconciliation
         - drift-detection
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-reconciliation-drift-detection-design.md
+        - design/v1-process-domain-design.md
+        - decisions/0040-adopt-reconciliation-and-drift-detection-baseline-module.md
+        - modules/reconciliation-drift-detection/module.yaml
+        - scripts/reconcile.mjs
+        - reconciliation/rules.yaml
+        - reconciliation/snapshots.md
+        - status.md
+
+    - id: v1.1-gardening-entropy-breadth
+      title: Add Gardening And Entropy Management process-domain baseline
+      status: planned
+      priority: high
+      owner_domain: gardening-and-entropy-management
+      summary: Gardening And Entropy Management is the next recommended process-domain breadth candidate after Reconciliation And Drift Detection.
+      next_action: Define narrow cleanup and entropy rules plus a read-only garden plan before any mutation behavior.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - process-domain
+        - gardening
+        - entropy-management
         - planned
       references:
         - design/v1.1-installed-instance-roadmap.md

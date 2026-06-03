@@ -1,0 +1,59 @@
+module:
+  id: reconciliation-drift-detection
+  version: 0.1.0
+  status: active
+  process_domains:
+    - reconciliation-and-drift-detection
+  provides:
+    - reconciliation-rules
+    - reconciliation-snapshots
+    - local-drift-plan
+    - reconcile-list-command
+    - reconcile-check-command
+    - reconcile-report-command
+    - reconcile-plan-command
+    - reconciliation-shape-validation
+  creates:
+    - reconciliation/
+    - reconciliation/README.md
+    - reconciliation/rules.yaml
+    - reconciliation/snapshots.md
+  managed_files:
+    - path: reconciliation/README.md
+      mode: merge
+    - path: reconciliation/rules.yaml
+      mode: merge
+    - path: reconciliation/snapshots.md
+      mode: merge
+  commands:
+    reconcile-list: harness reconcile list
+    reconcile-check: harness reconcile check
+    reconcile-report: harness reconcile report
+    reconcile-plan: harness reconcile plan
+  install:
+    artifacts:
+      - path: reconciliation/
+        type: directory
+      - path: reconciliation/README.md
+        type: template
+        source: modules/reconciliation-drift-detection/templates/README.md
+      - path: reconciliation/rules.yaml
+        type: template
+        source: modules/reconciliation-drift-detection/templates/rules.yaml
+      - path: reconciliation/snapshots.md
+        type: template
+        source: modules/reconciliation-drift-detection/templates/snapshots.md
+  validates:
+    - reconciliation/rules.yaml parses as YAML
+    - reconciliation registry version is supported
+    - rule IDs are unique
+    - rule statuses, kinds, and severities are allowed
+    - required title, summary, kind, status, and severity fields are present
+    - sources and tags are lists when present
+    - local sources are reported when missing
+    - local drift plan can be generated without mutating files
+  instructions:
+    - Use Reconciliation And Drift Detection to inspect local harness drift before selecting repair or upgrade actions.
+    - Keep this baseline plan-only; do not mutate target files from reconciliation commands.
+    - Preserve review boundaries for semantic merges, missing human-facing files, and generated-file repairs.
+    - Promote recurring drift checks into reconciliation/rules.yaml.

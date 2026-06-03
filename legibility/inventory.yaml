@@ -1,14 +1,14 @@
 # Harness managed file: application-corpus-legibility
 legibility:
   version: 1
-  updated: 2026-06-01
+  updated: 2026-06-03
   scope: harness-source-repo
   surfaces:
     - id: harness-cli-entrypoint
       title: Harness CLI entrypoint
       kind: entrypoint
       status: active
-      summary: The `harness` command dispatcher exposes install, lifecycle, profile, module, validation, memory, capture, legibility, reports, and distribution surfaces.
+      summary: The `harness` command dispatcher exposes install, lifecycle, profile, module, validation, memory, capture, legibility, reports, reconciliation, and distribution surfaces.
       how_to_inspect: Run the CLI help and inspect the dispatcher before changing command routing.
       commands:
         - node scripts/harness.mjs --help
@@ -105,4 +105,22 @@ legibility:
       tags:
         - reports
         - overview
+        - dogfood
+
+    - id: reconciliation-plan-surface
+      title: Reconciliation plan surface
+      kind: generated-report
+      status: active
+      summary: Reconciliation rules and the plan command provide a read-only installed-harness drift view before lifecycle mutation or broad handoff work.
+      how_to_inspect: Run reconciliation checks and plan output after changing manifest, lock, profile, module, command, metadata, state, or plan surfaces.
+      commands:
+        - npm run reconcile:check
+        - npm run reconcile:plan
+      references:
+        - reconciliation/rules.yaml
+        - scripts/reconcile.mjs
+        - design/v1-reconciliation-drift-detection-design.md
+      tags:
+        - reconciliation
+        - drift-detection
         - dogfood

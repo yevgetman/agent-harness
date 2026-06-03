@@ -1,7 +1,7 @@
 # Harness managed file: capture-triage
 capture_inbox:
   version: 1
-  updated: 2026-06-01
+  updated: 2026-06-03
   scope: harness-source-repo
   items:
     - id: capture-triage-baseline
@@ -49,11 +49,25 @@ capture_inbox:
 
     - id: reconciliation-drift-next
       title: Consider Reconciliation And Drift Detection as the next breadth candidate
-      status: open
+      status: promoted
       kind: idea
       summary: After Reports And Retrieval is validated, the next likely process-domain baseline is local drift planning across installed harness state.
       source: roadmap
       created: 2026-06-01
+      promote_to: plans
+      tags:
+        - v1.1
+        - process-domain
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+
+    - id: gardening-entropy-next
+      title: Consider Gardening And Entropy Management as the next breadth candidate
+      status: open
+      kind: idea
+      summary: After Reconciliation And Drift Detection is validated, the next likely process-domain baseline is cleanup and entropy planning for durable harness state.
+      source: roadmap
+      created: 2026-06-03
       promote_to: plans
       tags:
         - v1.1

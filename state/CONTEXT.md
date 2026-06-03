@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-06-01
+generated_on: 2026-06-03
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -19,6 +19,7 @@ generated_from:
   - design/v1-capture-triage-design.md
   - design/v1-application-corpus-legibility-design.md
   - design/v1-reports-retrieval-design.md
+  - design/v1-reconciliation-drift-detection-design.md
   - design/v1-distribution-readiness-design.md
   - spec/agnostic-harness-shape.md
   - spec/portability-model.md
@@ -130,6 +131,12 @@ Current dogfood state:
   `npm run reports:report`, `npm run reports:generate`, report definition
   filtering, JSON output, report summaries, lightweight installed-harness
   overview generation, and doctor validation.
+- Reconciliation And Drift Detection exists in first dogfood form via
+  `reconciliation/rules.yaml`, `reconciliation/snapshots.md`,
+  `npm run reconcile:list`, `npm run reconcile:check`,
+  `npm run reconcile:report`, `npm run reconcile:plan`, drift-rule
+  filtering, JSON output, report summaries, read-only local drift planning,
+  and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -248,8 +255,9 @@ The first v1.1 installed-instance upgrade-contract increment, profile switch
 planning, safe profile switch apply, template source lock-check correction,
 clean template cascade apply baseline, profile sync planning, and Durable
 Memory, Capture And Triage, Application / Corpus Legibility, and Reports And
-Retrieval baselines are implemented. The next useful breadth candidate after
-this depth pass is Reconciliation And Drift Detection.
+Retrieval, and Reconciliation And Drift Detection baselines are implemented.
+The next useful breadth candidate after this depth pass is Gardening And
+Entropy Management.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -263,9 +271,9 @@ machinery, but public release is not the current product priority.
   sequencing reference. Use `design/v1-product-spec-and-roadmap.md` for the v1
   closeout baseline.
 - Phase 4 has Structured Metadata, Canonical State, Invariants And Golden
-  Principles, Plans And Status, Durable Memory, Capture And Triage, and
-  Application / Corpus Legibility, and Reports And Retrieval installed as
-  additional process-domain modules.
+  Principles, Plans And Status, Durable Memory, Capture And Triage,
+  Application / Corpus Legibility, Reports And Retrieval, and Reconciliation
+  And Drift Detection installed as additional process-domain modules.
 - Structured Metadata now has JSON output, tag/kind/status filtering,
   dependency-reference validation, and report summaries.
 - Canonical State now has list/report queries, role/status/owner-domain
@@ -285,13 +293,18 @@ machinery, but public release is not the current product priority.
 - Reports And Retrieval now has list/report queries, status/kind/tag
   filtering, JSON output, report catalog validation, local-source warnings,
   report summaries, and lightweight installed-harness overview generation.
+- Reconciliation And Drift Detection now has list/report queries,
+  status/kind/severity/tag filtering, JSON output, drift-rule validation,
+  local-source warnings, report summaries, and read-only reconciliation plans
+  that inspect manifest, lock, active profile, module registry, command,
+  metadata, state, and plan alignment.
 - Distribution Readiness now has explicit package contents validation, release
   preflight planning, registry discovery, local tarball install docs,
   packed-package smoke validation for package install/init/doctor/upgrade plan,
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence.
-- Next work: start Reconciliation And Drift Detection as the next
-  process-domain breadth baseline, beginning with a narrow plan-only drift
-  report design, decision record, artifacts, validation, and dogfood usage.
+- Next work: start Gardening And Entropy Management as the next process-domain
+  breadth baseline, beginning with narrow cleanup/entropy rules, a read-only
+  garden plan, artifacts, validation, tests, and dogfood usage.
 - Keep `status.md` current after significant choices.

@@ -64,6 +64,11 @@ harness:
       status: active
       process_domains:
         - reports-and-retrieval
+    - id: reconciliation-drift-detection
+      version: 0.1.0
+      status: active
+      process_domains:
+        - reconciliation-and-drift-detection
   managed_files:
     - path: AGENTS.md
       owner: agent-operating-contract
@@ -134,6 +139,15 @@ harness:
     - path: reports/snapshots.md
       owner: reports-retrieval
       mode: merge
+    - path: reconciliation/README.md
+      owner: reconciliation-drift-detection
+      mode: merge
+    - path: reconciliation/rules.yaml
+      owner: reconciliation-drift-detection
+      mode: merge
+    - path: reconciliation/snapshots.md
+      owner: reconciliation-drift-detection
+      mode: merge
   commands:
     init: npm run init
     destroy: npm run destroy
@@ -174,6 +188,10 @@ harness:
     reports-check: npm run reports:check
     reports-report: npm run reports:report
     reports-generate: npm run reports:generate
+    reconcile-list: npm run reconcile:list
+    reconcile-check: npm run reconcile:check
+    reconcile-report: npm run reconcile:report
+    reconcile-plan: npm run reconcile:plan
     memory-list: npm run memory:list
     memory-check: npm run memory:check
     memory-report: npm run memory:report

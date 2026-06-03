@@ -1035,45 +1035,46 @@ build_strategy:
             - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
 
   current_depth_pass:
-    id: v1.1-reports-retrieval-baseline
+    id: v1.1-reconciliation-drift-detection-baseline
     breadth_unit: >
-      Add the Reports And Retrieval process-domain baseline.
+      Add the Reconciliation And Drift Detection process-domain baseline.
     status: complete
-    completed_on: 2026-06-01
+    completed_on: 2026-06-03
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - reports-retrieval is an installable module.
-          - The full profile includes reports-retrieval.
-          - harness reports list/check/report/generate provide executable behavior.
-          - The dogfood repo has a reports catalog and snapshots file.
+          - reconciliation-drift-detection is an installable module.
+          - The full profile includes reconciliation-drift-detection.
+          - harness reconcile list/check/report/plan provide executable behavior.
+          - The dogfood repo has reconciliation rules and snapshots files.
       - id: validation
         status: satisfied
         evidence:
-          - reports check validates report definition shape, statuses, kinds, local sources, and required report files.
-          - doctor validates Reports And Retrieval when the module is installed.
-          - distribution package contents include the reports CLI and reports-retrieval templates.
+          - reconcile check validates rule shape, statuses, kinds, severities, local sources, and required files.
+          - reconcile plan inspects manifest, lock, profile, registry, command, metadata, state, and plan alignment.
+          - doctor validates Reconciliation And Drift Detection when the module is installed.
+          - distribution package contents include the reconcile CLI and reconciliation-drift-detection templates.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers reports-retrieval module add.
-          - npm test covers reports list/check/report/generate and JSON output.
-          - npm test covers full profile init with Reports And Retrieval.
-          - npm test covers profile switch and upgrade apply installing Reports And Retrieval.
+          - npm test covers reconciliation-drift-detection module add.
+          - npm test covers reconcile list/check/report/plan and JSON output.
+          - npm test covers full profile init with Reconciliation And Drift Detection.
+          - npm test covers profile switch and upgrade apply installing Reconciliation And Drift Detection.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0039-adopt-reports-and-retrieval-baseline-module.md records the Reports And Retrieval decision.
-          - design/v1-reports-retrieval-design.md defines the baseline.
-          - design/v1.1-installed-instance-roadmap.md records Reports And Retrieval as implemented.
-          - docs/v1-validation.md includes Reports And Retrieval in the validation matrix.
+          - decisions/0040-adopt-reconciliation-and-drift-detection-baseline-module.md records the Reconciliation And Drift Detection decision.
+          - design/v1-reconciliation-drift-detection-design.md defines the baseline.
+          - design/v1.1-installed-instance-roadmap.md records Reconciliation And Drift Detection as implemented.
+          - docs/v1-validation.md includes Reconciliation And Drift Detection in the validation matrix.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run reports:check passes against the dogfood repo.
-          - npm run reports:report summarizes dogfood report definitions.
-          - npm run reports:generate produces a cross-domain installed-harness overview.
-          - The dogfood manifest exposes reports-list, reports-check, reports-report, and reports-generate.
+          - npm run reconcile:check passes against the dogfood repo.
+          - npm run reconcile:report summarizes dogfood reconciliation rules and drift-plan counts.
+          - npm run reconcile:plan produces a read-only installed-harness drift plan.
+          - The dogfood manifest exposes reconcile-list, reconcile-check, reconcile-report, and reconcile-plan.
