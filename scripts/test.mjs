@@ -2052,6 +2052,16 @@ withTempDir((root) => {
   version: 1
   updated: 2026-06-03
   scope: test-target
+  thresholds:
+    completed_plans:
+      recommendation: 1
+      warning: 2
+  action_policy:
+    default: read-only
+    reviewed_actions:
+      - review-plan-archive
+    prohibited_without_confirmation:
+      - delete-files
   rules:
     - id: status-size
       title: Status size
@@ -2069,6 +2079,8 @@ withTempDir((root) => {
   const check = quiet(() => runGarden({ cwd: target, args: ["check"] }));
   assert.equal(check.ok, true, "garden check should pass with one rule");
   assert.equal(check.rules.length, 1, "garden check should return rules");
+  assert.equal(check.thresholds.completed_plans.recommendation, 1, "garden check should return configured thresholds");
+  assert.equal(check.action_policy.default, "read-only", "garden check should return action policy");
 
   const list = quiet(() => runGarden({ cwd: target, args: ["list", "--kind", "status-hygiene"] }));
   assert.equal(list.rules.length, 1, "garden list should filter by kind");
@@ -2089,13 +2101,45 @@ withTempDir((root) => {
     true,
     "garden plan should report local lock cleanup pressure",
   );
+  assert.equal(plan.action_policy.default, "read-only", "garden plan should report read-only policy");
+
+  mkdirSync(join(target, "plans"), { recursive: true });
+  writeFileSync(join(target, "plans", "current.yaml"), `plans_status:
+  version: 1
+  updated: 2026-06-04
+  scope: test-target
+  status_projection: status.md
+  plans:
+    - id: completed-work
+      title: Completed work
+      status: complete
+      priority: low
+      owner_domain: harness-lifecycle
+      summary: Fixture.
+      tags:
+        - fixture
+      references:
+        - status.md
+`);
+  const thresholdPlan = quiet(() => runGarden({ cwd: target, args: ["plan"] }));
+  assert.equal(
+    thresholdPlan.findings.find((item) => item.id === "completed-plan-volume")?.status,
+    "recommendation",
+    "garden plan should use configured completed-plan thresholds",
+  );
+  assert.equal(
+    thresholdPlan.findings.find((item) => item.id === "completed-plan-volume")?.action,
+    "review-plan-archive",
+    "garden plan should classify completed-plan cleanup as reviewed archive work",
+  );
 
   const jsonPlan = JSON.parse(execFileSync(
     process.execPath,
     [join(REPO_ROOT, "scripts", "harness.mjs"), "garden", "plan", "--json"],
     { cwd: target, encoding: "utf8" },
   ));
-  assert.equal(jsonPlan.summary.recommendations, 1, "garden plan --json should emit recommendation counts");
+  assert.equal(jsonPlan.summary.recommendations, 2, "garden plan --json should emit recommendation counts");
+  assert.equal(jsonPlan.action_policy.default, "read-only", "garden plan --json should emit action policy");
 
   const doctor = quiet(() => runDoctor({ cwd: target }));
   assert.equal(doctor.ok, true, "doctor should validate gardening after install");
@@ -2117,6 +2161,10 @@ withTempDir((root) => {
 
   writeFileSync(join(target, "gardening", "rules.yaml"), `gardening:
   version: 1
+  thresholds:
+    completed_plans:
+      recommendation: 5
+      warning: 4
   rules:
     - id: bad-kind
       title: Bad kind
@@ -2131,6 +2179,11 @@ withTempDir((root) => {
     badKind.errors.some((item) => item.includes("invalid kind")),
     true,
     "garden check should report invalid kinds",
+  );
+  assert.equal(
+    badKind.errors.some((item) => item.includes("warning' must be greater than or equal to recommendation")),
+    true,
+    "garden check should report invalid threshold ordering",
   );
 });
 
@@ -2680,6 +2733,8 @@ withTempDir((root) => {
   assert.equal(globalSmoke.profiles[0].profile, "full", "global smoke should default harness init to full");
   assert.equal(globalSmoke.profiles[0].default_init, true, "global smoke should validate bare harness init");
   assert.equal(globalSmoke.profiles[0].plan_profile, "full", "global smoke should plan against the full profile");
+  assert.equal(globalSmoke.profiles[0].garden_plan.policy, "read-only", "global smoke should validate full-profile garden policy");
+  assert.equal(globalSmoke.profiles[0].garden_plan.attention, 0, "global smoke full-profile garden plan should be clean");
   assert.equal(globalSmoke.profiles[0].upgrade_apply_ok, true, "global smoke should validate bare harness upgrade");
 }
 

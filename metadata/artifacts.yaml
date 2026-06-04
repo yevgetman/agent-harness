@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-06-03
+  updated: 2026-06-04
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -731,6 +731,8 @@ metadata:
         - phase-4
         - process-domain
         - process-domain-design
+        - thresholds
+        - action-policy
       depends_on:
         - process-domain-design
         - reconciliation-design
@@ -744,6 +746,8 @@ metadata:
         - module
         - gardening
         - entropy-management
+        - thresholds
+        - action-policy
       depends_on:
         - gardening-design
         - module-registry
@@ -767,6 +771,8 @@ metadata:
       tags:
         - gardening
         - cleanup-rules
+        - thresholds
+        - action-policy
       depends_on:
         - gardening-design
 
@@ -931,6 +937,8 @@ metadata:
         - entropy-management
         - cli
         - validation
+        - thresholds
+        - action-policy
       depends_on:
         - gardening-module
         - gardening-rules
@@ -1378,6 +1386,24 @@ metadata:
         - gardening-design
         - gardening-module
         - reconciliation-decision
+
+    - id: gardening-threshold-policy-decision
+      path: decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md
+      kind: decision
+      status: active
+      owner_domain: gardening-and-entropy-management
+      tags:
+        - gardening
+        - entropy-management
+        - process-domain
+        - hardening
+        - thresholds
+        - action-policy
+        - decision
+      depends_on:
+        - gardening-design
+        - garden-cli
+        - gardening-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

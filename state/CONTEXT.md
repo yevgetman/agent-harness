@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-06-03
+generated_on: 2026-06-04
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -142,8 +142,9 @@ Current dogfood state:
   `gardening/rules.yaml`, `gardening/snapshots.md`,
   `npm run garden:list`, `npm run garden:check`,
   `npm run garden:report`, `npm run garden:plan`, cleanup-rule filtering,
-  JSON output, report summaries, read-only cleanup-pressure planning, and
-  doctor validation.
+  configurable cleanup thresholds, read-only action-policy validation, JSON
+  output, report summaries, read-only cleanup-pressure planning with reviewed
+  action labels, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
@@ -263,8 +264,11 @@ planning, safe profile switch apply, template source lock-check correction,
 clean template cascade apply baseline, profile sync planning, and Durable
 Memory, Capture And Triage, Application / Corpus Legibility, Reports And
 Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy
-Management baselines are implemented. The next useful step is Gardening depth
-and private production hardening.
+Management baselines are implemented. The current hardening lane is Gardening
+depth and private production readiness. The first Gardening depth pass now has
+configurable thresholds, explicit read-only cleanup action policy, reviewed
+action labels in findings, and full-profile smoke preflight coverage for
+`harness garden plan`.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -308,17 +312,19 @@ machinery, but public release is not the current product priority.
   metadata, state, and plan alignment.
 - Gardening And Entropy Management now has list/report queries,
   status/kind/severity/tag filtering, JSON output, cleanup-rule validation,
-  local-source warnings, report summaries, and read-only cleanup-pressure
-  plans that inspect lock health, capture pressure, plan volume, status size,
-  memory summary size, and snapshot size.
+  threshold validation, action-policy validation, local-source warnings, report
+  summaries, and read-only cleanup-pressure plans that inspect lock health,
+  capture pressure, plan volume, status size, memory summary size, and snapshot
+  size while labeling reviewed actions without applying them.
 - Distribution Readiness now has explicit package contents validation, release
   preflight planning, registry discovery, local tarball install docs,
   packed-package smoke validation for package install/init/doctor/upgrade plan,
   copied external-target smoke, forceable init inside copied smoke targets,
   public npm access policy, guarded publish planning, and named `meetingly`
-  smoke evidence.
-- Next work: deepen Gardening and private production hardening by dogfooding
-  `npm run garden:plan`, tuning thresholds, and deciding which cleanup
-  findings should remain read-only versus become reviewed archive or trim
-  operations.
+  smoke evidence. Full-profile smoke now also runs `harness garden plan` as a
+  package-installed preflight.
+- Next work: continue private production hardening with backup/snapshot
+  behavior before target-repo mutations, rollback planning for failed safe
+  applies, and profile sync apply once read-only sync evidence is strong
+  enough.
 - Keep `status.md` current after significant choices.

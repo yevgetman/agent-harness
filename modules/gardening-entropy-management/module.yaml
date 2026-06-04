@@ -7,6 +7,8 @@ module:
   provides:
     - gardening-rules
     - gardening-snapshots
+    - configurable-cleanup-thresholds
+    - reviewed-cleanup-policy
     - cleanup-pressure-plan
     - garden-list-command
     - garden-check-command
@@ -49,6 +51,8 @@ module:
     - rule IDs are unique
     - rule statuses, kinds, and severities are allowed
     - required title, summary, kind, status, and severity fields are present
+    - cleanup thresholds are known non-negative integer values
+    - action policy remains read-only and reviewed-action lists are valid
     - sources and tags are lists when present
     - local sources are reported when missing
     - local gardening plan can be generated without mutating files

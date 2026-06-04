@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 
 ## Current Phase
 
@@ -53,8 +53,12 @@ profile includes `durable-memory`, `capture-triage`,
 dogfood repo has memory, capture, legibility, reports, reconciliation, and
 gardening artifacts; and their CLI surfaces provide executable behavior,
 validation, reports, read-only drift planning, and read-only cleanup-pressure
-planning. The next recommended work is Gardening depth and private production
-hardening.
+planning. The first Gardening depth and private production hardening pass now
+adds configurable cleanup thresholds, explicit read-only cleanup action policy,
+review-oriented finding actions, and full-profile smoke preflight coverage for
+`harness garden plan`. The next recommended work is private lifecycle depth:
+backup/snapshot behavior before mutating installed repos, rollback planning,
+and profile sync apply once the read-only sync plan has enough evidence.
 
 The repo currently has exploratory specs, nineteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -202,6 +206,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   publication is not the active priority.
 - The complete install profile is named `full`; dogfood remains the practice
   of using the harness source repo as its first installed target.
+- Gardening cleanup thresholds live in `gardening/rules.yaml`, and
+  `harness garden plan` is read-only by policy. Its findings can carry
+  reviewed action labels, but archive, trim, delete, or rewrite behavior needs
+  a separate confirm-gated lifecycle decision before it can mutate files.
 - The global CLI and merge-safe init contract is active: install the packed
   package globally, `cd` into a repo, run `harness init` for the default
   `full` profile, and run `harness upgrade` for supported safe apply.
@@ -238,16 +246,16 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   `progressive-orientation`, `decisions-open-questions`,
   `structured-metadata`, `canonical-state`,
   `invariants-golden-principles`, `plans-and-status`, `durable-memory`,
-  `capture-triage`, `application-corpus-legibility`, `reports-retrieval`, and
-  `reconciliation-drift-detection`.
+  `capture-triage`, `application-corpus-legibility`, `reports-retrieval`,
+  `reconciliation-drift-detection`, and `gardening-entropy-management`.
 - `modules/registry.yaml` is the source registry for available modules.
   `agent-operating-contract` and `progressive-orientation` are bootstrap
   modules installed by `harness init --profile minimal`;
   `decisions-open-questions`, `structured-metadata`, `canonical-state`,
   `invariants-golden-principles`, `plans-and-status`, `durable-memory`,
-  `capture-triage`, `application-corpus-legibility`, `reports-retrieval`, and
-  `reconciliation-drift-detection` are standalone `modules add` installable
-  modules.
+  `capture-triage`, `application-corpus-legibility`, `reports-retrieval`,
+  `reconciliation-drift-detection`, and `gardening-entropy-management` are
+  standalone `modules add` installable modules.
 - Profiles now exist under `profiles/` for `minimal` and `full`.
 - `npm run profiles:list` lists available source profiles and their module
   bundles.
@@ -379,8 +387,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - Profile tests cover profile listing, source-only inspect, target inspect,
   JSON inspect, unsupported profile failure, collision classification, minimal
   profile init, and full profile init into real temp git targets.
-- `build/depth-gate.yaml` records the Reconciliation And Drift Detection
-  baseline as the current complete depth pass.
+- `build/depth-gate.yaml` records configurable Gardening thresholds,
+  read-only cleanup action policy, and full-profile garden-plan smoke preflight
+  as the current complete depth pass.
 - `~/code/meetingly` has passed distribution smoke for both `minimal` and
   `full` profiles with merge-safe compatibility init in a copied target; the
   original repo was not mutated.
@@ -547,6 +556,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `decisions/0041-adopt-gardening-and-entropy-management-baseline-module.md`
   — decision record for adopting Gardening And Entropy Management as a
   process-domain breadth module.
+- `decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md`
+  — decision record for configurable Gardening thresholds and reviewed cleanup
+  action policy.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/full.yaml` — current profile bundle
@@ -568,10 +580,12 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
   modules, structured metadata, canonical state, invariants, plans/status,
   capture/triage, application/corpus legibility, reports/retrieval,
-  reconciliation/drift detection, gardening/entropy management, durable memory,
-  distribution package contents and smoke validation, semantic lock provenance,
-  registry discovery, external-target smoke, guarded publish workflow, upgrade
-  planning/apply behavior, depth-gate validation, and doctor fixtures.
+  reconciliation/drift detection, gardening/entropy management including
+  configurable thresholds and action policy, durable memory, distribution
+  package contents and smoke validation including full-profile garden-plan
+  preflight, semantic lock provenance, registry discovery, external-target
+  smoke, guarded publish workflow, upgrade planning/apply behavior, depth-gate
+  validation, and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
   domains and supporting capabilities.
@@ -580,10 +594,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 
 ## Next Work
 
-- Deepen Gardening And Entropy Management and private production hardening:
-  dogfood `npm run garden:plan`, tune cleanup thresholds, and decide which
-  cleanup findings should remain read-only versus become reviewed archive or
-  trim operations.
+- Continue private production hardening: add backup/snapshot behavior before
+  mutating installed repos, define rollback planning for failed safe applies,
+  and decide when profile sync apply is safe to add after more read-only sync
+  evidence.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

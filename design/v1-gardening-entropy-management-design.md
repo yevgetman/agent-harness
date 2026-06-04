@@ -2,8 +2,8 @@
 
 **Status:** accepted baseline
 **Date:** 2026-06-03
-**Scope:** local gardening rules, read-only cleanup recommendations, baseline
-commands, and validation
+**Scope:** local gardening rules, configurable cleanup thresholds, reviewed
+cleanup policy, read-only cleanup recommendations, commands, and validation
 
 ## Purpose
 
@@ -24,8 +24,18 @@ The baseline module owns:
 - `gardening/rules.yaml`
 - `gardening/snapshots.md`
 
-`gardening/rules.yaml` stores structured cleanup rule definitions. Each rule
-has an ID, title, kind, status, severity, summary, optional sources, and tags.
+`gardening/rules.yaml` stores structured cleanup rule definitions, threshold
+configuration, and reviewed cleanup policy. Each rule has an ID, title, kind,
+status, severity, summary, optional sources, and tags.
+
+Thresholds define when plan findings become recommendations or warnings for
+open capture items, completed plans, deferred plans, status lines, session
+summary lines, and snapshot lines.
+
+The action policy keeps the baseline read-only while naming reviewed cleanup
+actions. Deleting files, rewriting human-authored content, or archiving managed
+artifacts must remain prohibited without a future explicit confirmation
+workflow.
 
 `gardening/snapshots.md` stores durable garden plan snapshots or cleanup notes
 when a target needs a human-readable entropy record across sessions.
@@ -55,6 +65,10 @@ All commands accept `--target <path>`. `list` supports `--status`, `--kind`,
 - rule kinds, statuses, and severities are allowed.
 - required title, kind, status, severity, and summary fields are present.
 - sources and tags are lists when present.
+- thresholds are known objects with non-negative integer recommendation and
+  warning values.
+- warning thresholds are greater than or equal to recommendation thresholds.
+- action policy lists contain non-empty strings and use the read-only default.
 - local source references are reported as warnings when missing.
 - `gardening/README.md` and `gardening/snapshots.md` exist with expected
   headings.
@@ -73,8 +87,14 @@ installed.
 - memory/session-summary size,
 - report and gardening snapshot size.
 
+The command uses configured thresholds from `gardening/rules.yaml` when present
+and falls back to built-in defaults otherwise. Findings include action labels,
+such as `triage-or-promote-capture`, `review-plan-archive`,
+`review-status-trim`, `review-memory-summary-trim`, `review-snapshot-trim`, or
+`review-lock-refresh`.
+
 The command does not write files, delete files, archive plans, or trim
-projections.
+projections. Action labels describe review paths, not automatic mutations.
 
 ## Boundaries
 
@@ -86,7 +106,8 @@ handle it.
 
 The baseline does not implement gardening apply, stale artifact deletion,
 automatic archive moves, or report snapshot trimming. Those remain future
-reviewed lifecycle work.
+reviewed lifecycle work and should require a separate decision, tests, and
+confirm-gated operation contract.
 
 ## Install Model
 

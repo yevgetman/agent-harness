@@ -1,8 +1,39 @@
 # Harness managed file: gardening-entropy-management
 gardening:
   version: 1
-  updated: 2026-06-03
+  updated: 2026-06-04
   scope: harness-source-repo
+  thresholds:
+    open_capture_items:
+      recommendation: 1
+      warning: 4
+    completed_plans:
+      recommendation: 40
+      warning: 60
+    deferred_plans:
+      recommendation: 9
+      warning: 16
+    status_lines:
+      recommendation: 650
+      warning: 900
+    session_summary_lines:
+      recommendation: 120
+      warning: 200
+    snapshot_lines:
+      recommendation: 120
+      warning: 200
+  action_policy:
+    default: read-only
+    reviewed_actions:
+      - review-plan-archive
+      - review-status-trim
+      - review-memory-summary-trim
+      - review-snapshot-trim
+      - review-lock-refresh
+    prohibited_without_confirmation:
+      - delete-files
+      - rewrite-human-authored-content
+      - archive-managed-artifacts
   rules:
     - id: capture-inbox-pressure
       title: Capture inbox pressure

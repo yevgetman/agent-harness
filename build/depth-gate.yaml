@@ -1035,46 +1035,49 @@ build_strategy:
             - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
 
   current_depth_pass:
-    id: v1.1-gardening-entropy-management-baseline
+    id: v1.1-gardening-threshold-policy-depth
     breadth_unit: >
-      Add the Gardening And Entropy Management process-domain baseline.
+      Deepen Gardening And Entropy Management with configurable thresholds,
+      reviewed action labels, read-only cleanup policy, and full-profile smoke
+      preflight.
     status: complete
-    completed_on: 2026-06-03
+    completed_on: 2026-06-04
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - gardening-entropy-management is an installable module.
-          - The full profile includes gardening-entropy-management.
-          - harness garden list/check/report/plan provide executable behavior.
-          - The dogfood repo has gardening rules and snapshots files.
+          - gardening/rules.yaml defines configurable recommendation and warning thresholds.
+          - gardening/rules.yaml defines the read-only action policy and reviewed action labels.
+          - harness garden plan includes the effective policy and action labels in text and JSON output.
+          - The full-profile distribution smoke path runs harness garden plan after doctor.
       - id: validation
         status: satisfied
         evidence:
-          - garden check validates rule shape, statuses, kinds, severities, local sources, and required files.
-          - garden plan inspects lock health, capture pressure, plan volume, status size, memory summary size, and snapshot size.
+          - garden check validates threshold keys, threshold ordering, and action-policy shape.
+          - garden plan inspects lock health, capture pressure, plan volume, status size, memory summary size, and snapshot size using configured thresholds.
           - doctor validates Gardening And Entropy Management when the module is installed.
-          - distribution package contents include the garden CLI and gardening-entropy-management templates.
+          - distribution smoke fails full-profile targets if harness garden plan fails.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers gardening-entropy-management module add.
-          - npm test covers garden list/check/report/plan and JSON output.
-          - npm test covers full profile init with Gardening And Entropy Management.
-          - npm test covers profile switch and upgrade apply installing Gardening And Entropy Management.
+          - npm test covers configurable Gardening thresholds and action policy.
+          - npm test covers invalid threshold ordering.
+          - npm test covers action labels in garden-plan findings.
+          - npm test covers full-profile global smoke garden-plan preflight.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0041-adopt-gardening-and-entropy-management-baseline-module.md records the Gardening And Entropy Management decision.
-          - design/v1-gardening-entropy-management-design.md defines the baseline.
-          - design/v1.1-installed-instance-roadmap.md records Gardening And Entropy Management as implemented.
-          - docs/v1-validation.md includes Gardening And Entropy Management in the validation matrix.
+          - decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md records the threshold and policy decision.
+          - design/v1-gardening-entropy-management-design.md defines configurable thresholds and read-only action policy.
+          - design/v1.1-installed-instance-roadmap.md records the current private hardening posture.
+          - docs/v1-validation.md includes threshold, action-policy, and full-profile smoke coverage.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
           - npm run garden:check passes against the dogfood repo.
-          - npm run garden:report summarizes dogfood gardening rules and cleanup-plan counts.
-          - npm run garden:plan produces a read-only installed-harness cleanup-pressure plan.
-          - The dogfood manifest exposes garden-list, garden-check, garden-report, and garden-plan.
+          - npm run garden:plan uses dogfood thresholds and now reports read-only policy.
+          - The open private-production-hardening capture item was promoted into triage and plans.
+          - Completed-plan cleanup pressure was tuned through rules configuration instead of CLI constants.
+          - Copied real-repo smoke targets validate the full profile without mutating source repos.

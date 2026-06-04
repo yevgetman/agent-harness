@@ -17,10 +17,12 @@
   process-domain breadth increment.
 - Reconciliation And Drift Detection is implemented and validated as the next
   process-domain breadth increment.
-- Gardening And Entropy Management is implemented and validated as the next
-  process-domain breadth increment.
-- The next recommended work is Gardening depth and private production
-  hardening.
+- Gardening And Entropy Management is implemented and validated, and its first
+  depth pass adds configurable cleanup thresholds, read-only action policy,
+  reviewed action labels, and full-profile garden-plan smoke preflight.
+- The next recommended work is private production hardening for mutation
+  safety: backup/snapshot behavior, rollback planning, and profile sync apply
+  only after more read-only evidence.
 
 ## Archive
 

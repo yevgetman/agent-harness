@@ -1,7 +1,7 @@
 # Harness managed file: application-corpus-legibility
 legibility:
   version: 1
-  updated: 2026-06-03
+  updated: 2026-06-04
   scope: harness-source-repo
   surfaces:
     - id: harness-cli-entrypoint
@@ -129,8 +129,8 @@ legibility:
       title: Garden plan surface
       kind: generated-report
       status: active
-      summary: Gardening rules and the plan command provide a read-only cleanup-pressure view before archive, trim, deletion, or broad handoff work.
-      how_to_inspect: Run gardening checks and plan output after changing capture, plans, status, memory, snapshots, reports, or lock surfaces.
+      summary: Gardening rules, thresholds, action policy, and the plan command provide a read-only cleanup-pressure view before archive, trim, deletion, or broad handoff work.
+      how_to_inspect: Run gardening checks and plan output after changing capture, plans, status, memory, snapshots, reports, lock surfaces, thresholds, or cleanup action policy.
       commands:
         - npm run garden:check
         - npm run garden:plan

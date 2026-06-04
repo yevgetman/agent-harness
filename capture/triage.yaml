@@ -1,7 +1,7 @@
 # Harness managed file: capture-triage
 capture_triage:
   version: 1
-  updated: 2026-06-03
+  updated: 2026-06-04
   scope: harness-source-repo
   records:
     - id: triage-capture-triage-baseline
@@ -38,3 +38,10 @@ capture_triage:
       promote_to: plans
       note: Promoted into the Gardening And Entropy Management breadth increment.
       updated: 2026-06-03
+
+    - id: triage-private-production-hardening-next
+      item_id: private-production-hardening-next
+      status: promoted
+      promote_to: plans
+      note: Promoted into the Gardening depth and private production hardening pass.
+      updated: 2026-06-04

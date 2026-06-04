@@ -220,8 +220,10 @@ Use `npm run garden:check` to validate gardening rules.
 
 Use `npm run garden:plan` to inspect cleanup pressure before archive, trim, or
 deletion work. Keep `gardening/rules.yaml` current when durable cleanup rules
-become useful, and record durable human-readable gardening notes in
-`gardening/snapshots.md`.
+become useful, tune thresholds there instead of changing CLI constants for
+repo-local preferences, and record durable human-readable gardening notes in
+`gardening/snapshots.md`. Gardening commands are read-only; archive, trim, or
+delete work needs separate reviewed lifecycle behavior.
 
 ## Distribution Readiness Discipline
 

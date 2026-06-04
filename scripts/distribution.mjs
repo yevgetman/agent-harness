@@ -410,8 +410,15 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
     }
     run(harnessBin, initArgs, { cwd: target });
     run(harnessBin, ["doctor"], { cwd: target });
+    const gardenPlan = profile === "full"
+      ? JSON.parse(run(harnessBin, ["garden", "plan", "--json"], { cwd: target }))
+      : null;
     const plan = JSON.parse(run(harnessBin, ["upgrade", "--plan", "--json"], { cwd: target }));
     const errors = [];
+
+    if (gardenPlan && !gardenPlan.ok) {
+      errors.push("garden plan failed for full profile smoke target");
+    }
 
     if (plan.version_source?.type !== "package") {
       errors.push(`upgrade plan version_source.type is '${plan.version_source?.type ?? "missing"}', expected 'package'`);
@@ -438,6 +445,14 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
       errors,
       version_source: plan.version_source,
       upgrade_guidance: plan.upgrade_guidance,
+      garden_plan: gardenPlan
+        ? {
+          attention: gardenPlan.summary?.attention ?? 0,
+          recommendations: gardenPlan.summary?.recommendations ?? 0,
+          warnings: gardenPlan.summary?.warnings ?? 0,
+          policy: gardenPlan.action_policy?.default ?? "unknown",
+        }
+        : null,
       managed_files: plan.managed_files?.length ?? 0,
       commands: plan.commands?.length ?? 0,
     };
@@ -451,6 +466,7 @@ function smokeProfile({ workRoot, tarball, profile, targetSource = null, targetI
       errors: [commandError(error)],
       version_source: null,
       upgrade_guidance: null,
+      garden_plan: null,
       managed_files: 0,
       commands: 0,
     };
@@ -479,6 +495,10 @@ function printResult(result) {
     }
     console.log(`    version_source: ${profile.version_source?.type ?? "unknown"}`);
     console.log(`    upgrade_model: ${profile.upgrade_guidance?.model ?? "unknown"}`);
+    if (profile.garden_plan) {
+      console.log(`    garden_plan_attention: ${profile.garden_plan.attention}`);
+      console.log(`    garden_policy: ${profile.garden_plan.policy}`);
+    }
     console.log(`    managed_files: ${profile.managed_files}`);
     console.log(`    commands: ${profile.commands}`);
     for (const error of profile.errors) {
@@ -502,6 +522,10 @@ function printGlobalSmokeResult(result) {
     console.log(`    default_init: ${profile.default_init ? "yes" : "no"}`);
     console.log(`    target: ${profile.target}`);
     console.log(`    plan_profile: ${profile.plan_profile ?? "unknown"}`);
+    if (profile.garden_plan) {
+      console.log(`    garden_plan_attention: ${profile.garden_plan.attention}`);
+      console.log(`    garden_policy: ${profile.garden_plan.policy}`);
+    }
     console.log(`    upgrade_apply: ${profile.upgrade_apply_ok ? "ok" : "error"}`);
     for (const error of profile.errors ?? []) {
       console.log(`    error: ${error}`);
@@ -845,6 +869,9 @@ function globalSmokeProfile({ harnessBin, workRoot, profile, defaultInit }) {
     const initArgs = defaultInit ? ["init"] : ["init", "--profile", profile];
     run(harnessBin, initArgs, { cwd: target });
     run(harnessBin, ["doctor"], { cwd: target });
+    const gardenPlan = profile === "full"
+      ? JSON.parse(run(harnessBin, ["garden", "plan", "--json"], { cwd: target }))
+      : null;
     const plan = JSON.parse(run(harnessBin, ["upgrade", "--plan", "--json"], { cwd: target }));
     const upgradeApply = runCaptured(harnessBin, ["upgrade"], { cwd: target });
     const errors = [];
@@ -858,6 +885,9 @@ function globalSmokeProfile({ harnessBin, workRoot, profile, defaultInit }) {
     if (!upgradeApply.ok) {
       errors.push(`harness upgrade failed: ${upgradeApply.stderr.trim() || upgradeApply.stdout.trim() || upgradeApply.error || `exit ${upgradeApply.status}`}`);
     }
+    if (gardenPlan && !gardenPlan.ok) {
+      errors.push("garden plan failed for global full profile smoke target");
+    }
 
     return {
       profile,
@@ -867,6 +897,14 @@ function globalSmokeProfile({ harnessBin, workRoot, profile, defaultInit }) {
       errors,
       plan_profile: plan.profile,
       version_source: plan.version_source,
+      garden_plan: gardenPlan
+        ? {
+          attention: gardenPlan.summary?.attention ?? 0,
+          recommendations: gardenPlan.summary?.recommendations ?? 0,
+          warnings: gardenPlan.summary?.warnings ?? 0,
+          policy: gardenPlan.action_policy?.default ?? "unknown",
+        }
+        : null,
       upgrade_apply_ok: upgradeApply.ok,
     };
   } catch (error) {
@@ -878,6 +916,7 @@ function globalSmokeProfile({ harnessBin, workRoot, profile, defaultInit }) {
       errors: [commandError(error)],
       plan_profile: null,
       version_source: null,
+      garden_plan: null,
       upgrade_apply_ok: false,
     };
   }

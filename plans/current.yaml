@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-06-03
+  updated: 2026-06-04
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -542,7 +542,7 @@ plans_status:
       priority: high
       owner_domain: gardening-and-entropy-management
       summary: Gardening And Entropy Management is now installed in the full profile with gardening rules, snapshots, list/check/report/plan commands, doctor validation, tests, and dogfood state.
-      next_action: Dogfood `npm run garden:plan` and tune cleanup thresholds before adding any reviewed mutation behavior.
+      next_action: Continue private hardening with backup/snapshot and rollback behavior before adding any reviewed mutation behavior.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -563,20 +563,22 @@ plans_status:
 
     - id: v1.1-private-production-hardening
       title: Deepen Gardening and private production hardening
-      status: planned
+      status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: With all formal process-domain baselines installed, the next work is to dogfood garden plans, tune cleanup thresholds, and harden private installed-repo lifecycle behavior.
-      next_action: Run and inspect `npm run garden:plan`, then decide which cleanup findings remain read-only and which need reviewed archive or trim planning.
+      summary: With all formal process-domain baselines installed, private hardening now has configurable Gardening thresholds, explicit read-only cleanup action policy, reviewed action labels, and full-profile garden-plan smoke preflight.
+      next_action: Add backup/snapshot behavior before mutating installed repos, define rollback planning for failed safe applies, and evaluate profile sync apply after more read-only sync evidence.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
         - hardening
         - gardening
-        - planned
+        - active
       references:
         - design/v1.1-installed-instance-roadmap.md
         - design/v1-gardening-entropy-management-design.md
+        - decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md
         - gardening/rules.yaml
         - scripts/garden.mjs
+        - scripts/distribution.mjs
         - status.md

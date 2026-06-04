@@ -32,6 +32,8 @@ From a target repo:
 cd ~/code/sitekit
 harness init
 harness doctor
+harness reconcile plan
+harness garden plan
 harness upgrade --plan
 harness upgrade
 ```
@@ -104,10 +106,14 @@ Private upgrade flow:
 2. In each target repo that should receive the improvement, run:
 
 ```bash
+harness doctor
+harness reconcile plan
+harness garden plan
 harness upgrade --plan
 ```
 
-3. Resolve blockers and review-required operations in that target repo.
+3. Resolve blockers, review-required operations, drift, and cleanup pressure in
+   that target repo.
 4. Run apply only for supported safe operations:
 
 ```bash

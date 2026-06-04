@@ -76,7 +76,8 @@ The default `full` profile installs the current complete baseline:
   installed-repo summaries.
 - `reconciliation/`: drift rules and snapshots for plan-only reconciliation of
   installed harness state.
-- `gardening/`: cleanup rules and snapshots for read-only entropy planning.
+- `gardening/`: cleanup rules, thresholds, action policy, and snapshots for
+  read-only entropy planning.
 - `memory/`: durable operator preferences, repo notes, and session summaries.
 - `modules/*/module.yaml`: local records for installed harness process-domain
   modules.
@@ -104,9 +105,10 @@ work:
 - **Reconciliation discipline:** local drift planning checks manifest, lock,
   profile, registry, command, metadata, state, and plan alignment before
   mutation.
-- **Gardening discipline:** cleanup-pressure planning surfaces open capture,
-  plan volume, status size, snapshot size, and lock-health signals before trim
-  or archive work.
+- **Gardening discipline:** cleanup-pressure planning uses repo-local
+  thresholds and read-only action policy to surface open capture, plan volume,
+  status size, snapshot size, and lock-health signals before reviewed trim or
+  archive work.
 - **Decision memory:** important choices and unresolved questions become
   durable files that can be listed and validated.
 - **Structured retrieval:** metadata and canonical-state registries make
@@ -157,6 +159,8 @@ Install the full harness into the current directory:
 cd /path/to/target-repo
 harness init
 harness doctor
+harness reconcile plan
+harness garden plan
 harness upgrade --plan
 ```
 

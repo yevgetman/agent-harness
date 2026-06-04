@@ -1,6 +1,6 @@
 # V1 Validation And Deferred Scope
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 
 This document is the v1 closeout matrix for the portable harness. It records
 what v1 proves, the commands that validate it, and the work intentionally left
@@ -29,13 +29,13 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
 | Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown, generated-only cleanup, and human-content preservation. |
 | Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
-| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy Management are installed and dogfooded. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, `npm run reports:check`, `npm run reconcile:check`, `npm run reconcile:plan`, `npm run garden:check`, `npm run garden:plan`, and `npm run doctor`. |
+| Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy Management are installed and dogfooded. Gardening includes configurable threshold validation, read-only action-policy validation, and reviewed action labels in cleanup plans. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, `npm run reports:check`, `npm run reconcile:check`, `npm run reconcile:plan`, `npm run garden:check`, `npm run garden:plan`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
 | Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations. | `npm test` covers safe apply, bare upgrade apply, clean profile module install, merge-safe template cascade apply, blocked plans, and review-required refusal. |
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
-| Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. | `npm run distribution:smoke`. |
-| Global CLI smoke | The package installs into a temporary global npm prefix and validates bare `harness init` plus bare `harness upgrade` from inside a target repo. | `npm run distribution:global-smoke`. |
+| Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. Full-profile smoke runs `harness garden plan` as a read-only cleanup preflight. | `npm run distribution:smoke`. |
+| Global CLI smoke | The package installs into a temporary global npm prefix and validates bare `harness init`, full-profile `harness garden plan`, plus bare `harness upgrade` from inside a target repo. | `npm run distribution:global-smoke`. |
 | External target smoke | A caller-supplied git target is copied into the smoke workspace and validated without mutating the source repo. | `npm test` and `node scripts/harness.mjs distribution smoke --target <path> --profile minimal --force`. |
 | Named real-repo smoke | `~/code/meetingly` validates as a named target for both `minimal` and `full` profiles. | `node scripts/harness.mjs distribution smoke --target /Users/julie/code/meetingly --profile minimal --force` and the same command with `--profile full`. |
 | Release preflight | Release planning runs package validation and `npm publish --dry-run --json` without publishing. | `npm run distribution:release-plan`; expected v1 status is blocked. |
@@ -241,9 +241,11 @@ doctor validates the reconciliation module when installed.
 The Gardening And Entropy Management process-domain baseline is implemented.
 The `full` profile now includes `gardening-entropy-management`, which installs
 `gardening/README.md`, `gardening/rules.yaml`, and `gardening/snapshots.md`.
-`harness garden list/check/report/plan` provide cleanup-rule validation and
-read-only cleanup-pressure planning, and doctor validates the gardening module
-when installed.
+`harness garden list/check/report/plan` provide cleanup-rule validation,
+configurable threshold validation, action-policy validation, and read-only
+cleanup-pressure planning. Doctor validates the gardening module when
+installed, and full-profile package smoke runs `harness garden plan` in the
+temporary installed target.
 
 ## Next Work After V1
 

@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-06-03
+updated: 2026-06-04
 harness:
   package: portable-harness
   version: 0.1.0
@@ -114,6 +114,7 @@ reading_order:
   - decision-0039
   - decision-0040
   - decision-0041
+  - decision-0042
   - decision-template
   - package
   - harness-cli
@@ -370,7 +371,7 @@ documents:
     title: "Formal Design: V1 Gardening And Entropy Management"
     kind: formal-design
     status: active
-    summary: "Accepted baseline for the tenth Phase 4 process-domain module: gardening rules, snapshots, garden list/check/report/plan commands, read-only cleanup-pressure planning, and doctor validation."
+    summary: "Accepted baseline for the tenth Phase 4 process-domain module: gardening rules, configurable thresholds, read-only cleanup action policy, snapshots, garden list/check/report/plan commands, read-only cleanup-pressure planning, and doctor validation."
     depends_on:
       - v1-process-domain-design
       - v1-reconciliation-drift-detection-design
@@ -510,7 +511,7 @@ documents:
     title: Gardening And Entropy Management
     kind: gardening-registry
     status: active
-    summary: Machine-readable cleanup rule registry plus snapshots file for read-only installed-harness gardening plans.
+    summary: Machine-readable cleanup rule registry, configurable thresholds, read-only action policy, and snapshots file for read-only installed-harness gardening plans.
     depends_on:
       - v1-gardening-entropy-management-design
       - reconciliation
@@ -667,7 +668,7 @@ documents:
     title: Gardening And Entropy Management Module
     kind: module-definition
     status: active
-    summary: Module definition for gardening rules, snapshots, garden commands, and read-only cleanup-pressure planning.
+    summary: Module definition for gardening rules, configurable thresholds, snapshots, garden commands, and read-only cleanup-pressure planning.
     depends_on:
       - v1-gardening-entropy-management-design
       - v1-installed-manifest-design
@@ -1119,6 +1120,17 @@ documents:
       - module-gardening-entropy-management
       - decision-0040
 
+  - doc_id: decision-0042
+    file: decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md
+    title: Adopt Configurable Gardening Thresholds And Reviewed Cleanup Policy
+    kind: decision
+    status: active
+    summary: Decision record adopting configurable Gardening thresholds, read-only cleanup action policy, and reviewed action labels for cleanup findings.
+    depends_on:
+      - v1-gardening-entropy-management-design
+      - garden-cli
+      - decision-0041
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -1300,7 +1312,7 @@ documents:
     title: Harness Garden CLI
     kind: cli
     status: active
-    summary: Gardening And Entropy Management command implementation for cleanup-rule validation, filters, JSON output, summaries, and read-only cleanup-pressure plans.
+    summary: Gardening And Entropy Management command implementation for cleanup-rule validation, configurable thresholds, action-policy validation, filters, JSON output, summaries, and read-only cleanup-pressure plans with reviewed action labels.
     depends_on:
       - v1-gardening-entropy-management-design
       - gardening
@@ -1385,7 +1397,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management including configurable thresholds and action policy, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation including full-profile garden-plan preflight, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

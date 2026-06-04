@@ -1,7 +1,7 @@
 # Harness managed file: capture-triage
 capture_inbox:
   version: 1
-  updated: 2026-06-03
+  updated: 2026-06-04
   scope: harness-source-repo
   items:
     - id: capture-triage-baseline
@@ -77,9 +77,9 @@ capture_inbox:
 
     - id: private-production-hardening-next
       title: Consider private production hardening after domain baselines
-      status: open
+      status: promoted
       kind: idea
-      summary: After all formal process-domain baselines are installed, the next likely work is to deepen Gardening, tune cleanup thresholds, and harden private installed-repo lifecycle behavior.
+      summary: After all formal process-domain baselines are installed, the next hardening work is to deepen Gardening with configurable thresholds and harden private installed-repo lifecycle behavior.
       source: roadmap
       created: 2026-06-03
       promote_to: plans
