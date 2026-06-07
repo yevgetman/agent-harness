@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-06-04
+updated: 2026-06-07
 harness:
   package: portable-harness
   version: 0.1.0
@@ -115,6 +115,7 @@ reading_order:
   - decision-0040
   - decision-0041
   - decision-0042
+  - decision-0043
   - decision-template
   - package
   - harness-cli
@@ -124,6 +125,7 @@ reading_order:
   - minimal-profile
   - modules-cli
   - profiles-cli
+  - lifecycle-backup-helper
   - metadata-cli
   - state-cli
   - invariants-cli
@@ -170,7 +172,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle depth, installed process-domain baselines through Gardening And Entropy Management, and next depth/hardening work. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle backups, installed process-domain baselines through Gardening And Entropy Management, and next depth/hardening work. Not a changelog.
     depends_on:
       - agents
 
@@ -190,7 +192,7 @@ documents:
     title: "Formal Product Spec: V1.1 Installed Instance Harness"
     kind: formal-product-spec
     status: active
-    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, installed-instance upgrade guidance, profile switching, process-domain depth, private production hardening, and real-repo dogfood."
+    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, installed-instance upgrade guidance, profile switching, lifecycle backups, process-domain depth, private production hardening, and real-repo dogfood."
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
@@ -271,7 +273,7 @@ documents:
     title: "Formal Design: V1 Upgrade Operation Contract"
     kind: formal-design
     status: active
-    summary: Accepted baseline for machine-readable upgrade plans, installed-instance upgrade guidance, operation classes, apply-enabled operations, and safe command repair.
+    summary: Accepted baseline for machine-readable upgrade plans, installed-instance upgrade guidance, operation classes, apply-enabled operations, safe command repair, and lifecycle backups before supported safe mutations.
     depends_on:
       - v1-lock-provenance-design
       - v1-installed-manifest-design
@@ -687,7 +689,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current v1 closeout validation pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current lifecycle backup depth pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -1131,6 +1133,17 @@ documents:
       - garden-cli
       - decision-0041
 
+  - doc_id: decision-0043
+    file: decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md
+    title: Adopt Lifecycle Backups Before Safe Mutations
+    kind: decision
+    status: active
+    summary: Decision record adopting local recovery snapshots before supported safe mutation surfaces and deferring automatic rollback.
+    depends_on:
+      - v1-upgrade-operation-contract
+      - lifecycle-backup-helper
+      - decision-0042
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -1145,7 +1158,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, lifecycle backups, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -1155,7 +1168,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior with lifecycle backups, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -1176,7 +1189,7 @@ documents:
     title: Harness Destroy
     kind: cli
     status: active
-    summary: Confirm-gated installed-harness teardown command that plans removals by default, preserves .git, removes installed artifacts, and surgically removes marked harness sections from human-facing files.
+    summary: Confirm-gated installed-harness teardown command that plans removals by default, creates a sibling destroy backup on confirm, preserves .git, removes installed artifacts, and surgically removes marked harness sections from human-facing files.
     depends_on:
       - v1-installed-manifest-design
       - init
@@ -1199,7 +1212,7 @@ documents:
     title: Harness Install
     kind: reference
     status: active
-    summary: Local tarball install guide, installed-instance upgrade flow, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, package-installed registry discovery expectation, and v1 validation pointer.
+    summary: Local tarball install guide, installed-instance upgrade flow, lifecycle backup behavior, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, package-installed registry discovery expectation, and v1 validation pointer.
     depends_on:
       - v1-distribution-readiness-design
       - package
@@ -1210,7 +1223,7 @@ documents:
     title: Harness Modules CLI
     kind: cli
     status: active
-    summary: Registry-backed module listing and module installation command implementation with lock updates.
+    summary: Registry-backed module listing and module installation command implementation with lifecycle backups and lock updates.
     depends_on:
       - v1-module-profile-installation-design
       - module-registry
@@ -1221,11 +1234,21 @@ documents:
     title: Harness Profiles CLI
     kind: cli
     status: active
-    summary: Profile listing, read-only profile inspection, profile switch planning/apply, profile sync planning, and profile-loading helpers used by profile-backed init.
+    summary: Profile listing, read-only profile inspection, profile switch planning/apply with lifecycle backups, profile sync planning, and profile-loading helpers used by profile-backed init.
     depends_on:
       - v1-module-profile-installation-design
       - profile-minimal
       - profile-full
+
+  - doc_id: lifecycle-backup-helper
+    file: scripts/lifecycle-backup.mjs
+    title: Lifecycle Backup Helper
+    kind: cli-helper
+    status: active
+    summary: Reusable local backup snapshot helper used before supported lifecycle mutation surfaces change or delete existing files.
+    depends_on:
+      - v1-installed-manifest-design
+      - v1-upgrade-operation-contract
 
   - doc_id: metadata-cli
     file: scripts/metadata.mjs
@@ -1369,7 +1392,7 @@ documents:
     title: Harness Upgrade CLI
     kind: cli
     status: active
-    summary: Upgrade planner and safe apply behavior for installed harness state, JSON plans, installed-instance upgrade guidance, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, deterministic command repair, clean active-profile module installs, merge-safe template updates, and bare harness upgrade apply.
+    summary: Upgrade planner and safe apply behavior for installed harness state, JSON plans, installed-instance upgrade guidance, registry discovery for package-installed targets, lock-aware managed-file state, operation summaries, typed operation classification, deterministic command repair, clean active-profile module installs, merge-safe template updates, lifecycle backups before writes, and bare harness upgrade apply.
     depends_on:
       - v1-installed-manifest-design
       - v1-lock-provenance-design
@@ -1397,7 +1420,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management including configurable thresholds and action policy, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation including full-profile garden-plan preflight, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, lifecycle backup manifests, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management including configurable thresholds and action policy, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation including full-profile garden-plan preflight, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { createLockFromManifest, hashFile, lockFileMap, readLock, updateLockFromPaths, writeLock } from "./lock.mjs";
+import { createLifecycleBackup } from "./lifecycle-backup.mjs";
 import { installModule, planModuleInstall } from "./modules.mjs";
 import { loadProfile } from "./profiles.mjs";
 import { mergeManagedContent } from "./init.mjs";
@@ -983,6 +984,7 @@ function applyPlan({ root, plan }) {
       skipped: plan.operations.filter((operation) => operation.status === "deferred"),
       blockers,
       reviews,
+      backup: null,
       errors: [
         ...blockers.map((operation) => `${operation.code}: ${operation.subject}`),
         ...reviews.map((operation) => `${operation.code}: ${operation.subject}`),
@@ -997,12 +999,16 @@ function applyPlan({ root, plan }) {
       skipped: plan.operations.filter((operation) => operation.status === "deferred"),
       blockers,
       reviews,
+      backup: null,
       errors: unsupportedSafe.map((operation) => `${operation.code}: safe operation is not apply-enabled`),
     };
   }
 
   const applied = [];
   const moduleInstalls = plan.operations.filter((operation) => operation.code === "safe/install-module");
+  const commandRepairs = plan.operations.filter((operation) => operation.code === "safe/repair-command");
+  const templateUpdates = plan.operations.filter((operation) => operation.code === "safe/update-template-file");
+  const refreshLock = plan.operations.some((operation) => operation.code === "safe/refresh-lock");
   for (const operation of moduleInstalls) {
     const moduleId = operation.install?.module_id ?? operation.subject;
     const preflight = planModuleInstall({ root, moduleId, force: false, sourceRoot: SOURCE_ROOT });
@@ -1014,14 +1020,42 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup: null,
         errors: (preflight.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
       };
     }
   }
 
+  const mutationPaths = new Set();
+  if (moduleInstalls.length > 0) {
+    mutationPaths.add(".harness/manifest.yaml");
+    mutationPaths.add(".harness/lock.yaml");
+    for (const operation of moduleInstalls) {
+      for (const artifact of operation.install?.artifacts ?? []) {
+        if (artifact.type !== "directory" && artifact.path) mutationPaths.add(artifact.path);
+      }
+    }
+  }
+  if (commandRepairs.length > 0) mutationPaths.add("package.json");
+  if (templateUpdates.length > 0 || refreshLock) mutationPaths.add(".harness/lock.yaml");
+  for (const operation of templateUpdates) {
+    if (operation.update?.path) mutationPaths.add(operation.update.path);
+  }
+  const backup = mutationPaths.size > 0
+    ? createLifecycleBackup({
+      root,
+      purpose: "upgrade-apply",
+      paths: Array.from(mutationPaths),
+      metadata: {
+        command: "harness upgrade apply",
+        operation_count: plan.operations.length,
+      },
+    })
+    : null;
+
   for (const operation of moduleInstalls) {
     const moduleId = operation.install?.module_id ?? operation.subject;
-    const installed = installModule({ root, moduleId, force: false, sourceRoot: SOURCE_ROOT, quiet: true });
+    const installed = installModule({ root, moduleId, force: false, sourceRoot: SOURCE_ROOT, quiet: true, backup: false });
     if (!installed.ok) {
       return {
         ok: false,
@@ -1030,6 +1064,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: (installed.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
       };
     }
@@ -1038,7 +1073,6 @@ function applyPlan({ root, plan }) {
       : `safe/install-module: ${moduleId}`);
   }
 
-  const commandRepairs = plan.operations.filter((operation) => operation.code === "safe/repair-command");
   for (const operation of commandRepairs) {
     const repair = operation.repair;
     if (repair?.kind !== "package-script" || !repair.script || !repair.value) {
@@ -1049,6 +1083,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: unsupported repair payload for ${operation.subject}`],
       };
     }
@@ -1062,6 +1097,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: package.json is missing`],
       };
     }
@@ -1077,6 +1113,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: package.json parse error: ${parseError.message}`],
       };
     }
@@ -1091,7 +1128,6 @@ function applyPlan({ root, plan }) {
     }
   }
 
-  const templateUpdates = plan.operations.filter((operation) => operation.code === "safe/update-template-file");
   const preparedTemplateUpdates = [];
   for (const operation of templateUpdates) {
     const update = operation.update;
@@ -1103,6 +1139,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: unsupported update payload for ${operation.subject}`],
       };
     }
@@ -1116,6 +1153,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: ${update.path}: target file is missing`],
       };
     }
@@ -1129,6 +1167,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: ${update.path}: lock entry is missing`],
       };
     }
@@ -1141,6 +1180,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: ${update.path}: target file changed since plan`],
       };
     }
@@ -1153,6 +1193,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: ${update.source_path}: source template missing`],
       };
     }
@@ -1166,6 +1207,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${operation.code}: ${update.source_path}: source template changed since plan`],
       };
     }
@@ -1197,6 +1239,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [`${prepared.operation.code}: ${prepared.update.path}: ${nextContent.error}`],
       };
     }
@@ -1211,6 +1254,7 @@ function applyPlan({ root, plan }) {
         skipped: plan.operations.filter((item) => item.status === "deferred"),
         blockers,
         reviews,
+        backup,
         errors: [loaded.error],
       };
     }
@@ -1230,7 +1274,6 @@ function applyPlan({ root, plan }) {
     applied.push(`safe/update-template-file: ${prepared.update.path}`);
   }
 
-  const refreshLock = plan.operations.some((operation) => operation.code === "safe/refresh-lock");
   if (refreshLock) {
     const loaded = loadManifest(root);
     if (loaded.error) {
@@ -1241,6 +1284,7 @@ function applyPlan({ root, plan }) {
         skipped: [],
         blockers: [],
         reviews: [],
+        backup,
         errors: [loaded.error],
       };
     }
@@ -1258,6 +1302,7 @@ function applyPlan({ root, plan }) {
         skipped: [],
         blockers: [],
         reviews: [],
+        backup,
         errors: generated.missing.map((path) => `${path}: expected lock path is missing`),
       };
     }
@@ -1278,6 +1323,7 @@ function applyPlan({ root, plan }) {
     skipped: plan.operations.filter((operation) => operation.status === "deferred"),
     blockers,
     reviews,
+    backup,
     errors: [],
   };
 }
@@ -1354,6 +1400,7 @@ function printPlan(plan) {
 function printApplyResult(result) {
   console.log("Harness upgrade apply");
   console.log(`target: ${result.target}`);
+  if (result.backup?.created) console.log(`backup: ${result.backup.path}`);
   printList("applied", result.applied);
   printList("skipped", result.skipped.map((operation) => `${operation.code}: ${operation.subject}`));
   printList("blockers", result.blockers.map((operation) => `${operation.code}: ${operation.subject}`));

@@ -20,8 +20,10 @@
 - Gardening And Entropy Management is implemented and validated, and its first
   depth pass adds configurable cleanup thresholds, read-only action policy,
   reviewed action labels, and full-profile garden-plan smoke preflight.
+- Lifecycle backup hardening is implemented for module add, profile switch
+  apply, upgrade apply, and confirmed destroy.
 - The next recommended work is private production hardening for mutation
-  safety: backup/snapshot behavior, rollback planning, and profile sync apply
+  safety: rollback planning against backup manifests, and profile sync apply
   only after more read-only evidence.
 
 ## Archive

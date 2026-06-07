@@ -1,14 +1,14 @@
 # Harness managed file: application-corpus-legibility
 legibility:
   version: 1
-  updated: 2026-06-04
+  updated: 2026-06-07
   scope: harness-source-repo
   surfaces:
     - id: harness-cli-entrypoint
       title: Harness CLI entrypoint
       kind: entrypoint
       status: active
-      summary: The `harness` command dispatcher exposes install, lifecycle, profile, module, validation, memory, capture, legibility, reports, reconciliation, and distribution surfaces.
+      summary: The `harness` command dispatcher exposes install, lifecycle, profile, module, validation, memory, capture, legibility, reports, reconciliation, gardening, backup, and distribution surfaces.
       how_to_inspect: Run the CLI help and inspect the dispatcher before changing command routing.
       commands:
         - node scripts/harness.mjs --help
@@ -142,3 +142,24 @@ legibility:
         - gardening
         - entropy-management
         - dogfood
+
+    - id: lifecycle-backup-surface
+      title: Lifecycle backup surface
+      kind: source-map
+      status: active
+      summary: The lifecycle backup helper and mutation apply surfaces create local recovery snapshots before supported repo mutations.
+      how_to_inspect: Inspect backup helper behavior and mutation command call sites before changing module add, profile switch apply, upgrade apply, or destroy confirm behavior.
+      commands:
+        - node --check scripts/lifecycle-backup.mjs
+        - npm test
+      references:
+        - scripts/lifecycle-backup.mjs
+        - scripts/modules.mjs
+        - scripts/profiles.mjs
+        - scripts/upgrade.mjs
+        - scripts/destroy.mjs
+        - decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md
+      tags:
+        - lifecycle
+        - backup
+        - mutation-safety

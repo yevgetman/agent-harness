@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-06-04
+Last updated: 2026-06-07
 
 ## Current Phase
 
@@ -56,9 +56,11 @@ validation, reports, read-only drift planning, and read-only cleanup-pressure
 planning. The first Gardening depth and private production hardening pass now
 adds configurable cleanup thresholds, explicit read-only cleanup action policy,
 review-oriented finding actions, and full-profile smoke preflight coverage for
-`harness garden plan`. The next recommended work is private lifecycle depth:
-backup/snapshot behavior before mutating installed repos, rollback planning,
-and profile sync apply once the read-only sync plan has enough evidence.
+`harness garden plan`. The first lifecycle backup hardening pass now creates
+local recovery snapshots before supported mutation surfaces write, edit, or
+delete existing files. The next recommended work is private lifecycle depth:
+rollback planning against those backup manifests, then profile sync apply once
+the read-only sync plan has enough evidence.
 
 The repo currently has exploratory specs, nineteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -66,8 +68,9 @@ orientation path with `index.yaml`, a dogfood installed manifest, an installed
 lock file, thirteen active module definitions, a runnable `harness doctor`
 command, a profile-backed, git-initializing, and merge-safe `harness init`
 installer, a repo-local depth gate, a read-only `harness upgrade --plan`
-command, bare `harness upgrade` safe apply, and confirm-gated
-`harness destroy` teardown. The
+command, bare `harness upgrade` safe apply, confirm-gated
+`harness destroy` teardown, and a reusable lifecycle backup helper for
+supported mutation surfaces. The
 first module/profile installation surface exists through `modules/registry.yaml`,
 `profiles/`, `harness modules list`, `harness modules add <module-id>`,
 `harness profiles list`, `harness profiles inspect <profile>`,
@@ -107,6 +110,15 @@ profile alignment checks: it loads the target's manifest profile, classifies
 installed, clean missing, review-required, and blocked active-profile modules,
 reports retained modules outside the active profile, and records sync apply as
 deferred.
+Lifecycle mutation backups now exist for supported mutation surfaces. `harness
+modules add`, `harness profiles switch --apply`, `harness upgrade` /
+`harness upgrade apply`, and `harness destroy --confirm` create local recovery
+snapshots before changing or deleting existing files. Normal lifecycle applies
+write ignored snapshots under `.harness/backups/`; confirmed destroy writes
+under `.harness-destroy-backups/` so the snapshot survives removal of
+`.harness/`. Backup manifests record copied files, missing paths, skipped
+paths, SHA-256 fingerprints, purpose, and command metadata. These backups are
+operator recovery points; automatic rollback remains future lifecycle work.
 Local packed-package distribution smoke, global CLI smoke, explicit npm
 package-boundary validation, release preflight planning, registry version
 discovery, external-target smoke, merge-safe force-compatible external-smoke
@@ -160,6 +172,11 @@ Gardening And Entropy Management exists via `gardening/rules.yaml`,
 `gardening/snapshots.md`, `harness garden list`, `harness garden check`,
 `harness garden report`, `harness garden plan`, local package scripts, and
 doctor validation when `gardening-entropy-management` is installed.
+Lifecycle mutation backups exist via `scripts/lifecycle-backup.mjs` and the
+apply surfaces for modules, profiles, upgrade, and destroy. Normal apply
+backups are ignored under `.harness/backups/`; destroy backups are ignored
+under `.harness-destroy-backups/`. The helper is packaged with the CLI so
+package-installed targets receive the same recovery-point behavior.
 Distribution Readiness exists via
 `harness distribution check`, `npm run distribution:check`,
 `harness distribution release --plan`, `npm run distribution:release-plan`,
@@ -218,6 +235,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   default, `harness destroy --confirm` removes installed harness artifacts,
   `.git/` is preserved, and marked harness sections are removed from
   human-facing files instead of deleting unrelated local content.
+- The lifecycle backup contract is active: supported mutation commands create
+  local snapshots before writes or deletes, report the created backup path, and
+  keep backup roots ignored as transient operator state. Rollback is not yet
+  automatic.
 - `design/v1-product-spec-and-roadmap.md` is the directional product north star
   for v1 closeout. It remains relevant context but no longer drives current
   post-v1 sequencing.
@@ -266,6 +287,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   installed target without writing files.
 - `npm run profiles:sync -- --plan` plans active-profile alignment for an
   installed target without writing files.
+- Supported mutation commands create lifecycle backups before changing or
+  deleting existing files. Normal apply backups live under `.harness/backups/`;
+  confirmed destroy backups live under `.harness-destroy-backups/`.
 - `npm run doctor` is the first Mechanical Validation surface; it validates
   installed harness health plus Decisions And Open Questions shape when that
   module is installed.
@@ -277,11 +301,12 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `npm run destroy` plans installed-harness teardown without writing; pass
   `-- --confirm` to remove `.harness/`, installed module definitions, module
   artifacts, and managed files while preserving `.git/` and local content
-  outside marked harness sections.
+  outside marked harness sections after creating a sibling destroy backup.
 - `npm test` covers default full init, explicit minimal init, doctor success,
   merge-safe existing `AGENTS.md`, no-overwrite `--force` compatibility,
   destroy planning and confirmed teardown, unsupported profile failure, profile
-  inspection, profile switch plan/apply, profile sync planning,
+  inspection, profile switch plan/apply, profile sync planning, lifecycle
+  backup manifests for modules/profile/upgrade/destroy mutation surfaces,
   decisions/questions, upgrade-plan scenarios, bare upgrade apply, global CLI
   smoke, durable memory, capture/triage, application/corpus legibility,
   reports/retrieval, reconciliation/drift detection, gardening/entropy
@@ -324,7 +349,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `harness init` writes `.harness/lock.yaml` for installed non-directory
   artifacts.
 - `harness modules add <module-id>` updates `.harness/lock.yaml` for module
-  artifacts and `.harness/manifest.yaml`.
+  artifacts and `.harness/manifest.yaml` after creating a lifecycle backup.
 - `npm run lock:refresh` rebuilds `.harness/lock.yaml` from the installed
   manifest and current installed files.
 - `npm run lock:check` reports lock drift without writing.
@@ -340,7 +365,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `npm run upgrade:apply` permits `safe/noop`, `safe/refresh-lock`,
   deterministic `safe/repair-command`, clean profile-bounded
   `safe/install-module`, and clean `safe/update-template-file` operations
-  while refusing blocked or review-required plans.
+  while refusing blocked or review-required plans and creating a lifecycle
+  backup before writes.
 - Lock entries now preserve semantic provenance fields including
   `artifact_role`, `owner_type`, `module_id`, `merge_strategy`, `source_kind`,
   optional `source_path`, and optional `source_sha256`.
@@ -559,12 +585,16 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md`
   — decision record for configurable Gardening thresholds and reviewed cleanup
   action policy.
+- `decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md` —
+  decision record for creating local recovery snapshots before supported safe
+  mutation surfaces.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/full.yaml` — current profile bundle
   definitions.
 - `scripts/harness.mjs` / `scripts/init.mjs` / `scripts/decisions.mjs` /
-  `scripts/questions.mjs` / `scripts/modules.mjs` / `scripts/upgrade.mjs` /
+  `scripts/questions.mjs` / `scripts/modules.mjs` /
+  `scripts/lifecycle-backup.mjs` / `scripts/upgrade.mjs` /
   `scripts/profiles.mjs` / `scripts/metadata.mjs` / `scripts/lock.mjs` /
   `scripts/state.mjs` / `scripts/invariants.mjs` / `scripts/plans.mjs` /
   `scripts/capture.mjs` / `scripts/legibility.mjs` /
@@ -574,7 +604,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   metadata commands, canonical state validation, invariants validation, plans
   validation/reporting, capture, legibility, reports, and durable memory
   validation/reporting, reconciliation drift planning, gardening cleanup
-  planning,
+  planning, lifecycle backups,
   distribution contents/smoke/global-smoke/external-target/publish validation,
   lock command/helpers, registry-aware upgrade planner, and doctor command.
 - `scripts/test.mjs` — executable tests for init, doctor, decisions, questions,
@@ -584,7 +614,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
   configurable thresholds and action policy, durable memory, distribution
   package contents and smoke validation including full-profile garden-plan
   preflight, semantic lock provenance, registry discovery, external-target
-  smoke, guarded publish workflow, upgrade planning/apply behavior, depth-gate
+  smoke, guarded publish workflow, lifecycle backup behavior,
+  upgrade planning/apply behavior, depth-gate
   validation, and doctor fixtures.
 - `fixtures/doctor/` — negative-path doctor fixtures.
 - `spec/agnostic-harness-shape.md` — exploratory catalog of harness process
@@ -594,10 +625,9 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 
 ## Next Work
 
-- Continue private production hardening: add backup/snapshot behavior before
-  mutating installed repos, define rollback planning for failed safe applies,
-  and decide when profile sync apply is safe to add after more read-only sync
-  evidence.
+- Continue private production hardening: define rollback planning for failed
+  safe applies using the new backup manifests, and decide when profile sync
+  apply is safe to add after more read-only sync evidence.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

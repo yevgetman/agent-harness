@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { hashFile, updateLockFromPaths } from "./lock.mjs";
+import { createLifecycleBackup } from "./lifecycle-backup.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const SOURCE_ROOT = resolve(SCRIPT_DIR, "..");
@@ -258,7 +259,15 @@ export function planModuleInstall({ root, moduleId, force = false, sourceRoot = 
   };
 }
 
-export function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT, quiet = false }) {
+export function installModule({
+  root,
+  moduleId,
+  force,
+  sourceRoot = SOURCE_ROOT,
+  quiet = false,
+  backup = true,
+  backupPurpose = "modules-add",
+} = {}) {
   const log = (message) => {
     if (!quiet) console.log(message);
   };
@@ -267,10 +276,28 @@ export function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT,
 
   if (prepared.noop) {
     log(`module '${moduleId}' already installed`);
-    return { ok: true, moduleId, installed: false, noop: true };
+    return { ok: true, moduleId, installed: false, noop: true, backup: null };
   }
 
   const { source, target, artifacts } = prepared;
+  const backupResult = backup
+    ? createLifecycleBackup({
+      root,
+      purpose: backupPurpose,
+      paths: [
+        ".harness/manifest.yaml",
+        ".harness/lock.yaml",
+        ...artifacts.map((artifact) => artifact.path),
+      ],
+      metadata: {
+        command: "harness modules add",
+        module_id: moduleId,
+      },
+    })
+    : null;
+  if (backupResult?.created) {
+    log(`backup: ${backupResult.path}`);
+  }
 
   for (const artifact of artifacts) {
     writeArtifact(root, artifact, sourceRoot);
@@ -313,7 +340,7 @@ export function installModule({ root, moduleId, force, sourceRoot = SOURCE_ROOT,
     sourceByPath,
   });
   log(`installed module '${moduleId}'`);
-  return { ok: true, moduleId, installed: true };
+  return { ok: true, moduleId, installed: true, backup: backupResult };
 }
 
 function runList({ root, sourceRoot }) {

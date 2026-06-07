@@ -96,7 +96,8 @@ The apply surface handles `safe/noop`, `safe/refresh-lock`, deterministic
 `safe/update-template-file` operations for template-backed managed files whose
 source template changed and can be merged without overwriting human content.
 It refuses blocked or review-required plans. Bare `harness upgrade` runs this
-safe apply path after planning internally.
+safe apply path after planning internally. Supported apply mutations create a
+local backup under `.harness/backups/` before writing existing files.
 
 ## Lock Maintenance
 
@@ -130,6 +131,9 @@ harness profiles inspect <profile>
 harness profiles switch <profile> --plan
 harness profiles sync --plan
 ```
+
+`harness modules add` also creates a local backup under `.harness/backups/`
+before writing module artifacts, manifest state, or lock state.
 
 The first mechanically installable follow-on module is
 `decisions-open-questions`. `structured-metadata` is also installable and adds
@@ -174,6 +178,8 @@ See `docs/install.md` for the local tarball install path.
   managed files yet.
 - Module installation is collision-averse and does not merge existing
   human-authored files.
+- Backup manifests are recovery points; automatic rollback is not implemented
+  yet.
 - Profile switch apply handles clean plans only; profile sync is currently
   plan-only, and profile removal is not implemented yet.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge

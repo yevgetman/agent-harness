@@ -60,7 +60,9 @@ harness artifacts are intended to be committed, including `.harness/manifest.yam
 `metadata/`, `invariants/`, `plans/`, `capture/`, `memory/`, `decisions/`,
 `legibility/`, `reports/`, `reconciliation/`, `gardening/`, and `modules/`. The
 installed `.gitignore` section ignores only local/transient operator state:
-`.harness/tmp/`, `.harness/cache/`, `.harness/reports/`, and `.harness/*.local.*`.
+`.harness/tmp/`, `.harness/backups/`, `.harness/cache/`,
+`.harness/reports/`, `.harness/*.local.*`, and
+`.harness-destroy-backups/`.
 
 To remove the harness from a target repo, inspect the teardown plan first:
 
@@ -78,7 +80,9 @@ Destroy preserves `.git/`. It removes installed harness lifecycle state,
 module definitions, module artifacts, and managed files. Files with
 harness-owned marker sections, such as `AGENTS.md`, `status.md`,
 `state/CONTEXT.md`, and `.gitignore`, are edited to remove those sections when
-local content remains; generated-only files are deleted.
+local content remains; generated-only files are deleted. Confirmed destroy
+creates a backup under `.harness-destroy-backups/` before teardown so the
+snapshot survives removal of `.harness/`.
 
 ## Repo-Local Package Install
 
@@ -120,15 +124,21 @@ harness upgrade --plan
 harness upgrade
 ```
 
+Supported mutation commands create local backup snapshots before writing or
+deleting existing files. Normal lifecycle apply backups live under
+`.harness/backups/`; confirmed destroy uses `.harness-destroy-backups/`.
+Backups are recovery points, not automatic rollback.
+
 `harness upgrade --plan --json` includes `version_source` and
 `upgrade_guidance` so an installed repo can explain its source/channel, package
 or local checkout, and next operator action without central coordination.
 
 ## Package Boundary
 
-The package intentionally includes the CLI scripts, module definitions, module
-templates, profiles, install/minimal/v1-validation docs, and Distribution
-Readiness design. Repo-local dogfood state such as `.harness/`, `build/`,
+The package intentionally includes the CLI scripts, lifecycle helper scripts,
+module definitions, module templates, profiles, install/minimal/v1-validation
+docs, and Distribution Readiness design. Repo-local dogfood state such as
+`.harness/`, `build/`,
 `capture/`, `decisions/`, `gardening/`, `legibility/`, `memory/`,
 `metadata/`, `plans/`, `reports/`, `reconciliation/`, `state/`, `status.md`,
 and test fixtures is not part of the runtime package.

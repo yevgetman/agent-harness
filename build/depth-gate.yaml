@@ -1035,49 +1035,50 @@ build_strategy:
             - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
 
   current_depth_pass:
-    id: v1.1-gardening-threshold-policy-depth
+    id: v1.1-lifecycle-backup-depth
     breadth_unit: >
-      Deepen Gardening And Entropy Management with configurable thresholds,
-      reviewed action labels, read-only cleanup policy, and full-profile smoke
-      preflight.
+      Deepen private lifecycle mutation safety with local backup snapshots
+      before supported safe mutation surfaces write, edit, or delete existing
+      files.
     status: complete
-    completed_on: 2026-06-04
+    completed_on: 2026-06-07
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - gardening/rules.yaml defines configurable recommendation and warning thresholds.
-          - gardening/rules.yaml defines the read-only action policy and reviewed action labels.
-          - harness garden plan includes the effective policy and action labels in text and JSON output.
-          - The full-profile distribution smoke path runs harness garden plan after doctor.
+          - scripts/lifecycle-backup.mjs creates timestamped backup directories with backup.yaml manifests.
+          - harness modules add creates a backup before module artifact, manifest, or lock writes.
+          - harness profiles switch --apply creates one backup before clean switch apply writes.
+          - harness upgrade and harness upgrade apply create one backup before supported apply writes.
+          - harness destroy --confirm creates a sibling .harness-destroy-backups snapshot before teardown writes and deletes.
       - id: validation
         status: satisfied
         evidence:
-          - garden check validates threshold keys, threshold ordering, and action-policy shape.
-          - garden plan inspects lock health, capture pressure, plan volume, status size, memory summary size, and snapshot size using configured thresholds.
-          - doctor validates Gardening And Entropy Management when the module is installed.
-          - distribution smoke fails full-profile targets if harness garden plan fails.
+          - Backup manifests record purpose, creation time, target root, copied file paths, backup paths, SHA-256 fingerprints, missing paths, skipped paths, and command metadata.
+          - Normal lifecycle apply backups are ignored under .harness/backups/.
+          - Confirmed destroy backups are ignored under .harness-destroy-backups/ so they survive removal of .harness/.
+          - distribution check requires scripts/lifecycle-backup.mjs in the runtime package boundary.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers configurable Gardening thresholds and action policy.
-          - npm test covers invalid threshold ordering.
-          - npm test covers action labels in garden-plan findings.
-          - npm test covers full-profile global smoke garden-plan preflight.
+          - npm test covers module-add backup manifests.
+          - npm test covers profile switch apply backup manifests.
+          - npm test covers upgrade apply backups for module installs, command repair, and template cascade updates.
+          - npm test covers destroy confirm backups, including generated-only teardown.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md records the threshold and policy decision.
-          - design/v1-gardening-entropy-management-design.md defines configurable thresholds and read-only action policy.
-          - design/v1.1-installed-instance-roadmap.md records the current private hardening posture.
-          - docs/v1-validation.md includes threshold, action-policy, and full-profile smoke coverage.
+          - decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md records the lifecycle backup decision.
+          - design/v1-upgrade-operation-contract.md defines lifecycle backup expectations before supported safe mutations.
+          - design/v1.1-installed-instance-roadmap.md records backup snapshots as implemented private hardening.
+          - docs/v1-validation.md includes lifecycle backup behavior and validation commands.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - npm run garden:check passes against the dogfood repo.
-          - npm run garden:plan uses dogfood thresholds and now reports read-only policy.
-          - The open private-production-hardening capture item was promoted into triage and plans.
-          - Completed-plan cleanup pressure was tuned through rules configuration instead of CLI constants.
-          - Copied real-repo smoke targets validate the full profile without mutating source repos.
+          - The dogfood .gitignore and agent-operating-contract .gitignore template ignore both backup roots.
+          - The dogfood package boundary includes the lifecycle backup helper.
+          - npm test validates backup behavior in real temporary git targets.
+          - Copied real-repo smoke targets validate package-installed full-profile behavior without mutating source repos.
+          - The next dogfood hardening item is rollback planning against these backup manifests.

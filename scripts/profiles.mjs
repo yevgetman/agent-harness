@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { updateLockFromPaths } from "./lock.mjs";
+import { createLifecycleBackup } from "./lifecycle-backup.mjs";
 import { installModule, loadSourceModule, planModuleInstall } from "./modules.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -551,6 +552,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
       skipped,
       blockers,
       reviews,
+      backup: null,
       errors: [
         ...reviews.map((operation) => `${operation.code}: ${operation.subject}`),
         ...blockers.map((operation) => `${operation.code}: ${operation.subject}`),
@@ -562,6 +564,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
   const moduleInstalls = plan.operations.filter(
     (operation) => operation.code === "safe/profile-module-install",
   );
+  const profileUpdate = plan.operations.find((operation) => operation.code === "safe/profile-update");
 
   for (const operation of moduleInstalls) {
     const moduleId = operation.install?.module_id ?? operation.subject;
@@ -574,14 +577,38 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
         skipped,
         blockers,
         reviews,
+        backup: null,
         errors: (preflight.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
       };
     }
   }
 
+  const mutationPaths = new Set();
+  if (moduleInstalls.length > 0 || profileUpdate) {
+    mutationPaths.add(".harness/manifest.yaml");
+    mutationPaths.add(".harness/lock.yaml");
+  }
+  for (const operation of moduleInstalls) {
+    for (const artifact of operation.install?.artifacts ?? []) {
+      if (artifact.type !== "directory" && artifact.path) mutationPaths.add(artifact.path);
+    }
+  }
+  if (profileUpdate?.update?.path) mutationPaths.add(profileUpdate.update.path);
+  const backup = mutationPaths.size > 0
+    ? createLifecycleBackup({
+      root,
+      purpose: "profiles-switch-apply",
+      paths: Array.from(mutationPaths),
+      metadata: {
+        command: "harness profiles switch --apply",
+        requested_profile: plan.requested_profile?.id ?? null,
+      },
+    })
+    : null;
+
   for (const operation of moduleInstalls) {
     const moduleId = operation.install?.module_id ?? operation.subject;
-    const installed = installModule({ root, moduleId, force: false, sourceRoot, quiet: true });
+    const installed = installModule({ root, moduleId, force: false, sourceRoot, quiet: true, backup: false });
     if (!installed.ok) {
       return {
         ok: false,
@@ -590,6 +617,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
         skipped,
         blockers,
         reviews,
+        backup,
         errors: (installed.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
       };
     }
@@ -605,7 +633,6 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
     applied.push(`safe/profile-module-present: ${presentCount} module(s) already installed`);
   }
 
-  const profileUpdate = plan.operations.find((operation) => operation.code === "safe/profile-update");
   if (profileUpdate) {
     const manifestPath = join(root, ".harness", "manifest.yaml");
     let manifest;
@@ -619,6 +646,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
         skipped,
         blockers,
         reviews,
+        backup,
         errors: [`safe/profile-update: .harness/manifest.yaml: YAML parse error: ${parseError.message}`],
       };
     }
@@ -630,6 +658,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
         skipped,
         blockers,
         reviews,
+        backup,
         errors: ["safe/profile-update: manifest missing top-level harness key"],
       };
     }
@@ -643,6 +672,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
         skipped,
         blockers,
         reviews,
+        backup,
         errors: [`safe/profile-update: ${profileUpdate.subject}: missing update target`],
       };
     }
@@ -670,6 +700,7 @@ function applySwitchPlan({ root, plan, sourceRoot }) {
     skipped,
     blockers,
     reviews,
+    backup,
     errors: [],
   };
 }
@@ -680,6 +711,7 @@ function printSwitchApply(result) {
   console.log(`current_profile: ${result.target.current_profile}`);
   console.log(`requested_profile: ${result.requested_profile.id}`);
   console.log(`apply_ok: ${result.apply.ok ? "yes" : "no"}`);
+  if (result.apply.backup?.created) console.log(`backup: ${result.apply.backup.path}`);
   printList("applied", result.apply.applied);
   printList(
     "skipped",

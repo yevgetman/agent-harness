@@ -35,6 +35,7 @@
     "scripts/harness.mjs",
     "scripts/init.mjs",
     "scripts/invariants.mjs",
+    "scripts/lifecycle-backup.mjs",
     "scripts/lock.mjs",
     "scripts/metadata.mjs",
     "scripts/modules.mjs",

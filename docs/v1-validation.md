@@ -1,6 +1,6 @@
 # V1 Validation And Deferred Scope
 
-Last updated: 2026-06-04
+Last updated: 2026-06-07
 
 This document is the v1 closeout matrix for the portable harness. It records
 what v1 proves, the commands that validate it, and the work intentionally left
@@ -27,12 +27,12 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Progressive orientation | `index.yaml` and `state/CONTEXT.md` provide a small boot path before deeper docs. | `npm run doctor` validates index references and boot files. |
 | Full default install | Bare `harness init` installs the complete `full` profile; `--profile minimal` remains available for bootstrap-only targets. | `npm test` covers default full init, explicit minimal init, doctor, and upgrade plan. |
 | Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
-| Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown, generated-only cleanup, and human-content preservation. |
-| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
+| Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` creates a sibling backup, removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown backups, generated-only cleanup, and human-content preservation. |
+| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos with lifecycle backups before writes. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy Management are installed and dogfooded. Gardening includes configurable threshold validation, read-only action-policy validation, and reviewed action labels in cleanup plans. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, `npm run reports:check`, `npm run reconcile:check`, `npm run reconcile:plan`, `npm run garden:check`, `npm run garden:plan`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
-| Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations. | `npm test` covers safe apply, bare upgrade apply, clean profile module install, merge-safe template cascade apply, blocked plans, and review-required refusal. |
+| Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations, with lifecycle backups before writes. | `npm test` covers safe apply, bare upgrade apply, clean profile module install backups, command repair backups, merge-safe template cascade apply backups, blocked plans, and review-required refusal. |
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
 | Packed-package smoke | The package installs into temporary target repos and validates installed `harness` behavior. Full-profile smoke runs `harness garden plan` as a read-only cleanup preflight. | `npm run distribution:smoke`. |
 | Global CLI smoke | The package installs into a temporary global npm prefix and validates bare `harness init`, full-profile `harness garden plan`, plus bare `harness upgrade` from inside a target repo. | `npm run distribution:global-smoke`. |
@@ -48,6 +48,7 @@ Run this set before claiming the v1 baseline is still healthy:
 ```bash
 node --check scripts/init.mjs
 node --check scripts/destroy.mjs
+node --check scripts/lifecycle-backup.mjs
 node --check scripts/modules.mjs
 node --check scripts/profiles.mjs
 node --check scripts/capture.mjs
@@ -112,6 +113,8 @@ V1 includes:
   Reconciliation And Drift Detection, and Gardening And Entropy Management.
 - Lock-aware doctor and upgrade planning.
 - Limited safe upgrade apply scaffold.
+- Lifecycle backups before supported module add, profile switch apply, upgrade
+  apply, and confirmed destroy mutations.
 - Package boundary validation, release preflight, guarded publish planning, and
   external-target smoke.
 
@@ -247,6 +250,16 @@ cleanup-pressure planning. Doctor validates the gardening module when
 installed, and full-profile package smoke runs `harness garden plan` in the
 temporary installed target.
 
+The lifecycle backup hardening increment is implemented.
+
+`harness modules add`, `harness profiles switch --apply`, `harness upgrade` /
+`harness upgrade apply`, and `harness destroy --confirm` now create local
+backup snapshots before mutating existing files. Normal apply backups live
+under `.harness/backups/`; confirmed destroy backups live under
+`.harness-destroy-backups/` so they survive removal of `.harness/`. Backup
+manifests record copied files, missing paths, skipped paths, SHA-256
+fingerprints, purpose, and command metadata. Rollback is still future work.
+
 ## Next Work After V1
 
 Current post-v1 direction lives in
@@ -260,7 +273,8 @@ source fingerprints are checked against the executing harness source/package.
 
 The strongest remaining v1.1 candidates are:
 
-1. Deepen the Gardening baseline with dogfood evidence and cleanup thresholds.
+1. Define rollback planning for failed safe applies using lifecycle backup
+   manifests.
 2. Broaden generated-file, module-definition, merge-aware, and
    review-mediated file/template upgrades while preserving review boundaries.
 3. Add profile sync apply after the read-only plan has more dogfood evidence.

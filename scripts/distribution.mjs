@@ -16,6 +16,7 @@ const REQUIRED_PACKAGE_FILES = [
   "scripts/harness.mjs",
   "scripts/init.mjs",
   "scripts/destroy.mjs",
+  "scripts/lifecycle-backup.mjs",
   "scripts/doctor.mjs",
   "scripts/capture.mjs",
   "scripts/legibility.mjs",

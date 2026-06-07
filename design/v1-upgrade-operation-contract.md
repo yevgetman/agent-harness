@@ -1,9 +1,9 @@
 # Formal Design: V1 Upgrade Operation Contract
 
 **Status:** accepted baseline  
-**Date:** 2026-05-14; amended 2026-05-17 and 2026-05-24
+**Date:** 2026-05-14; amended 2026-05-17, 2026-05-24, and 2026-06-07
 **Scope:** upgrade-plan schema, operation classes, apply safety, and narrow
-repair behavior
+repair behavior, including lifecycle backups before supported safe mutations
 
 This is a formal design document. It defines the contract between upgrade
 planning and upgrade application for v1 harness lifecycle work.
@@ -155,9 +155,33 @@ Deferred:
 - refuse the entire apply run when any `review/*` operation exists.
 - refuse unknown safe operation codes until they are explicitly implemented.
 - apply only operation codes listed as apply-enabled in this contract.
+- create a lifecycle backup before supported operations write, edit, or delete
+  existing files.
 - report all skipped `deferred/*` operations.
 - keep human-facing managed-file rewrites out of scope until a future contract
   defines merge or replacement safety.
+
+## Lifecycle Backups
+
+Supported mutation surfaces create local recovery snapshots before mutating
+existing files:
+
+- `harness modules add`
+- `harness profiles switch --apply`
+- `harness upgrade` / `harness upgrade apply`
+- `harness destroy --confirm`
+
+Normal lifecycle applies write snapshots under `.harness/backups/`. Confirmed
+destroy writes snapshots under `.harness-destroy-backups/` so the backup
+survives removal of `.harness/`.
+
+Backup manifests record the purpose, creation time, target root, copied file
+paths, backup paths, SHA-256 fingerprints, missing paths, skipped paths, and
+command metadata. Backups are ignored as transient operator state.
+
+The backup is a recovery aid. Automatic rollback, replay, and restore commands
+are future work and should consume these manifests instead of defining a second
+snapshot format.
 
 ## Safe Command Repair
 
@@ -246,6 +270,7 @@ This contract does not yet define:
 
 - semantic diffs for human-facing documents.
 - template merge application.
+- automatic rollback from lifecycle backup manifests.
 - module profile switching.
 - module-definition cascade apply.
 - remote package discovery.

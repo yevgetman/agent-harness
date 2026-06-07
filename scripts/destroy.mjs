@@ -11,6 +11,7 @@ import {
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
+import { createLifecycleBackup, DESTROY_BACKUP_ROOT } from "./lifecycle-backup.mjs";
 import { sha256 } from "./lock.mjs";
 
 function argValue(args, flag, fallback = null) {
@@ -352,6 +353,21 @@ function pruneEmptyParents(root, relPath) {
 function applyDestroyPlan(plan) {
   const edited = [];
   const deleted = [];
+  const backup = createLifecycleBackup({
+    root: plan.targetRoot,
+    purpose: "destroy-confirm",
+    backupRoot: DESTROY_BACKUP_ROOT,
+    paths: [
+      ...plan.edits.map((edit) => edit.path),
+      ...plan.delete_files,
+      ...plan.delete_modified_files,
+    ],
+    directories: plan.delete_directories,
+    metadata: {
+      command: "harness destroy --confirm",
+      profile: plan.profile,
+    },
+  });
 
   for (const edit of plan.edits) {
     const fullPath = safeTargetPath(plan.targetRoot, edit.path);
@@ -388,7 +404,7 @@ function applyDestroyPlan(plan) {
     deleted.push(`${relPath}/`);
   }
 
-  return { edited, deleted };
+  return { edited, deleted, backup };
 }
 
 function printPlan(plan, { confirmed }) {
@@ -418,6 +434,9 @@ function printPlan(plan, { confirmed }) {
   if (plan.warnings.length > 0) {
     console.log("warnings:");
     for (const warning of plan.warnings) console.log(`  ${warning}`);
+  }
+  if (confirmed && plan.backup?.created) {
+    console.log(`backup: ${plan.backup.path}`);
   }
   if (!confirmed) {
     console.log("");
@@ -474,11 +493,12 @@ export function runDestroy({ cwd = process.cwd(), args = [] } = {}) {
     applied: true,
     edited: applied.edited,
     deleted: applied.deleted,
+    backup: applied.backup,
   };
   if (json) {
     printJson(result);
   } else {
-    printPlan(plan, { confirmed: true });
+    printPlan(result, { confirmed: true });
     console.log("");
     console.log(`Harness destroy: removed ${applied.deleted.length} artifact(s), edited ${applied.edited.length} file(s)`);
   }

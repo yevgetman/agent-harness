@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-06-04
+  updated: 2026-06-07
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -797,6 +797,7 @@ metadata:
         - cli
         - profile-switch
         - profile-sync
+        - backup
       depends_on:
         - profile-minimal
         - profile-full
@@ -812,6 +813,7 @@ metadata:
         - destroy
         - cli
         - installed-instance
+        - backup
       depends_on:
         - installed-manifest
         - installed-lock
@@ -971,10 +973,28 @@ metadata:
         - installed-instance
         - upgrade-guidance
         - safe-apply
+        - backup
       depends_on:
         - product-spec
         - v1.1-installed-instance-roadmap
         - package
+
+    - id: lifecycle-backup-helper
+      path: scripts/lifecycle-backup.mjs
+      kind: cli-helper
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - lifecycle
+        - backup
+        - snapshot
+        - mutation-safety
+        - private-hardening
+        - package-runtime
+      depends_on:
+        - upgrade-cli
+        - profiles-cli
+        - destroy-cli
 
     - id: structured-metadata-decision
       path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
@@ -1404,6 +1424,23 @@ metadata:
         - gardening-design
         - garden-cli
         - gardening-decision
+
+    - id: lifecycle-backup-decision
+      path: decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - lifecycle
+        - backup
+        - snapshot
+        - mutation-safety
+        - private-hardening
+        - decision
+      depends_on:
+        - lifecycle-backup-helper
+        - upgrade-cli
+        - gardening-threshold-policy-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

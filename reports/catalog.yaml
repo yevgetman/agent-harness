@@ -1,14 +1,14 @@
 # Harness managed file: reports-retrieval
 reports:
   version: 1
-  updated: 2026-06-04
+  updated: 2026-06-07
   scope: harness-source-repo
   definitions:
     - id: installed-harness-overview
       title: Installed harness overview
       kind: cross-domain
       status: active
-      summary: Summarizes installed modules, managed files, commands, plans, state, metadata, capture, memory, legibility, reports, reconciliation, and gardening state, including cleanup thresholds and action policy.
+      summary: Summarizes installed modules, managed files, commands, plans, state, metadata, capture, memory, legibility, reports, reconciliation, gardening, and lifecycle backup state, including cleanup thresholds and action policy.
       sources:
         - .harness/manifest.yaml
         - metadata/artifacts.yaml
@@ -21,6 +21,7 @@ reports:
         - reports/catalog.yaml
         - reconciliation/rules.yaml
         - gardening/rules.yaml
+        - scripts/lifecycle-backup.mjs
       tags:
         - dogfood
         - installed-instance

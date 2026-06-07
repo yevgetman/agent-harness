@@ -116,7 +116,8 @@ work:
 - **Validation:** `harness doctor` and module-specific checks catch broken
   harness state early.
 - **Upgrade safety:** lock provenance lets `harness upgrade --plan` distinguish
-  safe changes from review-required or blocked changes.
+  safe changes from review-required or blocked changes, and supported mutation
+  commands create local backup snapshots before writes or deletes.
 - **Git hygiene:** init creates a git repo when needed and only ignores
   transient local harness state, while durable harness artifacts remain
   intended for version control.
@@ -193,7 +194,9 @@ harness destroy --confirm
 
 Destroy preserves `.git/`, removes installed harness artifacts, and surgically
 removes marked harness sections from files such as `AGENTS.md` and `.gitignore`
-when local content remains.
+when local content remains. Confirmed destroy creates a local backup under
+`.harness-destroy-backups/` before teardown; other safe mutation commands use
+`.harness/backups/`.
 
 ## Common Commands
 
@@ -279,11 +282,13 @@ Tracked by default:
 Ignored by the harness `.gitignore` section:
 
 - `.harness/tmp/`
+- `.harness/backups/`
 - `.harness/cache/`
 - `.harness/reports/`
 - `.harness/*.local.yaml`
 - `.harness/*.local.yml`
 - `.harness/*.local.json`
+- `.harness-destroy-backups/`
 
 ## Development
 
@@ -318,7 +323,7 @@ npm install -g /tmp/harness-pack/portable-harness-0.1.0.tgz
 Portable Harness is early and actively evolving. The current v1 baseline is
 complete for local tarball distribution, and the active direction is v1.1:
 installed-instance behavior, safe profile/module upgrades, process-domain
-depth, and stronger real-repo dogfooding.
+depth, lifecycle backup hardening, and stronger real-repo dogfooding.
 
 Public npm publication is intentionally deferred until release blockers are
 cleared, including package visibility and license decisions. Until then, use

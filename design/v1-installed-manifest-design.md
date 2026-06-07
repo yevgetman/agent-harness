@@ -19,9 +19,9 @@ The installed harness manifest lives at:
 ```
 
 The `.harness/` namespace is reserved for local harness installation metadata,
-upgrade state, reports, and lock files. It keeps harness-owned state out of the
-repo root while leaving root-level user-facing files such as `AGENTS.md`,
-`index.yaml`, and `status.md` visible.
+upgrade state, reports, lock files, and transient backup snapshots. It keeps
+harness-owned state out of the repo root while leaving root-level user-facing
+files such as `AGENTS.md`, `index.yaml`, and `status.md` visible.
 
 ## Why not root `harness.yaml`
 
@@ -130,8 +130,10 @@ It should:
 3. Compare installed module versions to available module versions.
 4. Check managed files for local edits.
 5. Produce an upgrade plan.
-6. Apply only safe deterministic migrations.
-7. Leave conflicts as explicit agent/human tasks.
+6. Create a lifecycle backup before supported safe mutations write existing
+   files.
+7. Apply only safe deterministic migrations.
+8. Leave conflicts as explicit agent/human tasks.
 
 It must not blindly overwrite target files.
 
@@ -146,7 +148,9 @@ content. Harness-owned lifecycle files such as `.harness/manifest.yaml` and
 `harness destroy` is the inverse lifecycle operation for an installed target.
 Bare `harness destroy` is read-only and prints the teardown plan; `harness
 destroy --confirm` permanently removes installed harness artifacts while
-preserving `.git/`. It reads the installed manifest and lock, removes
+preserving `.git/`. Confirmed destroy first creates a sibling backup under
+`.harness-destroy-backups/` so the snapshot survives removal of `.harness/`.
+It reads the installed manifest and lock, removes
 `.harness/`, installed module definitions, module artifacts, and harness-managed
 files. Human-facing files with harness-owned marker sections, such as
 `AGENTS.md`, `status.md`, `state/CONTEXT.md`, and `.gitignore`, are surgically

@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-06-04
+generated_on: 2026-06-07
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -146,7 +146,8 @@ Current dogfood state:
   output, report summaries, read-only cleanup-pressure planning with reviewed
   action labels, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
-  and module definitions under `modules/`.
+  and module definitions under `modules/`, with lifecycle backups before
+  supported mutation surfaces.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
   `npm test`; doctor now validates command wiring and the depth gate when
   present.
@@ -174,7 +175,8 @@ Current dogfood state:
   clean profile-bounded safe/install-module operations. The first cascade
   apply baseline adds merge-safe clean safe/update-template-file operations
   for template-backed managed files. Optional registry modules remain
-  deferred, and blocked or review-required plans are refused.
+  deferred, and blocked or review-required plans are refused. Apply now creates
+  lifecycle backups before writes when mutation operations are present.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
   add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
@@ -203,8 +205,9 @@ Current dogfood state:
   re-runs switch planning, refuses review-required or blocked operations,
   pre-checks every required module install before any write, installs clean
   missing profile modules, updates the manifest profile only after installs
-  succeed, refreshes manifest lock provenance, and retains modules outside the
-  requested profile.
+  succeed, refreshes manifest lock provenance, retains modules outside the
+  requested profile, and creates a lifecycle backup before the apply mutates
+  files.
 - Profile sync planning exists via
   `harness profiles sync --plan [--target <path>] [--json]`. It reads the
   target manifest's active profile, reuses module-add preflight, reports
@@ -214,7 +217,8 @@ Current dogfood state:
 - `decisions-open-questions` is mechanically installable from the registry into
   a minimal target, and the broad temp-git test matrix now covers clean install,
   collisions, force install, missing source artifacts, doctor, and upgrade
-  planning.
+  planning. Direct module add creates a lifecycle backup before writing module
+  artifacts, manifest state, or lock state.
 - Decisions And Open Questions exists in first dogfood form via `decisions/`,
   `open-questions.yaml`, `templates/decision.md`, and
   `npm run decisions:new -- "<title>"`, `npm run decisions:list`, and
@@ -244,6 +248,12 @@ Current dogfood state:
   matrix, closeout command set, behavior boundary, and deferred-scope summary.
   `docs/install.md` documents local tarball installation.
 
+Lifecycle backups now create local recovery snapshots before supported
+mutation surfaces write, edit, or delete existing files. Normal apply backups
+are ignored under `.harness/backups/`. Confirmed destroy backups are ignored
+under `.harness-destroy-backups/` so they survive removal of `.harness/`.
+Backups are recovery aids; automatic rollback is still future work.
+
 ## Orientation rule
 
 Fresh agents should not crawl the whole repo first.
@@ -261,14 +271,14 @@ Then open the relevant formal design or exploratory spec for the task.
 
 The first v1.1 installed-instance upgrade-contract increment, profile switch
 planning, safe profile switch apply, template source lock-check correction,
-clean template cascade apply baseline, profile sync planning, and Durable
-Memory, Capture And Triage, Application / Corpus Legibility, Reports And
-Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy
-Management baselines are implemented. The current hardening lane is Gardening
-depth and private production readiness. The first Gardening depth pass now has
-configurable thresholds, explicit read-only cleanup action policy, reviewed
-action labels in findings, and full-profile smoke preflight coverage for
-`harness garden plan`.
+clean template cascade apply baseline, profile sync planning, lifecycle
+backups before supported mutations, and Durable Memory, Capture And Triage,
+Application / Corpus Legibility, Reports And Retrieval, Reconciliation And
+Drift Detection, and Gardening And Entropy Management baselines are
+implemented. The current hardening lane is private production readiness. The
+first Gardening depth pass has configurable thresholds, explicit read-only
+cleanup action policy, reviewed action labels in findings, and full-profile
+smoke preflight coverage for `harness garden plan`.
 
 Npm publication remains deferred. Distribution smoke remains useful validation
 machinery, but public release is not the current product priority.
@@ -323,8 +333,10 @@ machinery, but public release is not the current product priority.
   public npm access policy, guarded publish planning, and named `meetingly`
   smoke evidence. Full-profile smoke now also runs `harness garden plan` as a
   package-installed preflight.
-- Next work: continue private production hardening with backup/snapshot
-  behavior before target-repo mutations, rollback planning for failed safe
-  applies, and profile sync apply once read-only sync evidence is strong
-  enough.
+- Lifecycle backups now exist before module add, profile switch apply, upgrade
+  apply, and confirmed destroy mutations. Normal backups live under
+  `.harness/backups/`; destroy backups live under `.harness-destroy-backups/`.
+- Next work: continue private production hardening with rollback planning for
+  failed safe applies and profile sync apply once read-only sync evidence is
+  strong enough.
 - Keep `status.md` current after significant choices.

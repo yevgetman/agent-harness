@@ -120,12 +120,18 @@ machine-readable plan output matters.
 `npm run upgrade:apply` exists only for explicitly safe operations. It may
 apply no-op and lock-refresh-safe operations, deterministic command repairs,
 and clean profile-bounded module installs. It must refuse blocked or
-review-required plans.
+review-required plans. Supported mutation applies create lifecycle backups
+before writes.
 
 ## Lock And Provenance Discipline
 
 `.harness/lock.yaml` records installed-file fingerprints for harness-managed
 artifacts. Treat lock diffs as lifecycle changes, not incidental churn.
+
+`.harness/backups/` and `.harness-destroy-backups/` are transient local
+recovery snapshots. Do not commit them. Normal safe mutation commands should
+report `.harness/backups/` paths; confirmed destroy should report
+`.harness-destroy-backups/` paths.
 
 Use `npm run lock:check` to inspect whether the installed lock matches current
 managed-file state.

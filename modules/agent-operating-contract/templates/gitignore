@@ -5,8 +5,10 @@
 # .harness/manifest.yaml, .harness/lock.yaml, AGENTS.md, status.md,
 # index.yaml, state/, metadata/, invariants/, plans/, decisions/, and modules/.
 .harness/tmp/
+.harness/backups/
 .harness/cache/
 .harness/reports/
+.harness-destroy-backups/
 .harness/*.local.yaml
 .harness/*.local.yml
 .harness/*.local.json

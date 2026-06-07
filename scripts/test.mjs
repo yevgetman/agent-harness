@@ -80,6 +80,21 @@ function writeLock(root, lock) {
   writeFileSync(join(root, ".harness", "lock.yaml"), stringifyYaml({ lock }));
 }
 
+function readBackup(root, backup) {
+  assert.equal(backup?.created, true, "mutation should create a lifecycle backup");
+  assert.equal(Boolean(backup.manifest), true, "backup should report a manifest path");
+  assertExists(root, backup.manifest);
+  return parseYaml(readFileSync(join(root, backup.manifest), "utf8")).backup;
+}
+
+function assertBackupHasFile(root, backup, path) {
+  const manifest = readBackup(root, backup);
+  const entry = manifest.files.find((file) => file.path === path);
+  assert.equal(Boolean(entry), true, `backup should include ${path}`);
+  assertExists(root, entry.backup_path);
+  return entry;
+}
+
 function setManifestProfile(root, profile) {
   const manifestPath = join(root, ".harness", "manifest.yaml");
   const manifest = parseYaml(readFileSync(manifestPath, "utf8"));
@@ -724,6 +739,8 @@ withTempDir((root) => {
   const destroy = quiet(() => runDestroy({ cwd: root, args: ["--target", target, "--confirm"] }));
   assert.equal(destroy.ok, true, "destroy --confirm should pass");
   assert.equal(destroy.applied, true, "destroy --confirm should apply changes");
+  assertBackupHasFile(target, destroy.backup, ".harness/manifest.yaml");
+  assertBackupHasFile(target, destroy.backup, "AGENTS.md");
   assertExists(target, ".git");
   assertNotExists(target, ".harness");
   assertNotExists(target, "metadata");
@@ -758,6 +775,8 @@ withTempDir((root) => {
 
   const destroy = quiet(() => runDestroy({ cwd: root, args: ["--target", target, "--confirm"] }));
   assert.equal(destroy.ok, true, "destroy should remove generated-only harness files");
+  assertBackupHasFile(target, destroy.backup, ".harness/manifest.yaml");
+  assertBackupHasFile(target, destroy.backup, "AGENTS.md");
   assertExists(target, ".git");
   assertNotExists(target, "AGENTS.md");
   assertNotExists(target, "status.md");
@@ -910,6 +929,8 @@ withTempDir((root) => {
 
   const apply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
   assert.equal(apply.ok, true, "upgrade apply should install clean missing profile modules");
+  assertBackupHasFile(target, apply.apply.backup, ".harness/manifest.yaml");
+  assertBackupHasFile(target, apply.apply.backup, ".harness/lock.yaml");
   assert.equal(
     apply.apply.applied.some((item) => item.includes("safe/install-module: decisions-open-questions")),
     true,
@@ -980,6 +1001,8 @@ withTempDir((root) => {
 
   const apply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
   assert.equal(apply.ok, true, "upgrade apply should apply clean template updates");
+  assertBackupHasFile(target, apply.apply.backup, targetPath);
+  assertBackupHasFile(target, apply.apply.backup, ".harness/lock.yaml");
   assert.equal(
     apply.apply.applied.some((item) => item.includes(`safe/update-template-file: ${targetPath}`)),
     true,
@@ -2404,6 +2427,8 @@ withTempDir((root) => {
   assert.equal(apply.ok, true, "profiles switch --apply should pass for a clean switch plan");
   assert.equal(apply.mode, "apply", "profiles switch --apply should report apply mode");
   assert.equal(apply.apply.ok, true, "clean profile switch apply should succeed");
+  assertBackupHasFile(target, apply.apply.backup, ".harness/manifest.yaml");
+  assertBackupHasFile(target, apply.apply.backup, ".harness/lock.yaml");
   assert.equal(
     apply.apply.applied.some((item) => item.includes("safe/profile-module-install: decisions-open-questions")),
     true,
@@ -2803,6 +2828,8 @@ withTempDir((root) => {
   }));
   assert.equal(install.ok, true, "modules add should install decisions-open-questions");
   assert.equal(install.installed, true, "modules add should report an install");
+  assertBackupHasFile(target, install.backup, ".harness/manifest.yaml");
+  assertBackupHasFile(target, install.backup, ".harness/lock.yaml");
   assertExists(target, "modules/decisions-open-questions/module.yaml");
   assertExists(target, "decisions");
   assertExists(target, "open-questions.yaml");
@@ -3232,6 +3259,7 @@ withTempDir((root) => {
 
   const repairApply = quiet(() => runTestUpgrade({ cwd: target, args: ["apply"] }));
   assert.equal(repairApply.ok, true, "upgrade apply should apply safe command repairs");
+  assertBackupHasFile(target, repairApply.apply.backup, "package.json");
   assert.equal(
     repairApply.apply.applied.some((item) => item.includes("safe/repair-command")),
     true,

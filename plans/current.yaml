@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-06-04
+  updated: 2026-06-07
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -542,7 +542,7 @@ plans_status:
       priority: high
       owner_domain: gardening-and-entropy-management
       summary: Gardening And Entropy Management is now installed in the full profile with gardening rules, snapshots, list/check/report/plan commands, doctor validation, tests, and dogfood state.
-      next_action: Continue private hardening with backup/snapshot and rollback behavior before adding any reviewed mutation behavior.
+      next_action: Continue private hardening with rollback planning before adding any reviewed mutation behavior.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -566,8 +566,8 @@ plans_status:
       status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: With all formal process-domain baselines installed, private hardening now has configurable Gardening thresholds, explicit read-only cleanup action policy, reviewed action labels, and full-profile garden-plan smoke preflight.
-      next_action: Add backup/snapshot behavior before mutating installed repos, define rollback planning for failed safe applies, and evaluate profile sync apply after more read-only sync evidence.
+      summary: With all formal process-domain baselines installed, private hardening now has configurable Gardening thresholds, explicit read-only cleanup action policy, reviewed action labels, full-profile garden-plan smoke preflight, and lifecycle backups before supported mutation surfaces.
+      next_action: Define rollback planning for failed safe applies using lifecycle backup manifests, then evaluate profile sync apply after more read-only sync evidence.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -578,7 +578,9 @@ plans_status:
         - design/v1.1-installed-instance-roadmap.md
         - design/v1-gardening-entropy-management-design.md
         - decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md
+        - decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md
         - gardening/rules.yaml
         - scripts/garden.mjs
+        - scripts/lifecycle-backup.mjs
         - scripts/distribution.mjs
         - status.md
