@@ -176,6 +176,7 @@ harness:
     profiles-sync: node scripts/harness.mjs profiles sync
     lock-refresh: npm run lock:refresh
     lock-check: npm run lock:check
+    rollback-plan: npm run rollback:plan
     upgrade-plan: node scripts/harness.mjs upgrade --plan
     upgrade-apply: npm run upgrade:apply
     doctor: npm run doctor

@@ -116,6 +116,7 @@ reading_order:
   - decision-0041
   - decision-0042
   - decision-0043
+  - decision-0044
   - decision-template
   - package
   - harness-cli
@@ -126,6 +127,7 @@ reading_order:
   - modules-cli
   - profiles-cli
   - lifecycle-backup-helper
+  - rollback-cli
   - metadata-cli
   - state-cli
   - invariants-cli
@@ -172,7 +174,7 @@ documents:
     title: Harness Status
     kind: state
     status: active
-    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle backups, installed process-domain baselines through Gardening And Entropy Management, and next depth/hardening work. Not a changelog.
+    summary: Current-state projection for the harness repo, including v1 closeout, v1.1 installed-instance direction, lifecycle backups and rollback planning, installed process-domain baselines through Gardening And Entropy Management, and next depth/hardening work. Not a changelog.
     depends_on:
       - agents
 
@@ -192,7 +194,7 @@ documents:
     title: "Formal Product Spec: V1.1 Installed Instance Harness"
     kind: formal-product-spec
     status: active
-    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, installed-instance upgrade guidance, profile switching, lifecycle backups, process-domain depth, private production hardening, and real-repo dogfood."
+    summary: "Current post-v1 product direction: standalone installed-repo upgrade behavior, no source-owned target registry, installed-instance upgrade guidance, profile switching, lifecycle backups and rollback planning, process-domain depth, private production hardening, and real-repo dogfood."
     depends_on:
       - v1-product-spec-and-roadmap
       - v1-process-domain-design
@@ -273,7 +275,7 @@ documents:
     title: "Formal Design: V1 Upgrade Operation Contract"
     kind: formal-design
     status: active
-    summary: Accepted baseline for machine-readable upgrade plans, installed-instance upgrade guidance, operation classes, apply-enabled operations, safe command repair, and lifecycle backups before supported safe mutations.
+    summary: Accepted baseline for machine-readable upgrade plans, installed-instance upgrade guidance, operation classes, apply-enabled operations, safe command repair, lifecycle backups before supported safe mutations, and read-only rollback planning from backup manifests.
     depends_on:
       - v1-lock-provenance-design
       - v1-installed-manifest-design
@@ -689,7 +691,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current lifecycle backup depth pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current rollback planning depth pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -1138,11 +1140,22 @@ documents:
     title: Adopt Lifecycle Backups Before Safe Mutations
     kind: decision
     status: active
-    summary: Decision record adopting local recovery snapshots before supported safe mutation surfaces and deferring automatic rollback.
+    summary: Decision record adopting local recovery snapshots before supported safe mutation surfaces and deferring rollback restore/apply.
     depends_on:
       - v1-upgrade-operation-contract
       - lifecycle-backup-helper
       - decision-0042
+
+  - doc_id: decision-0044
+    file: decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md
+    title: Adopt Rollback Planning From Lifecycle Backups
+    kind: decision
+    status: active
+    summary: Decision record adopting read-only rollback planning from lifecycle backup manifests while deferring restore/apply behavior.
+    depends_on:
+      - v1-upgrade-operation-contract
+      - lifecycle-backup-helper
+      - decision-0043
 
   - doc_id: decision-template
     file: templates/decision.md
@@ -1158,7 +1171,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, lifecycle backups, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, lifecycle backups, rollback planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -1168,7 +1181,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning, lock maintenance, registry-aware upgrade planning/apply behavior with lifecycle backups, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning, lock maintenance, rollback planning, registry-aware upgrade planning/apply behavior with lifecycle backups, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -1248,6 +1261,16 @@ documents:
     summary: Reusable local backup snapshot helper used before supported lifecycle mutation surfaces change or delete existing files.
     depends_on:
       - v1-installed-manifest-design
+      - v1-upgrade-operation-contract
+
+  - doc_id: rollback-cli
+    file: scripts/rollback.mjs
+    title: Harness Rollback CLI
+    kind: cli
+    status: active
+    summary: Read-only rollback planner that consumes lifecycle backup manifests, verifies backup copy hashes, and classifies recovery candidates as safe, review-required, or blocked without restoring files.
+    depends_on:
+      - lifecycle-backup-helper
       - v1-upgrade-operation-contract
 
   - doc_id: metadata-cli
@@ -1420,7 +1443,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, lifecycle backup manifests, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management including configurable thresholds and action policy, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation including full-profile garden-plan preflight, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, lifecycle backup manifests, rollback planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management including configurable thresholds and action policy, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation including full-profile garden-plan preflight, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli
@@ -1433,6 +1456,7 @@ documents:
       - memory-cli
       - distribution-cli
       - lock-cli
+      - rollback-cli
       - decisions-cli
       - questions-cli
       - upgrade-cli

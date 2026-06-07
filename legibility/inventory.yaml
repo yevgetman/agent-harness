@@ -144,22 +144,27 @@ legibility:
         - dogfood
 
     - id: lifecycle-backup-surface
-      title: Lifecycle backup surface
+      title: Lifecycle backup and rollback surface
       kind: source-map
       status: active
-      summary: The lifecycle backup helper and mutation apply surfaces create local recovery snapshots before supported repo mutations.
-      how_to_inspect: Inspect backup helper behavior and mutation command call sites before changing module add, profile switch apply, upgrade apply, or destroy confirm behavior.
+      summary: The lifecycle backup helper and rollback planner create and inspect local recovery snapshots for supported repo mutations.
+      how_to_inspect: Inspect backup helper behavior, rollback planning behavior, and mutation command call sites before changing module add, profile switch apply, upgrade apply, destroy confirm, or recovery planning behavior.
       commands:
         - node --check scripts/lifecycle-backup.mjs
+        - node --check scripts/rollback.mjs
+        - node scripts/harness.mjs rollback --help
         - npm test
       references:
         - scripts/lifecycle-backup.mjs
+        - scripts/rollback.mjs
         - scripts/modules.mjs
         - scripts/profiles.mjs
         - scripts/upgrade.mjs
         - scripts/destroy.mjs
         - decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md
+        - decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md
       tags:
         - lifecycle
         - backup
+        - rollback
         - mutation-safety

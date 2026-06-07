@@ -24,6 +24,7 @@ import { runLegibility } from "./legibility.mjs";
 import { runReconcile } from "./reconcile.mjs";
 import { runGarden } from "./garden.mjs";
 import { runReports } from "./reports.mjs";
+import { runRollback } from "./rollback.mjs";
 import { runInvariants } from "./invariants.mjs";
 import { runInit } from "./init.mjs";
 import { runLock, sha256 } from "./lock.mjs";
@@ -478,7 +479,7 @@ withTempDir((root) => {
     "available registry version changes should be review-required operations",
   );
   assert.equal(upgrade.plan.managed_files.length, 4, "upgrade plan should include managed file states");
-  assert.equal(upgrade.plan.commands.length, 12, "upgrade plan should include command states");
+  assert.equal(upgrade.plan.commands.length, 13, "upgrade plan should include command states");
   assert.equal(upgrade.plan.operation_summary.by_status.safe > 0, true, "upgrade plan should summarize safe operations");
   assert.equal(
     upgrade.plan.operation_summary.by_code["deferred/apply-not-implemented"],
@@ -1175,7 +1176,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after structured metadata install");
   assert.equal(upgrade.plan.managed_files.length, 5, "structured metadata should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 15, "structured metadata should add three command records");
+  assert.equal(upgrade.plan.commands.length, 16, "structured metadata should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "structured-metadata")?.status,
     "unchanged",
@@ -1295,7 +1296,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after canonical-state install");
   assert.equal(upgrade.plan.managed_files.length, 6, "canonical-state should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 18, "canonical-state should add three command records");
+  assert.equal(upgrade.plan.commands.length, 19, "canonical-state should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "canonical-state")?.status,
     "unchanged",
@@ -1384,7 +1385,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after invariants install");
   assert.equal(upgrade.plan.managed_files.length, 6, "invariants should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 16, "invariants should add one command record");
+  assert.equal(upgrade.plan.commands.length, 17, "invariants should add one command record");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "invariants-golden-principles")?.status,
     "unchanged",
@@ -1489,7 +1490,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after plans install");
   assert.equal(upgrade.plan.managed_files.length, 6, "plans should add one managed file");
-  assert.equal(upgrade.plan.commands.length, 18, "plans should add three command records");
+  assert.equal(upgrade.plan.commands.length, 19, "plans should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "plans-and-status")?.status,
     "unchanged",
@@ -1589,7 +1590,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after durable memory install");
   assert.equal(upgrade.plan.managed_files.length, 8, "durable memory should add four managed files");
-  assert.equal(upgrade.plan.commands.length, 15, "durable memory should add three command records");
+  assert.equal(upgrade.plan.commands.length, 16, "durable memory should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "durable-memory")?.status,
     "unchanged",
@@ -1701,7 +1702,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after capture-triage install");
   assert.equal(upgrade.plan.managed_files.length, 7, "capture-triage should add three managed files");
-  assert.equal(upgrade.plan.commands.length, 17, "capture-triage should add five command records");
+  assert.equal(upgrade.plan.commands.length, 18, "capture-triage should add five command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "capture-triage")?.status,
     "unchanged",
@@ -1802,7 +1803,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after application-corpus-legibility install");
   assert.equal(upgrade.plan.managed_files.length, 7, "application-corpus-legibility should add three managed files");
-  assert.equal(upgrade.plan.commands.length, 15, "application-corpus-legibility should add three command records");
+  assert.equal(upgrade.plan.commands.length, 16, "application-corpus-legibility should add three command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "application-corpus-legibility")?.status,
     "unchanged",
@@ -1891,7 +1892,7 @@ withTempDir((root) => {
   assert.equal(generated.ok, true, "reports generate should pass for a known report");
   assert.equal(generated.summary.harness.modules, 3, "reports generate should summarize installed modules");
   assert.equal(generated.summary.harness.managed_files, 7, "reports generate should summarize managed files");
-  assert.equal(generated.summary.harness.commands, 16, "reports generate should summarize commands");
+  assert.equal(generated.summary.harness.commands, 17, "reports generate should summarize commands");
 
   const jsonGenerated = JSON.parse(execFileSync(
     process.execPath,
@@ -1911,7 +1912,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after reports-retrieval install");
   assert.equal(upgrade.plan.managed_files.length, 7, "reports-retrieval should add three managed files");
-  assert.equal(upgrade.plan.commands.length, 16, "reports-retrieval should add four command records");
+  assert.equal(upgrade.plan.commands.length, 17, "reports-retrieval should add four command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "reports-retrieval")?.status,
     "unchanged",
@@ -2021,7 +2022,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after reconciliation-drift-detection install");
   assert.equal(upgrade.plan.managed_files.length, 7, "reconciliation-drift-detection should add three managed files");
-  assert.equal(upgrade.plan.commands.length, 16, "reconciliation-drift-detection should add four command records");
+  assert.equal(upgrade.plan.commands.length, 17, "reconciliation-drift-detection should add four command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "reconciliation-drift-detection")?.status,
     "unchanged",
@@ -2175,7 +2176,7 @@ withTempDir((root) => {
   const upgrade = quiet(() => runTestUpgrade({ cwd: target, args: ["--plan"] }));
   assert.equal(upgrade.ok, true, "upgrade --plan should pass after gardening-entropy-management install");
   assert.equal(upgrade.plan.managed_files.length, 7, "gardening-entropy-management should add three managed files");
-  assert.equal(upgrade.plan.commands.length, 16, "gardening-entropy-management should add four command records");
+  assert.equal(upgrade.plan.commands.length, 17, "gardening-entropy-management should add four command records");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "gardening-entropy-management")?.status,
     "unchanged",
@@ -2887,11 +2888,48 @@ withTempDir((root) => {
   assert.equal(upgrade.plan.blockers.length, 0, "upgrade --plan should have no blockers after module add");
   assert.equal(upgrade.plan.warnings.length, 0, "upgrade --plan should have no warnings after module add");
   assert.equal(upgrade.plan.managed_files.length, 6, "module add should extend managed-file state");
-  assert.equal(upgrade.plan.commands.length, 15, "module add should extend command state");
+  assert.equal(upgrade.plan.commands.length, 16, "module add should extend command state");
   assert.equal(
     upgrade.plan.modules.find((module) => module.id === "decisions-open-questions")?.status,
     "unchanged",
     "upgrade --plan should report the added module as installed",
+  );
+
+  const rollbackReview = quiet(() => runRollback({ cwd: target, args: ["--plan"] }));
+  assert.equal(rollbackReview.ok, true, "rollback plan should inspect the latest lifecycle backup");
+  assert.equal(rollbackReview.status, "review-required", "rollback plan should require review before overwriting changed files");
+  assert.equal(rollbackReview.backup.path, install.backup.path, "rollback plan should select the latest backup by default");
+  assert.equal(
+    hasOperation(rollbackReview, "review/restore-overwrite-current-file", ".harness/manifest.yaml"),
+    true,
+    "rollback plan should classify changed target files as review-required",
+  );
+
+  unlinkSync(join(target, ".harness", "lock.yaml"));
+  const rollbackRestore = quiet(() => runRollback({ cwd: target, args: ["--plan", "--backup", install.backup.path] }));
+  assert.equal(
+    hasOperation(rollbackRestore, "safe/restore-missing-file", ".harness/lock.yaml"),
+    true,
+    "rollback plan should classify missing target files as safe restore candidates",
+  );
+
+  const rollbackJson = JSON.parse(execFileSync(
+    process.execPath,
+    [join(REPO_ROOT, "scripts", "harness.mjs"), "rollback", "--plan", "--backup", install.backup.path, "--json"],
+    { cwd: target, encoding: "utf8" },
+  ));
+  assert.equal(rollbackJson.backup.path, install.backup.path, "rollback --json should emit the selected backup");
+  assert.equal(rollbackJson.applied, false, "rollback --json should report plan-only behavior");
+
+  const backupManifest = readBackup(target, install.backup);
+  const backupLockEntry = backupManifest.files.find((file) => file.path === ".harness/lock.yaml");
+  writeFileSync(join(target, backupLockEntry.backup_path), "corrupt backup\n");
+  const rollbackBlocked = quiet(() => runRollback({ cwd: target, args: ["--plan", "--backup", install.backup.path] }));
+  assert.equal(rollbackBlocked.status, "blocked", "rollback plan should block corrupted backup copies");
+  assert.equal(
+    hasOperation(rollbackBlocked, "blocked/corrupt-backup-file", ".harness/lock.yaml"),
+    true,
+    "rollback plan should classify backup fingerprint mismatches as blockers",
   );
 
   const duplicate = quiet(() => runModules({
@@ -2900,6 +2938,26 @@ withTempDir((root) => {
   }));
   assert.equal(duplicate.ok, true, "adding an installed module should no-op");
   assert.equal(duplicate.noop, true, "duplicate module add should report noop");
+});
+
+withTempDir((root) => {
+  const target = join(root, "target");
+  initGitRepo(target);
+
+  const init = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", target, "--profile", "minimal"],
+  }));
+  assert.equal(init.ok, true, "init should pass before empty rollback plan test");
+
+  const rollback = quiet(() => runRollback({ cwd: target, args: ["--plan"] }));
+  assert.equal(rollback.ok, false, "rollback plan should fail when no backups exist");
+  assert.equal(rollback.status, "blocked", "rollback plan without backups should be blocked");
+  assert.equal(
+    rollback.errors.includes("no lifecycle backup manifests found"),
+    true,
+    "rollback plan should explain missing backups",
+  );
 });
 
 withTempDir((root) => {

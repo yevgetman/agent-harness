@@ -63,6 +63,7 @@ The profile records a plan-first upgrade policy and exposes:
 harness upgrade --plan
 harness upgrade --plan --json
 harness upgrade
+harness rollback --plan
 ```
 
 The plan command is read-only. The JSON form is the machine-readable upgrade
@@ -98,6 +99,10 @@ source template changed and can be merged without overwriting human content.
 It refuses blocked or review-required plans. Bare `harness upgrade` runs this
 safe apply path after planning internally. Supported apply mutations create a
 local backup under `.harness/backups/` before writing existing files.
+
+`harness rollback --plan` inspects lifecycle backup manifests without
+restoring files. It selects the newest backup by default, or accepts
+`--backup <backup-path-or-id>` for a specific backup.
 
 ## Lock Maintenance
 
@@ -178,8 +183,8 @@ See `docs/install.md` for the local tarball install path.
   managed files yet.
 - Module installation is collision-averse and does not merge existing
   human-authored files.
-- Backup manifests are recovery points; automatic rollback is not implemented
-  yet.
+- Backup manifests are recovery points; rollback planning is available, but
+  rollback restore/apply is not implemented yet.
 - Profile switch apply handles clean plans only; profile sync is currently
   plan-only, and profile removal is not implemented yet.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge

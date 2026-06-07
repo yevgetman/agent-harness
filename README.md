@@ -117,7 +117,8 @@ work:
   harness state early.
 - **Upgrade safety:** lock provenance lets `harness upgrade --plan` distinguish
   safe changes from review-required or blocked changes, and supported mutation
-  commands create local backup snapshots before writes or deletes.
+  commands create local backup snapshots before writes or deletes. `harness
+  rollback --plan` can inspect those snapshots without restoring files.
 - **Git hygiene:** init creates a git repo when needed and only ignores
   transient local harness state, while durable harness artifacts remain
   intended for version control.
@@ -198,6 +199,18 @@ when local content remains. Confirmed destroy creates a local backup under
 `.harness-destroy-backups/` before teardown; other safe mutation commands use
 `.harness/backups/`.
 
+Inspect the newest lifecycle backup without restoring files:
+
+```bash
+harness rollback --plan
+```
+
+Inspect a specific backup directory, manifest, or backup id:
+
+```bash
+harness rollback --plan --backup <backup-path-or-id>
+```
+
 ## Common Commands
 
 Health and lifecycle:
@@ -207,6 +220,7 @@ harness doctor
 harness destroy
 harness lock check
 harness lock refresh
+harness rollback --plan
 harness upgrade --plan
 harness upgrade
 ```
@@ -323,7 +337,8 @@ npm install -g /tmp/harness-pack/portable-harness-0.1.0.tgz
 Portable Harness is early and actively evolving. The current v1 baseline is
 complete for local tarball distribution, and the active direction is v1.1:
 installed-instance behavior, safe profile/module upgrades, process-domain
-depth, lifecycle backup hardening, and stronger real-repo dogfooding.
+depth, lifecycle backup and rollback planning hardening, and stronger
+real-repo dogfooding.
 
 Public npm publication is intentionally deferred until release blockers are
 cleared, including package visibility and license decisions. Until then, use

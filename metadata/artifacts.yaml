@@ -71,6 +71,7 @@ metadata:
         - upgrade-guidance
         - profile-switch
         - profile-sync
+        - rollback
       depends_on:
         - product-spec
         - process-domain-design
@@ -996,6 +997,23 @@ metadata:
         - profiles-cli
         - destroy-cli
 
+    - id: rollback-cli
+      path: scripts/rollback.mjs
+      kind: cli
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - lifecycle
+        - rollback
+        - backup
+        - plan
+        - private-hardening
+        - package-runtime
+      depends_on:
+        - lifecycle-backup-helper
+        - v1.1-installed-instance-roadmap
+        - package
+
     - id: structured-metadata-decision
       path: decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md
       kind: decision
@@ -1441,6 +1459,22 @@ metadata:
         - lifecycle-backup-helper
         - upgrade-cli
         - gardening-threshold-policy-decision
+
+    - id: rollback-planning-decision
+      path: decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - lifecycle
+        - rollback
+        - backup
+        - plan
+        - private-hardening
+        - decision
+      depends_on:
+        - rollback-cli
+        - lifecycle-backup-decision
 
     - id: v1.1-private-fleet-roadmap-decision
       path: decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md

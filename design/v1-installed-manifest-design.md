@@ -95,6 +95,7 @@ harness:
   commands:
     destroy: harness destroy
     doctor: npm run doctor
+    rollback-plan: npm run rollback:plan
     upgrade-plan: npm run upgrade:plan
   upgrade:
     policy: plan-first
@@ -165,6 +166,8 @@ harness upgrade --plan
 harness upgrade --plan --json
 harness upgrade
 harness upgrade apply
+harness rollback --plan
+harness rollback --plan --json
 harness destroy
 harness destroy --confirm
 ```
@@ -175,7 +178,8 @@ version source; package-installed targets may query npm registry metadata for
 the configured dist tag as defined by Distribution Readiness.
 
 The apply command is intentionally narrow. It does not rewrite human-facing
-managed files.
+managed files. The rollback command is plan-only; it reads lifecycle backup
+manifests and reports recovery classification without restoring files.
 
 The plan reports:
 
@@ -190,6 +194,17 @@ The plan reports:
 - Typed operation records.
 - Operation summary counts.
 - Actions, warnings, blockers, and notes.
+
+Rollback plans report:
+
+- Selected lifecycle backup manifest.
+- Backup purpose, creation time, root, copied file count, missing paths, and
+  skipped paths.
+- Backup copy fingerprint verification.
+- Safe restore candidates for missing target files.
+- Review-required overwrite candidates for target files that differ from the
+  backup.
+- Blockers for invalid, missing, or corrupted backup records.
 
 ## Upgrade version source
 

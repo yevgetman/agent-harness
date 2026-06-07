@@ -31,6 +31,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos with lifecycle backups before writes. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy Management are installed and dogfooded. Gardening includes configurable threshold validation, read-only action-policy validation, and reviewed action labels in cleanup plans. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, `npm run reports:check`, `npm run reconcile:check`, `npm run reconcile:plan`, `npm run garden:check`, `npm run garden:plan`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
+| Rollback planning | `harness rollback --plan` reads lifecycle backup manifests, verifies backup copy hashes, and classifies recovery candidates without restoring files. | `npm test` covers latest-backup selection, specific backup selection, safe missing-file restore candidates, review-required overwrites, corrupted backup blockers, and no-backup blockers. |
 | Upgrade planning | Upgrade plan is plan-first, read-only, lock-aware, operation-classified, JSON-capable, and reports installed-instance source/channel guidance plus next operator action. | `npm run upgrade:plan` and `node scripts/harness.mjs upgrade --plan --json`. |
 | Safe upgrade apply | Bare `harness upgrade` and `harness upgrade apply` permit safe/noop, safe/refresh-lock, deterministic safe/repair-command, post-v1 profile-bounded safe/install-module, and merge-safe clean safe/update-template-file operations, with lifecycle backups before writes. | `npm test` covers safe apply, bare upgrade apply, clean profile module install backups, command repair backups, merge-safe template cascade apply backups, blocked plans, and review-required refusal. |
 | Package boundary | The npm package has an explicit runtime `files` boundary and excludes dogfood/source-local state. | `npm run distribution:check`. |
@@ -49,6 +50,7 @@ Run this set before claiming the v1 baseline is still healthy:
 node --check scripts/init.mjs
 node --check scripts/destroy.mjs
 node --check scripts/lifecycle-backup.mjs
+node --check scripts/rollback.mjs
 node --check scripts/modules.mjs
 node --check scripts/profiles.mjs
 node --check scripts/capture.mjs
@@ -115,6 +117,7 @@ V1 includes:
 - Limited safe upgrade apply scaffold.
 - Lifecycle backups before supported module add, profile switch apply, upgrade
   apply, and confirmed destroy mutations.
+- Read-only rollback planning from lifecycle backup manifests.
 - Package boundary validation, release preflight, guarded publish planning, and
   external-target smoke.
 
@@ -250,7 +253,8 @@ cleanup-pressure planning. Doctor validates the gardening module when
 installed, and full-profile package smoke runs `harness garden plan` in the
 temporary installed target.
 
-The lifecycle backup hardening increment is implemented.
+The lifecycle backup and rollback planning hardening increments are
+implemented.
 
 `harness modules add`, `harness profiles switch --apply`, `harness upgrade` /
 `harness upgrade apply`, and `harness destroy --confirm` now create local
@@ -258,7 +262,13 @@ backup snapshots before mutating existing files. Normal apply backups live
 under `.harness/backups/`; confirmed destroy backups live under
 `.harness-destroy-backups/` so they survive removal of `.harness/`. Backup
 manifests record copied files, missing paths, skipped paths, SHA-256
-fingerprints, purpose, and command metadata. Rollback is still future work.
+fingerprints, purpose, and command metadata.
+
+`harness rollback --plan [--backup <backup-path-or-id>] [--json]` now inspects
+those manifests without mutating files. It selects the newest valid backup by
+default, verifies copied file hashes, reports safe restore candidates for
+missing target files, marks overwrites as review-required, and blocks missing
+or corrupted backup copies. Rollback restore/apply remains future work.
 
 ## Next Work After V1
 
@@ -273,11 +283,11 @@ source fingerprints are checked against the executing harness source/package.
 
 The strongest remaining v1.1 candidates are:
 
-1. Define rollback planning for failed safe applies using lifecycle backup
-   manifests.
+1. Add profile sync apply after the read-only plan has more dogfood evidence.
 2. Broaden generated-file, module-definition, merge-aware, and
    review-mediated file/template upgrades while preserving review boundaries.
-3. Add profile sync apply after the read-only plan has more dogfood evidence.
+3. Define rollback restore/apply only after plan-only rollback has enough
+   dogfood evidence.
 
 Public publication remains deferred unless a new decision intentionally resumes
 release work.

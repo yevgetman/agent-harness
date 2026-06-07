@@ -22,6 +22,7 @@ const REQUIRED_PACKAGE_FILES = [
   "scripts/legibility.mjs",
   "scripts/reports.mjs",
   "scripts/reconcile.mjs",
+  "scripts/rollback.mjs",
   "scripts/garden.mjs",
   "scripts/modules.mjs",
   "scripts/profiles.mjs",

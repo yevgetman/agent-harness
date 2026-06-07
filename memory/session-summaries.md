@@ -22,9 +22,11 @@
   reviewed action labels, and full-profile garden-plan smoke preflight.
 - Lifecycle backup hardening is implemented for module add, profile switch
   apply, upgrade apply, and confirmed destroy.
-- The next recommended work is private production hardening for mutation
-  safety: rollback planning against backup manifests, and profile sync apply
-  only after more read-only evidence.
+- Read-only rollback planning is implemented against lifecycle backup
+  manifests.
+- The next recommended work is private production hardening for profile sync
+  apply after more read-only evidence; rollback restore/apply remains future
+  lifecycle work.
 
 ## Archive
 

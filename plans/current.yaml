@@ -542,7 +542,7 @@ plans_status:
       priority: high
       owner_domain: gardening-and-entropy-management
       summary: Gardening And Entropy Management is now installed in the full profile with gardening rules, snapshots, list/check/report/plan commands, doctor validation, tests, and dogfood state.
-      next_action: Continue private hardening with rollback planning before adding any reviewed mutation behavior.
+      next_action: Use rollback planning evidence before any restore/apply behavior, and continue private hardening with profile sync apply evaluation.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -566,8 +566,8 @@ plans_status:
       status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: With all formal process-domain baselines installed, private hardening now has configurable Gardening thresholds, explicit read-only cleanup action policy, reviewed action labels, full-profile garden-plan smoke preflight, and lifecycle backups before supported mutation surfaces.
-      next_action: Define rollback planning for failed safe applies using lifecycle backup manifests, then evaluate profile sync apply after more read-only sync evidence.
+      summary: With all formal process-domain baselines installed, private hardening now has configurable Gardening thresholds, explicit read-only cleanup action policy, reviewed action labels, full-profile garden-plan smoke preflight, lifecycle backups before supported mutation surfaces, and read-only rollback planning from backup manifests.
+      next_action: Evaluate profile sync apply after more read-only sync evidence; keep rollback restore/apply deferred until the plan-only rollback surface has dogfood evidence.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -579,8 +579,32 @@ plans_status:
         - design/v1-gardening-entropy-management-design.md
         - decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md
         - decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md
+        - decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md
         - gardening/rules.yaml
         - scripts/garden.mjs
         - scripts/lifecycle-backup.mjs
+        - scripts/rollback.mjs
         - scripts/distribution.mjs
+        - status.md
+
+    - id: v1.1-rollback-planning-depth
+      title: Add rollback planning from lifecycle backups
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: The harness now has a read-only rollback planning surface that consumes lifecycle backup manifests, verifies backup copy hashes, and classifies safe, review-required, and blocked recovery candidates without restoring files.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - hardening
+        - rollback
+        - backup
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-upgrade-operation-contract.md
+        - decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md
+        - scripts/rollback.mjs
+        - scripts/lifecycle-backup.mjs
+        - scripts/test.mjs
         - status.md

@@ -20,6 +20,7 @@ import { runReconcile } from "./reconcile.mjs";
 import { runGarden } from "./garden.mjs";
 import { runMemory } from "./memory.mjs";
 import { runDistribution } from "./distribution.mjs";
+import { runRollback } from "./rollback.mjs";
 
 const [, , command, ...args] = process.argv;
 
@@ -78,6 +79,7 @@ Usage:
   harness distribution smoke
   harness lock refresh
   harness lock check
+  harness rollback --plan
   harness upgrade --plan
   harness upgrade --plan --json
   harness upgrade
@@ -149,6 +151,9 @@ if (!command || command === "help" || command === "--help" || command === "-h") 
   process.exitCode = result.ok ? 0 : 2;
 } else if (command === "lock") {
   const result = runLock({ cwd: process.cwd(), args });
+  process.exitCode = result.ok ? 0 : 2;
+} else if (command === "rollback") {
+  const result = runRollback({ cwd: process.cwd(), args });
   process.exitCode = result.ok ? 0 : 2;
 } else {
   console.error(`Unknown command: ${command}`);

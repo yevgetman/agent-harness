@@ -133,6 +133,12 @@ recovery snapshots. Do not commit them. Normal safe mutation commands should
 report `.harness/backups/` paths; confirmed destroy should report
 `.harness-destroy-backups/` paths.
 
+Use `npm run rollback:plan` to inspect the newest lifecycle backup manifest
+without mutating files. Use `npm run rollback:plan -- --backup <path-or-id>`
+when a specific backup path, manifest, or backup id matters. Rollback
+restore/apply is not implemented; do not perform ad hoc restores unless a user
+explicitly asks for manual recovery.
+
 Use `npm run lock:check` to inspect whether the installed lock matches current
 managed-file state.
 

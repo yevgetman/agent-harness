@@ -8,7 +8,7 @@ reports:
       title: Installed harness overview
       kind: cross-domain
       status: active
-      summary: Summarizes installed modules, managed files, commands, plans, state, metadata, capture, memory, legibility, reports, reconciliation, gardening, and lifecycle backup state, including cleanup thresholds and action policy.
+      summary: Summarizes installed modules, managed files, commands, plans, state, metadata, capture, memory, legibility, reports, reconciliation, gardening, and lifecycle backup/rollback planning state, including cleanup thresholds and action policy.
       sources:
         - .harness/manifest.yaml
         - metadata/artifacts.yaml
@@ -22,6 +22,7 @@ reports:
         - reconciliation/rules.yaml
         - gardening/rules.yaml
         - scripts/lifecycle-backup.mjs
+        - scripts/rollback.mjs
       tags:
         - dogfood
         - installed-instance

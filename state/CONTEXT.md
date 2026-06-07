@@ -147,7 +147,8 @@ Current dogfood state:
   action labels, and doctor validation.
 - Harness Lifecycle exists in first dogfood form via `.harness/manifest.yaml`
   and module definitions under `modules/`, with lifecycle backups before
-  supported mutation surfaces.
+  supported mutation surfaces and read-only rollback planning from backup
+  manifests.
 - Mechanical Validation exists in first dogfood form via `npm run doctor` and
   `npm test`; doctor now validates command wiring and the depth gate when
   present.
@@ -177,6 +178,7 @@ Current dogfood state:
   for template-backed managed files. Optional registry modules remain
   deferred, and blocked or review-required plans are refused. Apply now creates
   lifecycle backups before writes when mutation operations are present.
+  `harness rollback --plan` inspects those backups without restoring files.
 - Phase 3 Lock And Provenance exists in baseline form via `.harness/lock.yaml`,
   lock generation during `harness init`, lock refresh during `harness modules
   add`, `harness lock refresh`, `harness lock check`, doctor fingerprint
@@ -252,7 +254,10 @@ Lifecycle backups now create local recovery snapshots before supported
 mutation surfaces write, edit, or delete existing files. Normal apply backups
 are ignored under `.harness/backups/`. Confirmed destroy backups are ignored
 under `.harness-destroy-backups/` so they survive removal of `.harness/`.
-Backups are recovery aids; automatic rollback is still future work.
+`harness rollback --plan` reads those backup manifests, selects the newest
+backup by default, verifies copied file hashes, and classifies recovery work as
+safe, review-required, or blocked. Backups are recovery aids; rollback
+restore/apply is still future work.
 
 ## Orientation rule
 
@@ -272,7 +277,8 @@ Then open the relevant formal design or exploratory spec for the task.
 The first v1.1 installed-instance upgrade-contract increment, profile switch
 planning, safe profile switch apply, template source lock-check correction,
 clean template cascade apply baseline, profile sync planning, lifecycle
-backups before supported mutations, and Durable Memory, Capture And Triage,
+backups before supported mutations, rollback planning from backup manifests,
+and Durable Memory, Capture And Triage,
 Application / Corpus Legibility, Reports And Retrieval, Reconciliation And
 Drift Detection, and Gardening And Entropy Management baselines are
 implemented. The current hardening lane is private production readiness. The
@@ -336,7 +342,9 @@ machinery, but public release is not the current product priority.
 - Lifecycle backups now exist before module add, profile switch apply, upgrade
   apply, and confirmed destroy mutations. Normal backups live under
   `.harness/backups/`; destroy backups live under `.harness-destroy-backups/`.
-- Next work: continue private production hardening with rollback planning for
-  failed safe applies and profile sync apply once read-only sync evidence is
-  strong enough.
+- Rollback planning now exists through `npm run rollback:plan`; it inspects
+  lifecycle backup manifests without mutating files.
+- Next work: continue private production hardening with profile sync apply once
+  read-only sync evidence is strong enough; keep rollback restore/apply
+  separate until plan-only rollback has dogfood evidence.
 - Keep `status.md` current after significant choices.

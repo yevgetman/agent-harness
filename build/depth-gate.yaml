@@ -1035,11 +1035,10 @@ build_strategy:
             - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
 
   current_depth_pass:
-    id: v1.1-lifecycle-backup-depth
+    id: v1.1-rollback-planning-depth
     breadth_unit: >
-      Deepen private lifecycle mutation safety with local backup snapshots
-      before supported safe mutation surfaces write, edit, or delete existing
-      files.
+      Deepen private lifecycle recovery safety with read-only rollback
+      planning against lifecycle backup manifests.
     status: complete
     completed_on: 2026-06-07
     ready_for_next_breadth: true
@@ -1047,38 +1046,39 @@ build_strategy:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - scripts/lifecycle-backup.mjs creates timestamped backup directories with backup.yaml manifests.
-          - harness modules add creates a backup before module artifact, manifest, or lock writes.
-          - harness profiles switch --apply creates one backup before clean switch apply writes.
-          - harness upgrade and harness upgrade apply create one backup before supported apply writes.
-          - harness destroy --confirm creates a sibling .harness-destroy-backups snapshot before teardown writes and deletes.
+          - scripts/rollback.mjs builds read-only rollback plans from lifecycle backup manifests.
+          - harness rollback --plan selects the newest backup manifest by creation time.
+          - harness rollback --plan --backup <path-or-id> inspects a specific backup directory, manifest, or backup id.
+          - harness rollback --plan --json emits machine-readable rollback plans.
       - id: validation
         status: satisfied
         evidence:
-          - Backup manifests record purpose, creation time, target root, copied file paths, backup paths, SHA-256 fingerprints, missing paths, skipped paths, and command metadata.
-          - Normal lifecycle apply backups are ignored under .harness/backups/.
-          - Confirmed destroy backups are ignored under .harness-destroy-backups/ so they survive removal of .harness/.
-          - distribution check requires scripts/lifecycle-backup.mjs in the runtime package boundary.
+          - Rollback planning verifies backup copy SHA-256 values before classifying recovery operations.
+          - Missing target files backed by intact backup copies are safe restore candidates.
+          - Existing target files that differ from backup copies are review-required because restoring would overwrite current content.
+          - Missing, corrupted, or malformed backup records are blockers.
+          - distribution check requires scripts/rollback.mjs in the runtime package boundary.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers module-add backup manifests.
-          - npm test covers profile switch apply backup manifests.
-          - npm test covers upgrade apply backups for module installs, command repair, and template cascade updates.
-          - npm test covers destroy confirm backups, including generated-only teardown.
+          - npm test covers latest-backup rollback planning after module add.
+          - npm test covers specific-backup rollback planning.
+          - npm test covers safe missing-file restore candidates.
+          - npm test covers review-required overwrite candidates.
+          - npm test covers corrupted backup copy blockers and no-backup blockers.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md records the lifecycle backup decision.
-          - design/v1-upgrade-operation-contract.md defines lifecycle backup expectations before supported safe mutations.
-          - design/v1.1-installed-instance-roadmap.md records backup snapshots as implemented private hardening.
-          - docs/v1-validation.md includes lifecycle backup behavior and validation commands.
+          - decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md records the rollback planning decision.
+          - design/v1-upgrade-operation-contract.md defines rollback planning as a read-only consumer of lifecycle backup manifests.
+          - design/v1.1-installed-instance-roadmap.md records rollback planning as implemented private hardening.
+          - docs/v1-validation.md includes rollback planning behavior and validation commands.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood .gitignore and agent-operating-contract .gitignore template ignore both backup roots.
-          - The dogfood package boundary includes the lifecycle backup helper.
-          - npm test validates backup behavior in real temporary git targets.
+          - The dogfood manifest exposes rollback-plan.
+          - The dogfood package boundary includes the rollback planner.
+          - npm test validates rollback planning behavior in real temporary git targets with lifecycle backup manifests.
           - Copied real-repo smoke targets validate package-installed full-profile behavior without mutating source repos.
-          - The next dogfood hardening item is rollback planning against these backup manifests.
+          - The next dogfood hardening item is profile sync apply evaluation after read-only sync evidence.

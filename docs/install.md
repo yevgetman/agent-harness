@@ -127,7 +127,10 @@ harness upgrade
 Supported mutation commands create local backup snapshots before writing or
 deleting existing files. Normal lifecycle apply backups live under
 `.harness/backups/`; confirmed destroy uses `.harness-destroy-backups/`.
-Backups are recovery points, not automatic rollback.
+Backups are recovery points. `harness rollback --plan` inspects the newest
+backup manifest, verifies backup copy hashes, and classifies recovery work
+without restoring files. Use `harness rollback --plan --backup
+<backup-path-or-id>` to inspect a specific backup.
 
 `harness upgrade --plan --json` includes `version_source` and
 `upgrade_guidance` so an installed repo can explain its source/channel, package

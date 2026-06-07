@@ -4,6 +4,7 @@
 **Date:** 2026-05-14; amended 2026-05-17, 2026-05-24, and 2026-06-07
 **Scope:** upgrade-plan schema, operation classes, apply safety, and narrow
 repair behavior, including lifecycle backups before supported safe mutations
+and read-only rollback planning from backup manifests
 
 This is a formal design document. It defines the contract between upgrade
 planning and upgrade application for v1 harness lifecycle work.
@@ -179,9 +180,15 @@ Backup manifests record the purpose, creation time, target root, copied file
 paths, backup paths, SHA-256 fingerprints, missing paths, skipped paths, and
 command metadata. Backups are ignored as transient operator state.
 
-The backup is a recovery aid. Automatic rollback, replay, and restore commands
-are future work and should consume these manifests instead of defining a second
-snapshot format.
+The backup is a recovery aid. `harness rollback --plan` consumes these
+manifests as the first read-only recovery inspection surface. It verifies each
+backup copy against its recorded SHA-256, compares it to current target files,
+and classifies recovery work as safe, review-required, or blocked without
+restoring files.
+
+Rollback restore/apply, replay, and broader recovery commands are future work
+and should consume these manifests and rollback plans instead of defining a
+second snapshot format.
 
 ## Safe Command Repair
 
@@ -270,7 +277,7 @@ This contract does not yet define:
 
 - semantic diffs for human-facing documents.
 - template merge application.
-- automatic rollback from lifecycle backup manifests.
+- rollback restore/apply from lifecycle backup manifests.
 - module profile switching.
 - module-definition cascade apply.
 - remote package discovery.

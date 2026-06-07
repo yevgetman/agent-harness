@@ -502,6 +502,7 @@ function commandsFor(modules) {
     "profiles-sync": "harness profiles sync",
     "lock-refresh": "harness lock refresh",
     "lock-check": "harness lock check",
+    "rollback-plan": "harness rollback --plan",
     "upgrade-plan": "harness upgrade --plan",
     "upgrade-apply": "harness upgrade apply",
   };
