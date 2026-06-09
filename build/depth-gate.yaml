@@ -833,7 +833,7 @@ build_strategy:
         - id: validation
           status: satisfied
           evidence:
-            - Sync is plan-only and emits deferred/sync-apply-not-implemented.
+            - Sync apply was deferred in the initial planning increment.
             - Sync refuses explicit profile arguments so it cannot accidentally switch profiles.
             - Collision states are review/sync-module-install-collision.
             - Missing active-profile modules do not mutate the target during planning.
@@ -1035,50 +1035,49 @@ build_strategy:
             - Legibility inventory records CLI, registry, validation, distribution, and real-repo smoke inspection surfaces.
 
   current_depth_pass:
-    id: v1.1-rollback-planning-depth
+    id: v1.1-profile-sync-apply-depth
     breadth_unit: >
-      Deepen private lifecycle recovery safety with read-only rollback
-      planning against lifecycle backup manifests.
+      Deepen profile lifecycle safety with clean active-profile sync apply.
     status: complete
-    completed_on: 2026-06-07
+    completed_on: 2026-06-09
     ready_for_next_breadth: true
     depth_criteria:
       - id: executable-behavior
         status: satisfied
         evidence:
-          - scripts/rollback.mjs builds read-only rollback plans from lifecycle backup manifests.
-          - harness rollback --plan selects the newest backup manifest by creation time.
-          - harness rollback --plan --backup <path-or-id> inspects a specific backup directory, manifest, or backup id.
-          - harness rollback --plan --json emits machine-readable rollback plans.
+          - harness profiles sync --plan reads the target manifest active profile and classifies active-profile module alignment.
+          - harness profiles sync --apply rebuilds the plan before mutation.
+          - sync apply installs clean missing active-profile modules through the existing module installer.
+          - sync apply retains installed modules outside the active profile and never switches the target manifest profile.
       - id: validation
         status: satisfied
         evidence:
-          - Rollback planning verifies backup copy SHA-256 values before classifying recovery operations.
-          - Missing target files backed by intact backup copies are safe restore candidates.
-          - Existing target files that differ from backup copies are review-required because restoring would overwrite current content.
-          - Missing, corrupted, or malformed backup records are blockers.
-          - distribution check requires scripts/rollback.mjs in the runtime package boundary.
+          - sync apply refuses review-required module collisions before mutation.
+          - sync apply refuses blocked plans before mutation.
+          - sync apply pre-checks every module install before writing.
+          - sync apply creates one lifecycle backup for manifest, lock, and planned module artifacts before writes.
       - id: tests
         status: satisfied
         evidence:
-          - npm test covers latest-backup rollback planning after module add.
-          - npm test covers specific-backup rollback planning.
-          - npm test covers safe missing-file restore candidates.
-          - npm test covers review-required overwrite candidates.
-          - npm test covers corrupted backup copy blockers and no-backup blockers.
+          - npm test covers profile sync plan output and JSON output.
+          - npm test covers clean sync apply from a minimal target whose manifest active profile is full.
+          - npm test covers lifecycle backup creation for sync apply.
+          - npm test covers post-apply in-sync planning.
+          - npm test covers review-required collision refusal without creating a backup.
       - id: docs
         status: satisfied
         evidence:
-          - decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md records the rollback planning decision.
-          - design/v1-upgrade-operation-contract.md defines rollback planning as a read-only consumer of lifecycle backup manifests.
-          - design/v1.1-installed-instance-roadmap.md records rollback planning as implemented private hardening.
-          - docs/v1-validation.md includes rollback planning behavior and validation commands.
+          - decisions/0045-adopt-safe-profile-sync-apply.md records the sync apply decision.
+          - design/v1-module-profile-installation-design.md defines profile sync apply behavior.
+          - design/v1.1-installed-instance-roadmap.md records profile sync apply as implemented private hardening.
+          - docs/v1-validation.md includes profile sync apply behavior and validation commands.
           - status.md, state/CONTEXT.md, index.yaml, metadata/artifacts.yaml, and plans/current.yaml describe the new behavior.
       - id: dogfood-usage
         status: satisfied
         evidence:
-          - The dogfood manifest exposes rollback-plan.
-          - The dogfood package boundary includes the rollback planner.
-          - npm test validates rollback planning behavior in real temporary git targets with lifecycle backup manifests.
+          - The dogfood manifest exposes profiles-sync.
+          - npm run profiles:sync -- --plan reports the dogfood target in sync.
+          - npm run profiles:sync -- --apply succeeds as a clean no-op for the dogfood target.
+          - npm test validates sync apply behavior in real temporary git targets.
           - Copied real-repo smoke targets validate package-installed full-profile behavior without mutating source repos.
-          - The next dogfood hardening item is profile sync apply evaluation after read-only sync evidence.
+          - The next dogfood hardening item is review-mediated upgrade workflow depth.

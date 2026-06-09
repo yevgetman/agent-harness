@@ -164,6 +164,7 @@ Current commands:
 - `harness profiles switch <profile> --plan`
 - `harness profiles switch <profile> --apply`
 - `harness profiles sync --plan`
+- `harness profiles sync --apply`
 - `harness metadata list`
 - `harness metadata check`
 - `harness metadata report`
@@ -257,8 +258,8 @@ Exit signal:
 ### Phase 2: Module And Profile Installation
 
 Status: substantially complete for v1 install/list lifecycle. Profile
-inspection, profile switch planning, clean profile switch apply, and profile
-sync planning are implemented as post-v1 follow-ons.
+inspection, profile switch planning, clean profile switch apply, profile sync
+planning, and clean profile sync apply are implemented as post-v1 follow-ons.
 
 Purpose:
 
@@ -280,6 +281,7 @@ Implemented follow-on commands:
 - `harness profiles switch <profile> --plan`
 - `harness profiles switch <profile> --apply`
 - `harness profiles sync --plan`
+- `harness profiles sync --apply`
 
 Exit signal:
 

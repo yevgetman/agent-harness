@@ -34,7 +34,9 @@ harness init
 harness doctor
 harness reconcile plan
 harness garden plan
+harness profiles sync --plan
 harness upgrade --plan
+harness profiles sync --apply
 harness upgrade
 ```
 
@@ -113,6 +115,7 @@ Private upgrade flow:
 harness doctor
 harness reconcile plan
 harness garden plan
+harness profiles sync --plan
 harness upgrade --plan
 ```
 
@@ -121,11 +124,16 @@ harness upgrade --plan
 4. Run apply only for supported safe operations:
 
 ```bash
+harness profiles sync --apply
 harness upgrade
 ```
 
-Supported mutation commands create local backup snapshots before writing or
-deleting existing files. Normal lifecycle apply backups live under
+`harness profiles sync --apply` is only for clean active-profile alignment
+plans. It installs missing modules required by the repo's current profile and
+refuses plans with review-required or blocked work.
+
+Supported mutation commands create local backup snapshots before writing,
+editing, or deleting existing files. Normal lifecycle apply backups live under
 `.harness/backups/`; confirmed destroy uses `.harness-destroy-backups/`.
 Backups are recovery points. `harness rollback --plan` inspects the newest
 backup manifest, verifies backup copy hashes, and classifies recovery work

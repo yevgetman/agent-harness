@@ -1,6 +1,6 @@
 repo: harness
 description: Portable harness source repo and first dogfood target.
-updated: 2026-06-07
+updated: 2026-06-09
 harness:
   package: portable-harness
   version: 0.1.0
@@ -117,6 +117,7 @@ reading_order:
   - decision-0042
   - decision-0043
   - decision-0044
+  - decision-0045
   - decision-template
   - package
   - harness-cli
@@ -275,7 +276,7 @@ documents:
     title: "Formal Design: V1 Upgrade Operation Contract"
     kind: formal-design
     status: active
-    summary: Accepted baseline for machine-readable upgrade plans, installed-instance upgrade guidance, operation classes, apply-enabled operations, safe command repair, lifecycle backups before supported safe mutations, and read-only rollback planning from backup manifests.
+    summary: Accepted baseline for machine-readable upgrade plans, installed-instance upgrade guidance, operation classes, apply-enabled operations, safe command repair, lifecycle backups before supported safe mutations including profile sync apply, and read-only rollback planning from backup manifests.
     depends_on:
       - v1-lock-provenance-design
       - v1-installed-manifest-design
@@ -691,7 +692,7 @@ documents:
     title: Depth Gate
     kind: build-state
     status: active
-    summary: Repo-local build methodology gate recording completed depth passes and the current rollback planning depth pass.
+    summary: Repo-local build methodology gate recording completed depth passes and the current profile sync apply depth pass.
     depends_on:
       - v1-incremental-build-strategy
 
@@ -1157,6 +1158,17 @@ documents:
       - lifecycle-backup-helper
       - decision-0043
 
+  - doc_id: decision-0045
+    file: decisions/0045-adopt-safe-profile-sync-apply.md
+    title: Adopt Safe Profile Sync Apply
+    kind: decision
+    status: active
+    summary: Decision record adopting clean active-profile sync apply while retaining conservative refusal on review-required or blocked plans.
+    depends_on:
+      - v1-module-profile-installation-design
+      - profiles-cli
+      - decision-0032
+
   - doc_id: decision-template
     file: templates/decision.md
     title: Decision Template
@@ -1171,7 +1183,7 @@ documents:
     title: Package Manifest
     kind: cli
     status: active
-    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning, lifecycle backups, rollback planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
+    summary: Node package wiring, publish metadata, global harness bin, explicit package files boundary including runtime docs, and scripts for the harness CLI, init, destroy, decisions, questions, modules, profiles including sync planning/apply, lifecycle backups, rollback planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning/global smoke/external smoke, lock maintenance, registry-aware upgrade planning/apply behavior, doctor, and tests.
     depends_on:
       - v1-installed-manifest-design
       - v1-incremental-build-strategy
@@ -1181,7 +1193,7 @@ documents:
     title: Harness CLI Entrypoint
     kind: cli
     status: active
-    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning, lock maintenance, rollback planning, registry-aware upgrade planning/apply behavior with lifecycle backups, and doctor.
+    summary: Minimal command dispatcher for init, destroy, decisions, questions, modules, profiles including sync planning/apply, metadata, canonical state, invariants, plans, capture, legibility, reports, reconciliation, gardening, memory, distribution checks/release preflight/publish planning, lock maintenance, rollback planning, registry-aware upgrade planning/apply behavior with lifecycle backups, and doctor.
     depends_on:
       - v1-installed-manifest-design
 
@@ -1225,7 +1237,7 @@ documents:
     title: Harness Install
     kind: reference
     status: active
-    summary: Local tarball install guide, installed-instance upgrade flow, lifecycle backup behavior, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, package-installed registry discovery expectation, and v1 validation pointer.
+    summary: Local tarball install guide, installed-instance upgrade and profile sync flow, lifecycle backup behavior, package-boundary explanation, external-target smoke usage, guarded publish planning, registry-install deferral note, package-installed registry discovery expectation, and v1 validation pointer.
     depends_on:
       - v1-distribution-readiness-design
       - package
@@ -1247,7 +1259,7 @@ documents:
     title: Harness Profiles CLI
     kind: cli
     status: active
-    summary: Profile listing, read-only profile inspection, profile switch planning/apply with lifecycle backups, profile sync planning, and profile-loading helpers used by profile-backed init.
+    summary: Profile listing, read-only profile inspection, profile switch planning/apply with lifecycle backups, profile sync planning/apply with lifecycle backups, and profile-loading helpers used by profile-backed init.
     depends_on:
       - v1-module-profile-installation-design
       - profile-minimal
@@ -1443,7 +1455,7 @@ documents:
     title: Harness Tests
     kind: cli
     status: active
-    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync planning, lifecycle backup manifests, rollback planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management including configurable thresholds and action policy, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation including full-profile garden-plan preflight, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
+    summary: Executable tests for init safety, installed-instance metadata, profile-backed init, doctor validation, decisions, questions, modules, profile inspection, profile switch plan/apply, profile sync plan/apply, lifecycle backup manifests, rollback planning, structured metadata, canonical state, invariants, plans/status, capture/triage, application/corpus legibility, reports/retrieval, reconciliation/drift detection, gardening/entropy management including configurable thresholds and action policy, durable memory, distribution package contents, release preflight, guarded publish workflow, smoke validation including full-profile garden-plan preflight, registry discovery, external-target smoke, semantic lock/provenance behavior, upgrade planning/guidance/apply behavior, depth-gate validation, and doctor fixtures.
     depends_on:
       - init
       - profiles-cli

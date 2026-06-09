@@ -1,6 +1,6 @@
 # Harness Status
 
-Last updated: 2026-06-07
+Last updated: 2026-06-09
 
 ## Current Phase
 
@@ -33,8 +33,9 @@ succeed, refreshes lock provenance, retains modules outside the requested
 profile, and refuses review-required or blocked plans. The first cascade
 apply baseline now handles merge-safe clean module-template managed-file
 updates through `harness upgrade apply`. Bare `harness upgrade` now runs the
-safe apply path after planning internally. Profile sync planning now exists
-through `harness profiles sync --plan`. Bare `harness init` now defaults to
+safe apply path after planning internally. Profile sync planning and clean
+apply now exist through `harness profiles sync --plan` and
+`harness profiles sync --apply`. Bare `harness init` now defaults to
 the `full` profile and preserves existing human-authored content by adding or
 updating harness-owned sections. Init now creates a git repo when the target
 does not already have one and installs a merge-safe `.gitignore` harness
@@ -59,10 +60,10 @@ review-oriented finding actions, and full-profile smoke preflight coverage for
 `harness garden plan`. Lifecycle backup hardening now creates local recovery
 snapshots before supported mutation surfaces write, edit, or delete existing
 files, and read-only rollback planning exists through
-`harness rollback --plan`. The next recommended work is private lifecycle
-depth around profile sync apply once the read-only sync plan has enough
-evidence; rollback restore/apply remains separate future work after rollback
-plans have dogfood evidence.
+`harness rollback --plan`. Clean profile sync apply now closes the active
+profile alignment gap. The next recommended work is private lifecycle depth
+for review-mediated upgrade workflows; rollback restore/apply remains separate
+future work after rollback plans have dogfood evidence.
 
 The repo currently has exploratory specs, nineteen formal v1 documents, a root
 agent operating contract, a current-state status projection, a minimal
@@ -79,7 +80,8 @@ first module/profile installation surface exists through `modules/registry.yaml`
 `harness profiles list`, `harness profiles inspect <profile>`,
 `harness profiles switch <profile> --plan`,
 `harness profiles switch <profile> --apply`,
-`harness profiles sync --plan`, and profile-backed init, with broad
+`harness profiles sync --plan`, `harness profiles sync --apply`, and
+profile-backed init, with broad
 temp-target tests. Decisions And
 Open Questions is dogfooded with `decisions/`, `open-questions.yaml`, a
 decision template, decision and question list commands, a decision creation
@@ -107,12 +109,13 @@ pre-checks every required install before any write, installs each clean module
 through the existing module-add installer, updates the manifest profile only
 after installs succeed, refreshes lock provenance for the manifest, and
 records retained modules as `deferred/profile-module-retained` skips.
-Profile sync planning now adds
-`harness profiles sync --plan [--target <path>] [--json]` for read-only active
-profile alignment checks: it loads the target's manifest profile, classifies
+Profile sync planning and apply now add
+`harness profiles sync --plan [--target <path>] [--json]` and
+`harness profiles sync --apply [--target <path>] [--json]` for active-profile
+alignment checks: sync loads the target's manifest profile, classifies
 installed, clean missing, review-required, and blocked active-profile modules,
-reports retained modules outside the active profile, and records sync apply as
-deferred.
+reports retained modules outside the active profile, applies clean missing
+active-profile modules, and refuses review-required or blocked plans.
 Lifecycle mutation backups now exist for supported mutation surfaces. `harness
 modules add`, `harness profiles switch --apply`, `harness upgrade` /
 `harness upgrade apply`, and `harness destroy --confirm` create local recovery
@@ -131,8 +134,8 @@ discovery, external-target smoke, merge-safe force-compatible external-smoke
 init, guarded publish planning, and named real-repo smoke exist. Npm
 publication and the release-license decision are intentionally deferred.
 General generated-file, module-definition, broad semantic merge, and
-review-mediated file/template upgrade apply, profile sync apply, profile
-removal, and non-npm distribution do not exist yet. The
+review-mediated file/template upgrade apply, profile removal, and non-npm
+distribution do not exist yet. The
 `lock-source-sha-drift-on-module-install` open question is resolved: lock
 refresh/check now resolves template source fingerprints from the executing
 harness source/package root, and composed apply commands keep JSON output
@@ -295,7 +298,8 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `npm run profiles:switch -- <profile> --plan` plans a profile switch for an
   installed target without writing files.
 - `npm run profiles:sync -- --plan` plans active-profile alignment for an
-  installed target without writing files.
+  installed target without writing files; pass `-- --apply` to install clean
+  missing active-profile modules without switching profiles.
 - Supported mutation commands create lifecycle backups before changing or
   deleting existing files. Normal apply backups live under `.harness/backups/`;
   confirmed destroy backups live under `.harness-destroy-backups/`.
@@ -314,7 +318,7 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `npm test` covers default full init, explicit minimal init, doctor success,
   merge-safe existing `AGENTS.md`, no-overwrite `--force` compatibility,
   destroy planning and confirmed teardown, unsupported profile failure, profile
-  inspection, profile switch plan/apply, profile sync planning, lifecycle
+  inspection, profile switch plan/apply, profile sync plan/apply, lifecycle
   backup manifests for modules/profile/upgrade/destroy mutation surfaces,
   rollback planning from backup manifests,
   decisions/questions, upgrade-plan scenarios, bare upgrade apply, global CLI
@@ -496,115 +500,11 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 - `reconciliation/` — dogfood reconciliation drift rules and snapshots.
 - `modules/*/module.yaml` — active module definitions.
 - `open-questions.yaml` — structured unresolved questions.
-- `decisions/0001-adopt-decisions-and-open-questions-domain.md` — first
-  dogfood decision record, created with the new decisions command.
-- `decisions/0002-adopt-depth-gate-and-plan-first-upgrade-surface.md` —
-  decision record for depth-gate validation and plan-first upgrade planning.
-- `decisions/0003-adopt-product-spec-and-roadmap-as-directional-v1-north-star.md`
-  — decision record for adding the product spec and roadmap as product-level
-  guidance.
-- `decisions/0004-adopt-registry-backed-module-installation-surface.md` —
-  decision record for adding the source registry, profile records, and first
-  module install commands.
-- `decisions/0005-adopt-profile-backed-init-and-profile-listing.md` —
-  decision record for profile listing and profile-backed init.
-- `decisions/0006-adopt-installed-lock-provenance.md` — decision record for the
-  initial lock/provenance artifact.
-- `decisions/0007-adopt-safe-upgrade-apply-scaffold.md` — decision record for
-  the limited safe upgrade apply scaffold.
-- `decisions/0008-adopt-upgrade-operation-contract-closeout.md` — decision
-  record for the formal operation contract, JSON plans, semantic provenance,
-  and safe command repair.
-- `decisions/0009-adopt-structured-metadata-as-first-phase-4-module.md` —
-  decision record for adopting Structured Metadata as the first Phase 4 module.
-- `decisions/0010-deepen-structured-metadata-query-and-validation.md` —
-  decision record for filtered metadata queries, JSON output, report summaries,
-  and dependency validation.
-- `decisions/0011-adopt-canonical-state-as-second-phase-4-module.md` —
-  decision record for adopting Canonical State as the second Phase 4 module.
-- `decisions/0012-deepen-canonical-state-query-and-reporting.md` — decision
-  record for Canonical State list/report queries and JSON output.
-- `decisions/0013-adopt-invariants-and-golden-principles-module.md` —
-  decision record for adopting Invariants And Golden Principles as a Phase 4
-  module.
-- `decisions/0014-adopt-plans-and-status-module.md` — decision record for
-  adopting Plans And Status as a Phase 4 module.
-- `decisions/0015-adopt-distribution-readiness-smoke-test.md` — decision
-  record for adopting packed-package distribution smoke validation.
-- `decisions/0016-adopt-explicit-npm-package-boundary.md` — decision record
-  for adopting an explicit npm package boundary and contents check.
-- `decisions/0017-adopt-release-preflight-plan.md` — decision record for
-  adopting a blocked release preflight plan before publish automation.
-- `decisions/0018-adopt-registry-version-discovery.md` — decision record for
-  adopting npm registry version discovery in package-installed upgrade plans.
-- `decisions/0019-adopt-external-target-distribution-smoke.md` — decision
-  record for adopting copied external-target distribution smoke validation.
-- `decisions/0020-adopt-guarded-npm-publish-workflow.md` — decision record for
-  adopting public npm access policy and guarded publish planning.
-- `decisions/0021-adopt-forceable-external-smoke-init.md` — decision record
-  for superseded forced init overwrite semantics and still-relevant external
-  smoke compatibility.
-- `decisions/0022-close-phase-5-with-local-tarball-distribution.md` — decision
-  record for closing Phase 5 with local tarball distribution while registry
-  publication remains deferred.
-- `decisions/0023-adopt-v1-validation-and-deferred-scope-baseline.md` —
-  decision record for adopting the v1 validation matrix and deferred-scope
-  baseline.
-- `decisions/0024-adopt-profile-bounded-safe-module-install-apply.md` —
-  decision record for operation contract version 2 and clean active-profile
-  module installs through `harness upgrade apply`.
-- `decisions/0025-adopt-profile-inspection-before-profile-switching.md` —
-  decision record for adding read-only profile inspection before profile
-  switching.
-- `decisions/0026-adopt-v1-1-private-fleet-cascade-roadmap.md` — decision
-  record for the superseded private fleet and cascading-upgrade roadmap.
-- `decisions/0027-adopt-standalone-installed-instance-upgrade-model.md` —
-  decision record for adopting the standalone installed-instance upgrade model.
-- `decisions/0028-adopt-plan-first-profile-switch-planning.md` — decision
-  record for adding read-only profile switch planning.
-- `decisions/0029-adopt-safe-profile-switch-apply.md` — decision record for
-  adding safe profile switch apply for clean plans.
-- `decisions/0030-use-harness-source-root-for-template-lock-checks.md` —
-  decision record for checking template source locks against the executing
-  harness source root.
-- `decisions/0031-adopt-safe-template-cascade-apply-baseline.md` — decision
-  record for operation contract version 3 and clean module-template cascade
-  apply.
-- `decisions/0032-adopt-plan-first-profile-sync-planning.md` — decision record
-  for adding read-only active-profile sync planning.
-- `decisions/0033-rename-complete-profile-to-full.md` — decision record for
-  renaming the complete install profile from `dogfood` to `full`.
-- `decisions/0034-adopt-global-cli-and-merge-safe-init.md` — decision record
-  for global CLI installation, default full init, merge-safe init, and bare
-  `harness upgrade` safe apply.
-- `decisions/0035-adopt-confirm-gated-harness-destroy.md` — decision record
-  for read-only destroy planning, confirm-gated teardown, `.git/`
-  preservation, and marker-based cleanup for human-facing files.
-- `decisions/0036-adopt-durable-memory-baseline-module.md` — decision record
-  for adopting Durable Memory as a process-domain breadth module.
-- `decisions/0037-adopt-capture-and-triage-baseline-module.md` — decision
-  record for adopting Capture And Triage as a process-domain breadth module.
-- `decisions/0038-adopt-application-corpus-legibility-baseline-module.md` —
-  decision record for adopting Application / Corpus Legibility as a
-  process-domain breadth module.
-- `decisions/0039-adopt-reports-and-retrieval-baseline-module.md` — decision
-  record for adopting Reports And Retrieval as a process-domain breadth
-  module.
-- `decisions/0040-adopt-reconciliation-and-drift-detection-baseline-module.md`
-  — decision record for adopting Reconciliation And Drift Detection as a
-  process-domain breadth module.
-- `decisions/0041-adopt-gardening-and-entropy-management-baseline-module.md`
-  — decision record for adopting Gardening And Entropy Management as a
-  process-domain breadth module.
-- `decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md`
-  — decision record for configurable Gardening thresholds and reviewed cleanup
-  action policy.
-- `decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md` —
-  decision record for creating local recovery snapshots before supported safe
-  mutation surfaces.
-- `decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md` —
-  decision record for adding read-only rollback planning from lifecycle backup
-  manifests while deferring restore/apply.
+- `decisions/` — 45 accepted decision records. Current high-signal records are
+  `0034` for global CLI and merge-safe init, `0035` for confirm-gated destroy,
+  `0036`-`0041` for the installed process-domain breadth modules, `0042` for
+  Gardening threshold depth, `0043` for lifecycle backups, `0044` for rollback
+  planning, and `0045` for clean active-profile sync apply.
 - `modules/registry.yaml` — source registry of modules available to list or
   install.
 - `profiles/minimal.yaml` / `profiles/full.yaml` — current profile bundle
@@ -644,9 +544,10 @@ Installed harness package: `portable-harness` 0.1.0, profile `full`.
 
 ## Next Work
 
-- Continue private production hardening: evaluate profile sync apply after more
-  read-only sync evidence, and keep rollback restore/apply deferred until the
-  plan-only rollback surface has dogfood evidence.
+- Continue private production hardening with review-mediated upgrade workflows
+  for generated files, module definitions, semantic YAML merges, or
+  reviewed file/template updates; keep rollback restore/apply deferred until
+  the plan-only rollback surface has dogfood evidence.
 - Keep npm publication deferred; do not clear `private: true` or `UNLICENSED`
   unless a new decision intentionally resumes public release work.
 - Keep the current strategy: add breadth only when it forces concrete tooling,

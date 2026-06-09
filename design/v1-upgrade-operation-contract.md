@@ -1,10 +1,11 @@
 # Formal Design: V1 Upgrade Operation Contract
 
 **Status:** accepted baseline  
-**Date:** 2026-05-14; amended 2026-05-17, 2026-05-24, and 2026-06-07
+**Date:** 2026-05-14; amended 2026-05-17, 2026-05-24, 2026-06-07, and 2026-06-09
 **Scope:** upgrade-plan schema, operation classes, apply safety, and narrow
-repair behavior, including lifecycle backups before supported safe mutations
-and read-only rollback planning from backup manifests
+repair behavior, including lifecycle backups before supported safe mutations,
+profile sync apply backups, and read-only rollback planning from backup
+manifests
 
 This is a formal design document. It defines the contract between upgrade
 planning and upgrade application for v1 harness lifecycle work.
@@ -169,6 +170,7 @@ existing files:
 
 - `harness modules add`
 - `harness profiles switch --apply`
+- `harness profiles sync --apply`
 - `harness upgrade` / `harness upgrade apply`
 - `harness destroy --confirm`
 

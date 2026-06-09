@@ -1,7 +1,7 @@
 # Harness managed file: structured-metadata
 metadata:
   version: 1
-  updated: 2026-06-07
+  updated: 2026-06-09
   scope: harness-source-repo
   artifacts:
     - id: agents
@@ -71,6 +71,7 @@ metadata:
         - upgrade-guidance
         - profile-switch
         - profile-sync
+        - profile-sync-apply
         - rollback
       depends_on:
         - product-spec
@@ -250,6 +251,7 @@ metadata:
         - install
         - docs
         - installed-instance
+        - profile-sync-apply
       depends_on:
         - distribution-readiness-design
         - package
@@ -798,6 +800,7 @@ metadata:
         - cli
         - profile-switch
         - profile-sync
+        - profile-sync-apply
         - backup
       depends_on:
         - profile-minimal
@@ -1289,6 +1292,21 @@ metadata:
         - decision
       depends_on:
         - template-cascade-apply-decision
+        - profiles-cli
+
+    - id: profile-sync-apply-decision
+      path: decisions/0045-adopt-safe-profile-sync-apply.md
+      kind: decision
+      status: active
+      owner_domain: harness-lifecycle
+      tags:
+        - profiles
+        - profile-sync
+        - apply
+        - private-hardening
+        - decision
+      depends_on:
+        - profile-sync-planning-decision
         - profiles-cli
 
     - id: complete-profile-rename-decision

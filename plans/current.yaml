@@ -1,7 +1,7 @@
 # Harness managed file: plans-and-status
 plans_status:
   version: 1
-  updated: 2026-06-07
+  updated: 2026-06-09
   scope: harness-source-repo
   status_projection: status.md
   plans:
@@ -542,7 +542,7 @@ plans_status:
       priority: high
       owner_domain: gardening-and-entropy-management
       summary: Gardening And Entropy Management is now installed in the full profile with gardening rules, snapshots, list/check/report/plan commands, doctor validation, tests, and dogfood state.
-      next_action: Use rollback planning evidence before any restore/apply behavior, and continue private hardening with profile sync apply evaluation.
+      next_action: Use rollback planning evidence before any restore/apply behavior, and continue private hardening with review-mediated upgrade workflows.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -566,8 +566,8 @@ plans_status:
       status: active
       priority: high
       owner_domain: harness-lifecycle
-      summary: With all formal process-domain baselines installed, private hardening now has configurable Gardening thresholds, explicit read-only cleanup action policy, reviewed action labels, full-profile garden-plan smoke preflight, lifecycle backups before supported mutation surfaces, and read-only rollback planning from backup manifests.
-      next_action: Evaluate profile sync apply after more read-only sync evidence; keep rollback restore/apply deferred until the plan-only rollback surface has dogfood evidence.
+      summary: With all formal process-domain baselines installed, private hardening now has configurable Gardening thresholds, explicit read-only cleanup action policy, reviewed action labels, full-profile garden-plan smoke preflight, lifecycle backups before supported mutation surfaces, read-only rollback planning from backup manifests, and clean profile sync apply.
+      next_action: Choose the next review-mediated upgrade workflow increment while keeping rollback restore/apply deferred until the plan-only rollback surface has dogfood evidence.
       canonical_state_id: v1.1-installed-instance-roadmap
       tags:
         - v1.1
@@ -580,10 +580,12 @@ plans_status:
         - decisions/0042-adopt-configurable-gardening-thresholds-and-reviewed-cleanup-policy.md
         - decisions/0043-adopt-lifecycle-backups-before-safe-mutations.md
         - decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md
+        - decisions/0045-adopt-safe-profile-sync-apply.md
         - gardening/rules.yaml
         - scripts/garden.mjs
         - scripts/lifecycle-backup.mjs
         - scripts/rollback.mjs
+        - scripts/profiles.mjs
         - scripts/distribution.mjs
         - status.md
 
@@ -606,5 +608,27 @@ plans_status:
         - decisions/0044-adopt-rollback-planning-from-lifecycle-backups.md
         - scripts/rollback.mjs
         - scripts/lifecycle-backup.mjs
+        - scripts/test.mjs
+        - status.md
+
+    - id: v1.1-profile-sync-apply-depth
+      title: Add safe profile sync apply
+      status: complete
+      priority: high
+      owner_domain: harness-lifecycle
+      summary: Profile sync now applies clean active-profile alignment by installing missing active-profile modules through the existing module installer, creating lifecycle backups, and refusing review-required or blocked plans.
+      canonical_state_id: v1.1-installed-instance-roadmap
+      tags:
+        - v1.1
+        - hardening
+        - profiles
+        - profile-sync
+        - complete
+      references:
+        - design/v1.1-installed-instance-roadmap.md
+        - design/v1-module-profile-installation-design.md
+        - decisions/0045-adopt-safe-profile-sync-apply.md
+        - scripts/profiles.mjs
+        - scripts/modules.mjs
         - scripts/test.mjs
         - status.md

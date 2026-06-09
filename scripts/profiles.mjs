@@ -440,7 +440,8 @@ function buildSyncPlan({ activeProfile, target, modules }) {
   const blockers = [];
   const notes = [
     "sync reads the target manifest active profile; it does not switch profiles",
-    "sync is plan-only; apply is intentionally deferred",
+    "apply installs clean missing active-profile modules only",
+    "apply refuses plans that contain review-required or blocked operations",
     "modules outside the active profile are retained by default",
   ];
   const operations = [];
@@ -517,13 +518,6 @@ function buildSyncPlan({ activeProfile, target, modules }) {
     });
   }
 
-  addOperation(operations, {
-    code: "deferred/sync-apply-not-implemented",
-    subject_type: "profile-sync",
-    subject: "harness profiles sync --apply",
-    detail: "profile sync apply is not implemented; this command is read-only",
-  });
-
   return {
     actions,
     warnings,
@@ -532,6 +526,114 @@ function buildSyncPlan({ activeProfile, target, modules }) {
     retained_modules: retainedModules,
     operations,
     operation_summary: summarizeOperations(operations),
+  };
+}
+
+function applySyncPlan({ root, plan, sourceRoot }) {
+  const blockers = plan.operations.filter((operation) => operation.status === "blocked");
+  const reviews = plan.operations.filter((operation) => operation.status === "review");
+  const skipped = plan.operations.filter((operation) => operation.status === "deferred");
+
+  if (blockers.length > 0 || reviews.length > 0) {
+    return {
+      ok: false,
+      target: root,
+      applied: [],
+      skipped,
+      blockers,
+      reviews,
+      backup: null,
+      errors: [
+        ...reviews.map((operation) => `${operation.code}: ${operation.subject}`),
+        ...blockers.map((operation) => `${operation.code}: ${operation.subject}`),
+      ],
+    };
+  }
+
+  const applied = [];
+  const moduleInstalls = plan.operations.filter(
+    (operation) => operation.code === "safe/sync-module-install",
+  );
+
+  for (const operation of moduleInstalls) {
+    const moduleId = operation.install?.module_id ?? operation.subject;
+    const preflight = planModuleInstall({ root, moduleId, force: false, sourceRoot });
+    if (!preflight.ok) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped,
+        blockers,
+        reviews,
+        backup: null,
+        errors: (preflight.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
+      };
+    }
+  }
+
+  const mutationPaths = new Set();
+  if (moduleInstalls.length > 0) {
+    mutationPaths.add(".harness/manifest.yaml");
+    mutationPaths.add(".harness/lock.yaml");
+  }
+  for (const operation of moduleInstalls) {
+    for (const artifact of operation.install?.artifacts ?? []) {
+      if (artifact.type !== "directory" && artifact.path) mutationPaths.add(artifact.path);
+    }
+  }
+  const backup = mutationPaths.size > 0
+    ? createLifecycleBackup({
+      root,
+      purpose: "profiles-sync-apply",
+      paths: Array.from(mutationPaths),
+      metadata: {
+        command: "harness profiles sync --apply",
+        active_profile: plan.active_profile?.id ?? null,
+      },
+    })
+    : null;
+
+  for (const operation of moduleInstalls) {
+    const moduleId = operation.install?.module_id ?? operation.subject;
+    const installed = installModule({ root, moduleId, force: false, sourceRoot, quiet: true, backup: false });
+    if (!installed.ok) {
+      return {
+        ok: false,
+        target: root,
+        applied,
+        skipped,
+        blockers,
+        reviews,
+        backup,
+        errors: (installed.errors ?? []).map((error) => `${operation.code}: ${moduleId}: ${error}`),
+      };
+    }
+    applied.push(installed.noop
+      ? `safe/sync-module-install: ${moduleId} already installed`
+      : `safe/sync-module-install: ${moduleId}`);
+  }
+
+  const presentCount = plan.operations.filter(
+    (operation) => operation.code === "safe/sync-module-present",
+  ).length;
+  if (presentCount > 0) {
+    applied.push(`safe/sync-module-present: ${presentCount} module(s) already installed`);
+  }
+
+  if (moduleInstalls.length === 0) {
+    applied.push("safe/sync-noop: active profile already satisfied");
+  }
+
+  return {
+    ok: true,
+    target: root,
+    applied,
+    skipped,
+    blockers,
+    reviews,
+    backup,
+    errors: [],
   };
 }
 
@@ -728,6 +830,28 @@ function printSwitchApply(result) {
   printList("errors", result.apply.errors);
 }
 
+function printSyncApply(result) {
+  console.log("Harness profile sync apply");
+  console.log(`target: ${result.target.root}`);
+  console.log(`active_profile: ${result.target.active_profile}`);
+  console.log(`apply_ok: ${result.apply.ok ? "yes" : "no"}`);
+  if (result.apply.backup?.created) console.log(`backup: ${result.apply.backup.path}`);
+  printList("applied", result.apply.applied);
+  printList(
+    "skipped",
+    result.apply.skipped.map((operation) => `${operation.code}: ${operation.subject}`),
+  );
+  printList(
+    "reviews",
+    result.apply.reviews.map((operation) => `${operation.code}: ${operation.subject}`),
+  );
+  printList(
+    "blockers",
+    result.apply.blockers.map((operation) => `${operation.code}: ${operation.subject}`),
+  );
+  printList("errors", result.apply.errors);
+}
+
 function printHelp() {
   console.log(`harness profiles
 
@@ -737,6 +861,7 @@ Usage:
   harness profiles switch <profile> --plan [--target <path>] [--json]
   harness profiles switch <profile> --apply [--target <path>] [--json]
   harness profiles sync --plan [--target <path>] [--json]
+  harness profiles sync --apply [--target <path>] [--json]
 `);
 }
 
@@ -1042,6 +1167,7 @@ function runSync({ cwd, args, sourceRoot }) {
   const positional = positionalArgs(args);
   const wantsJson = args.includes("--json");
   const wantsPlan = args.includes("--plan");
+  const wantsApply = args.includes("--apply");
   const targetMissing = missingFlagValue(args, "--target");
   const targetRoot = resolve(cwd, argValue(args, "--target", cwd));
 
@@ -1053,8 +1179,12 @@ function runSync({ cwd, args, sourceRoot }) {
     return emitFailure({ errors: ["profiles sync --target requires a path"], wantsJson });
   }
 
-  if (!wantsPlan || args.includes("--apply")) {
-    return emitFailure({ errors: ["profiles sync requires --plan; apply is not implemented"], wantsJson });
+  if (!wantsPlan && !wantsApply) {
+    return emitFailure({ errors: ["profiles sync requires --plan or --apply"], wantsJson });
+  }
+
+  if (wantsPlan && wantsApply) {
+    return emitFailure({ errors: ["profiles sync cannot use --plan and --apply together"], wantsJson });
   }
 
   const loadedTarget = loadTargetManifest(targetRoot);
@@ -1094,9 +1224,9 @@ function runSync({ cwd, args, sourceRoot }) {
     && inspectionSummary.clean_install === 0;
   const planResult = {
     ok: true,
-    mode: "plan",
+    mode: wantsApply ? "apply" : "plan",
     plan_schema_version: 1,
-    apply_available: false,
+    apply_available: true,
     target: {
       root: target.root,
       active_profile: target.profile,
@@ -1119,7 +1249,17 @@ function runSync({ cwd, args, sourceRoot }) {
     notes: syncPlan.notes,
   };
 
-  return emitResult({ result: planResult, wantsJson, print: printSyncPlan });
+  if (wantsPlan) {
+    return emitResult({ result: planResult, wantsJson, print: printSyncPlan });
+  }
+
+  const apply = applySyncPlan({ root: targetRoot, plan: planResult, sourceRoot });
+  const applyResult = {
+    ...planResult,
+    ok: apply.ok,
+    apply,
+  };
+  return emitResult({ result: applyResult, wantsJson, print: printSyncApply });
 }
 
 export function runProfiles({ cwd = process.cwd(), args = [], sourceRoot = SOURCE_ROOT } = {}) {

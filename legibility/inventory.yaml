@@ -1,7 +1,7 @@
 # Harness managed file: application-corpus-legibility
 legibility:
   version: 1
-  updated: 2026-06-07
+  updated: 2026-06-09
   scope: harness-source-repo
   surfaces:
     - id: harness-cli-entrypoint
@@ -23,12 +23,14 @@ legibility:
       title: Module and profile registry
       kind: source-map
       status: active
-      summary: The module registry and profile files define what can be installed into target repos and what the full profile includes.
-      how_to_inspect: List modules and profiles, then inspect module definitions before changing profile-backed install behavior.
+      summary: The module registry and profile files define what can be installed into target repos, what the full profile includes, and how profile alignment can be planned or cleanly applied.
+      how_to_inspect: List modules and profiles, then inspect module definitions and profile sync output before changing profile-backed install behavior.
       commands:
         - npm run modules:list
         - npm run profiles:list
         - npm run profiles:inspect -- full
+        - npm run profiles:sync -- --plan
+        - npm run profiles:sync -- --apply
       references:
         - modules/registry.yaml
         - profiles/full.yaml
@@ -148,7 +150,7 @@ legibility:
       kind: source-map
       status: active
       summary: The lifecycle backup helper and rollback planner create and inspect local recovery snapshots for supported repo mutations.
-      how_to_inspect: Inspect backup helper behavior, rollback planning behavior, and mutation command call sites before changing module add, profile switch apply, upgrade apply, destroy confirm, or recovery planning behavior.
+      how_to_inspect: Inspect backup helper behavior, rollback planning behavior, and mutation command call sites before changing module add, profile switch apply, profile sync apply, upgrade apply, destroy confirm, or recovery planning behavior.
       commands:
         - node --check scripts/lifecycle-backup.mjs
         - node --check scripts/rollback.mjs

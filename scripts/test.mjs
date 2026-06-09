@@ -803,7 +803,7 @@ withTempDir((root) => {
   }));
   assert.equal(minimalSync.ok, true, "profiles sync --plan should pass against an initialized target");
   assert.equal(minimalSync.mode, "plan", "profiles sync should report plan mode");
-  assert.equal(minimalSync.apply_available, false, "profiles sync should be plan-only in the first increment");
+  assert.equal(minimalSync.apply_available, true, "profiles sync should expose clean apply availability");
   assert.equal(minimalSync.target.active_profile, "minimal", "profiles sync should use the manifest active profile");
   assert.equal(minimalSync.summary.installed, 2, "minimal sync should report installed active-profile modules");
   assert.equal(minimalSync.summary.in_sync, true, "minimal target should be in sync with the minimal profile");
@@ -813,9 +813,9 @@ withTempDir((root) => {
     "profiles sync should report already-installed active profile modules",
   );
   assert.equal(
-    hasOperation(minimalSync, "deferred/sync-apply-not-implemented", "harness profiles sync --apply"),
-    true,
-    "profiles sync should record apply as deferred",
+    minimalSync.operation_summary.by_code["deferred/sync-apply-not-implemented"] ?? 0,
+    0,
+    "profiles sync should no longer record apply as deferred",
   );
 
   const jsonSync = JSON.parse(execFileSync(
@@ -835,7 +835,7 @@ withTempDir((root) => {
   assert.equal(fullSync.ok, true, "profiles sync should plan from the active manifest profile");
   assert.equal(fullSync.target.active_profile, "full", "profiles sync should report changed active profile");
   assert.equal(fullSync.summary.clean_install, 11, "full sync should find clean missing active-profile modules");
-  assert.equal(fullSync.summary.ready, true, "clean missing modules should leave sync ready for future apply");
+  assert.equal(fullSync.summary.ready, true, "clean missing modules should leave sync ready for apply");
   assert.equal(fullSync.summary.in_sync, false, "missing active-profile modules should mean the target is not in sync");
   assert.equal(
     hasOperation(fullSync, "safe/sync-module-install", "decisions-open-questions"),
@@ -844,11 +844,52 @@ withTempDir((root) => {
   );
   assertNotExists(target, "modules/decisions-open-questions/module.yaml");
 
+  const syncApply = quiet(() => runProfiles({
+    cwd: root,
+    args: ["sync", "--target", target, "--apply"],
+  }));
+  assert.equal(syncApply.ok, true, "profiles sync --apply should install clean missing active-profile modules");
+  assert.equal(syncApply.mode, "apply", "profiles sync --apply should report apply mode");
+  assertBackupHasFile(target, syncApply.apply.backup, ".harness/manifest.yaml");
+  assertBackupHasFile(target, syncApply.apply.backup, ".harness/lock.yaml");
+  assert.equal(
+    syncApply.apply.applied.some((item) => item.includes("safe/sync-module-install: decisions-open-questions")),
+    true,
+    "profiles sync --apply should report installed active-profile modules",
+  );
+  assertExists(target, "modules/decisions-open-questions/module.yaml");
+  assertExists(target, "open-questions.yaml");
+  assertExists(target, "metadata/artifacts.yaml");
+  assertExists(target, "state/canonical-state.yaml");
+  assertExists(target, "invariants/golden-principles.yaml");
+  assertExists(target, "plans/current.yaml");
+  assertExists(target, "memory/operator-preferences.yaml");
+  assertExists(target, "memory/repo-notes.md");
+  assertExists(target, "memory/session-summaries.md");
+  assertExists(target, "legibility/inventory.yaml");
+  assertExists(target, "reports/catalog.yaml");
+  assertExists(target, "reconciliation/rules.yaml");
+  assertExists(target, "gardening/rules.yaml");
+
+  const afterApply = quiet(() => runProfiles({
+    cwd: root,
+    args: ["sync", "--target", target, "--plan"],
+  }));
+  assert.equal(afterApply.summary.installed, 13, "sync plan should report installed modules after apply");
+  assert.equal(afterApply.summary.clean_install, 0, "sync plan should have no missing modules after apply");
+  assert.equal(afterApply.summary.in_sync, true, "sync plan should report in-sync after apply");
+
   const syncWithoutPlan = quiet(() => runProfiles({
     cwd: root,
     args: ["sync", "--target", target],
   }));
-  assert.equal(syncWithoutPlan.ok, false, "profiles sync should require --plan");
+  assert.equal(syncWithoutPlan.ok, false, "profiles sync should require --plan or --apply");
+
+  const syncWithBothModes = quiet(() => runProfiles({
+    cwd: root,
+    args: ["sync", "--target", target, "--plan", "--apply"],
+  }));
+  assert.equal(syncWithBothModes.ok, false, "profiles sync should reject plan and apply together");
 
   const syncWithProfileArg = quiet(() => runProfiles({
     cwd: root,
@@ -856,10 +897,18 @@ withTempDir((root) => {
   }));
   assert.equal(syncWithProfileArg.ok, false, "profiles sync should not accept an explicit profile id");
 
-  writeFileSync(join(target, "open-questions.yaml"), "# pre-existing local file\n");
+  const collisionTarget = join(root, "collision-target");
+  initGitRepo(collisionTarget);
+  const collisionInit = quiet(() => runInit({
+    cwd: root,
+    args: ["--target", collisionTarget, "--profile", "minimal"],
+  }));
+  assert.equal(collisionInit.ok, true, "init should pass before profile sync collision test");
+  setManifestProfile(collisionTarget, "full");
+  writeFileSync(join(collisionTarget, "open-questions.yaml"), "# pre-existing local file\n");
   const collisionSync = quiet(() => runProfiles({
     cwd: root,
-    args: ["sync", "--target", target, "--plan"],
+    args: ["sync", "--target", collisionTarget, "--plan"],
   }));
   assert.equal(collisionSync.ok, true, "profiles sync should return review operations for collisions");
   assert.equal(collisionSync.summary.ready, false, "review-required sync plans should not be ready");
@@ -868,6 +917,12 @@ withTempDir((root) => {
     true,
     "profiles sync should classify active-profile module collisions as review-required",
   );
+  const collisionApply = quiet(() => runProfiles({
+    cwd: root,
+    args: ["sync", "--target", collisionTarget, "--apply"],
+  }));
+  assert.equal(collisionApply.ok, false, "profiles sync --apply should refuse review-required plans");
+  assert.equal(collisionApply.apply.backup, null, "profiles sync --apply should not create backups when refusing before mutation");
 });
 
 withTempDir((root) => {

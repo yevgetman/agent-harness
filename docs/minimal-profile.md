@@ -135,10 +135,15 @@ harness modules add <module-id>
 harness profiles inspect <profile>
 harness profiles switch <profile> --plan
 harness profiles sync --plan
+harness profiles sync --apply
 ```
 
 `harness modules add` also creates a local backup under `.harness/backups/`
 before writing module artifacts, manifest state, or lock state.
+
+`harness profiles sync --apply` handles only clean plans. It installs missing
+modules required by the target manifest's active profile, creates a lifecycle
+backup before writes, and refuses review-required or blocked plans.
 
 The first mechanically installable follow-on module is
 `decisions-open-questions`. `structured-metadata` is also installable and adds
@@ -185,8 +190,8 @@ See `docs/install.md` for the local tarball install path.
   human-authored files.
 - Backup manifests are recovery points; rollback planning is available, but
   rollback restore/apply is not implemented yet.
-- Profile switch apply handles clean plans only; profile sync is currently
-  plan-only, and profile removal is not implemented yet.
+- Profile switch apply and profile sync apply handle clean plans only; profile
+  removal is not implemented yet.
 - File management modes are recorded in `.harness/manifest.yaml`, but merge
   behavior is not implemented yet.
 - Lock refresh rebuilds file fingerprints and semantic provenance, but

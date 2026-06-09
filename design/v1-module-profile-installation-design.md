@@ -26,6 +26,7 @@ harness profiles inspect <profile>
 harness profiles switch <profile> --plan
 harness profiles switch <profile> --apply
 harness profiles sync --plan
+harness profiles sync --apply
 ```
 
 This is intentionally narrower than a complete package manager. The goal is to
@@ -180,6 +181,20 @@ Initial artifact types:
    not removed.
 10. Emit JSON when `--json` is passed.
 
+`harness profiles sync --apply [--target <path>] [--json]` should:
+
+1. Require an installed target manifest.
+2. Use the target manifest's active `harness.profile`.
+3. Rebuild the sync plan internally before any mutation.
+4. Refuse plans with review-required or blocked operations.
+5. Pre-check every required module install before writing any files.
+6. Install clean missing active-profile modules through the module-add
+   installer.
+7. Refresh lock provenance through the module installer.
+8. Retain modules outside the active profile by default.
+9. Never switch the target manifest profile.
+10. Emit JSON without nested install logs when `--json` is passed.
+
 `harness init [--profile <profile>]` should:
 
 1. Default to the `full` profile when no profile is requested.
@@ -254,7 +269,8 @@ making any changes.
 - Profile inspection is read-only; it does not apply missing modules.
 - Profile switch planning is read-only; profile switch apply handles only clean
   plans and refuses review-required or blocked operations.
-- Profile sync planning is read-only; profile sync apply is not implemented.
+- Profile sync apply handles clean plans only and refuses review-required or
+  blocked operations.
 - Profile removal is not implemented.
 - Module removal is not implemented.
 - Module dependency solving is not implemented.

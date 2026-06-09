@@ -162,6 +162,9 @@ Use `npm run profiles:list` to inspect available install profiles before
 changing profile-backed init behavior. Use
 `npm run profiles:inspect -- <profile>` to inspect a profile's module bundle
 and target install state before changing profile switching or upgrade behavior.
+Use `npm run profiles:sync -- --plan` before `npm run profiles:sync -- --apply`;
+sync apply is only for clean missing active-profile modules and must refuse
+review-required or blocked plans.
 
 ## Structured Metadata Discipline
 

@@ -6,7 +6,8 @@
 - V1.1 currently prioritizes installed-instance lifecycle, safe upgrades,
   process-domain depth, and private production hardening.
 - Global CLI install, merge-safe init, bare `harness upgrade`, profile switch
-  apply, profile sync planning, and clean template cascade apply are built.
+  apply, profile sync planning/apply, and clean template cascade apply are
+  built.
 - Durable Memory is implemented and validated as the first remaining
   process-domain breadth increment after the lifecycle depth work.
 - Capture And Triage is implemented and validated as the next process-domain
@@ -24,8 +25,8 @@
   apply, upgrade apply, and confirmed destroy.
 - Read-only rollback planning is implemented against lifecycle backup
   manifests.
-- The next recommended work is private production hardening for profile sync
-  apply after more read-only evidence; rollback restore/apply remains future
+- The next recommended work is private production hardening for
+  review-mediated upgrade workflows; rollback restore/apply remains future
   lifecycle work.
 
 ## Archive

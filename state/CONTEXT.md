@@ -1,6 +1,6 @@
 ---
 title: Harness Context Briefing
-generated_on: 2026-06-07
+generated_on: 2026-06-09
 generated_from:
   - design/v1.1-installed-instance-roadmap.md
   - design/v1-product-spec-and-roadmap.md
@@ -210,12 +210,13 @@ Current dogfood state:
   succeed, refreshes manifest lock provenance, retains modules outside the
   requested profile, and creates a lifecycle backup before the apply mutates
   files.
-- Profile sync planning exists via
-  `harness profiles sync --plan [--target <path>] [--json]`. It reads the
+- Profile sync planning and apply exist via
+  `harness profiles sync --plan [--target <path>] [--json]` and
+  `harness profiles sync --apply [--target <path>] [--json]`. Sync reads the
   target manifest's active profile, reuses module-add preflight, reports
   installed and clean missing active-profile modules, classifies collisions and
-  blockers, retains modules outside the active profile, and keeps sync apply
-  deferred.
+  blockers, retains modules outside the active profile, applies clean missing
+  active-profile modules, and refuses review-required or blocked plans.
 - `decisions-open-questions` is mechanically installable from the registry into
   a minimal target, and the broad temp-git test matrix now covers clean install,
   collisions, force install, missing source artifacts, doctor, and upgrade
@@ -276,7 +277,7 @@ Then open the relevant formal design or exploratory spec for the task.
 
 The first v1.1 installed-instance upgrade-contract increment, profile switch
 planning, safe profile switch apply, template source lock-check correction,
-clean template cascade apply baseline, profile sync planning, lifecycle
+clean template cascade apply baseline, profile sync planning/apply, lifecycle
 backups before supported mutations, rollback planning from backup manifests,
 and Durable Memory, Capture And Triage,
 Application / Corpus Legibility, Reports And Retrieval, Reconciliation And
@@ -344,7 +345,8 @@ machinery, but public release is not the current product priority.
   `.harness/backups/`; destroy backups live under `.harness-destroy-backups/`.
 - Rollback planning now exists through `npm run rollback:plan`; it inspects
   lifecycle backup manifests without mutating files.
-- Next work: continue private production hardening with profile sync apply once
-  read-only sync evidence is strong enough; keep rollback restore/apply
-  separate until plan-only rollback has dogfood evidence.
+- Next work: continue private production hardening with review-mediated upgrade
+  workflows for generated files, module definitions, semantic YAML merges, or
+  reviewed file/template updates; keep rollback restore/apply separate until
+  plan-only rollback has dogfood evidence.
 - Keep `status.md` current after significant choices.

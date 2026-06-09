@@ -234,6 +234,7 @@ harness profiles list
 harness profiles inspect full
 harness profiles switch full --plan
 harness profiles sync --plan
+harness profiles sync --apply
 ```
 
 Decision and question tracking:

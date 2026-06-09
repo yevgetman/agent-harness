@@ -28,7 +28,7 @@ workflow exists, but confirmation remains blocked while `package.json` has
 | Full default install | Bare `harness init` installs the complete `full` profile; `--profile minimal` remains available for bootstrap-only targets. | `npm test` covers default full init, explicit minimal init, doctor, and upgrade plan. |
 | Merge-safe init contract | Init preserves existing human-authored content, appends or updates harness-owned sections, and treats `--force` as a compatibility flag rather than overwrite authorization. | `npm test` covers existing `AGENTS.md` preservation, idempotent section updates, dry-run existing-artifact reporting, and no overwrite on `--force`. |
 | Destroy lifecycle | `harness destroy` plans teardown without writing; `harness destroy --confirm` creates a sibling backup, removes harness artifacts, preserves `.git/`, and surgically removes marked harness sections from files such as `AGENTS.md` and `.gitignore`. | `npm test` covers read-only planning, JSON planning, confirmed teardown backups, generated-only cleanup, and human-content preservation. |
-| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, and plan-syncable against the active target profile; registry modules can be listed and added into target repos with lifecycle backups before writes. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, and `npm run modules:list`. |
+| Module/profile lifecycle | Source profiles are listable, inspectable, plan-switchable, safely apply-switchable for clean plans, plan-syncable against the active target profile, and safely apply-syncable for clean active-profile module installs; registry modules can be listed and added into target repos with lifecycle backups before writes. | `npm test`, `npm run profiles:list`, `npm run profiles:inspect -- full`, `npm run profiles:switch -- full --plan`, `npm run profiles:switch -- full --apply`, `npm run profiles:sync -- --plan`, `npm run profiles:sync -- --apply`, and `npm run modules:list`. |
 | Additional process domains | Structured Metadata, Canonical State, Invariants And Golden Principles, Plans And Status, Durable Memory, Capture And Triage, Application / Corpus Legibility, Reports And Retrieval, Reconciliation And Drift Detection, and Gardening And Entropy Management are installed and dogfooded. Gardening includes configurable threshold validation, read-only action-policy validation, and reviewed action labels in cleanup plans. | `npm run metadata:check`, `npm run state:check`, `npm run invariants:check`, `npm run plans:check`, `npm run memory:check`, `npm run capture:check`, `npm run legibility:check`, `npm run reports:check`, `npm run reconcile:check`, `npm run reconcile:plan`, `npm run garden:check`, `npm run garden:plan`, and `npm run doctor`. |
 | Lock and provenance | `.harness/lock.yaml` records fingerprints and semantic provenance; lock drift is detectable. | `npm run lock:check`, `npm run doctor`, and lock/upgrade tests in `npm test`. |
 | Rollback planning | `harness rollback --plan` reads lifecycle backup manifests, verifies backup copy hashes, and classifies recovery candidates without restoring files. | `npm test` covers latest-backup selection, specific backup selection, safe missing-file restore candidates, review-required overwrites, corrupted backup blockers, and no-backup blockers. |
@@ -66,6 +66,7 @@ npm run profiles:list
 npm run profiles:inspect -- full
 npm run profiles:switch -- full --plan
 npm run profiles:sync -- --plan
+npm run profiles:sync -- --apply
 npm run metadata:check
 npm run state:check
 npm run invariants:check
@@ -199,8 +200,17 @@ active-profile modules as `safe/sync-module-present`, clean missing
 active-profile modules as `safe/sync-module-install`, collisions as
 `review/sync-module-install-collision`, unavailable required modules as
 blocked sync operations, retained modules outside the active profile as
-`deferred/profile-module-retained`, and sync apply as
-`deferred/sync-apply-not-implemented`.
+`deferred/profile-module-retained`, and whether the target is already in sync.
+
+The second v1.1 profile-sync increment is implemented.
+
+`harness profiles sync --apply [--target <path>] [--json]` applies clean sync
+plans. It re-runs the plan internally, refuses any review-required or blocked
+operation, pre-checks every required module install before writing, creates a
+lifecycle backup, installs clean missing active-profile modules through the
+existing module installer, refreshes lock provenance through that installer,
+retains modules outside the active profile, and never switches the target
+manifest profile.
 
 The global CLI and merge-safe init increment is implemented.
 
@@ -283,10 +293,9 @@ source fingerprints are checked against the executing harness source/package.
 
 The strongest remaining v1.1 candidates are:
 
-1. Add profile sync apply after the read-only plan has more dogfood evidence.
-2. Broaden generated-file, module-definition, merge-aware, and
+1. Broaden generated-file, module-definition, merge-aware, and
    review-mediated file/template upgrades while preserving review boundaries.
-3. Define rollback restore/apply only after plan-only rollback has enough
+2. Define rollback restore/apply only after plan-only rollback has enough
    dogfood evidence.
 
 Public publication remains deferred unless a new decision intentionally resumes

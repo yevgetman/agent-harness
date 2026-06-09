@@ -267,8 +267,8 @@ Initial checks:
   safe/repair-command operations, and clean profile-bounded
   safe/install-module operations, plus clean source-template managed-file
   updates.
-- Manifest command records may expose `harness profiles sync` for read-only
-  active-profile alignment planning.
+- Manifest command records may expose `harness profiles sync` for
+  active-profile alignment planning and clean sync apply.
 - Manifest commands are wired when the target repo exposes local package
   scripts or node entrypoints.
 - `index.yaml` document entries point to real files.
